@@ -1,0 +1,3288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b1d27">
+<title>bashDrill</title>
+<style>
+  :root{
+    --bg:#f3f2ee; --panel:#ffffff; --ink:#1b1d27; --muted:#6b6e7e;
+    --line:#e3e1da; --accent:#5b4bd6; --accent-ink:#fff;
+    --code-bg:#1b1d27; --code-ink:#e7e6f0; --prompt:#7c83a3;
+    --ok:#1f9d6b; --ok-bg:#e6f6ee; --close:#b8821b; --close-bg:#fbf2dd;
+    --bad:#cf4040; --bad-bg:#fbe7e7;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#15161d;--panel:#1f212b;--ink:#e7e6f0;--muted:#9296a8;
+      --line:#2c2f3b;--code-bg:#0f1016;--ok-bg:#16332a;--close-bg:#3a2f15;--bad-bg:#3a1f1f;}
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.45;-webkit-text-size-adjust:100%;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+  .wrap{max-width:680px;margin:0 auto;padding:14px 14px 40px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:4px 2px 14px}
+  .logo{font-family:var(--mono);font-weight:600;font-size:18px;letter-spacing:-.5px}
+  .logo b{color:var(--accent)}
+  .stat{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;justify-content:space-between}
+  .eyebrow .topic{color:var(--accent)}
+  .qname{font-weight:600;font-size:15px;margin:0 0 12px}
+  pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);
+    font-size:13.5px;line-height:1.55;padding:13px 14px;border-radius:10px;overflow-x:auto;margin:0 0 12px;white-space:pre}
+  pre.code .blank{background:rgba(123,131,163,.35);border-radius:3px;padding:0 .35em;color:#fff}
+  .prompt{color:var(--prompt)}
+  label.lbl{display:block;font-size:13px;color:var(--muted);margin:2px 0 6px}
+  textarea,input.ans{width:100%;font-family:var(--mono);font-size:14px;color:var(--ink);
+    background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 11px;resize:vertical}
+  textarea{min-height:70px;white-space:pre}
+  input.ans{height:42px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  button{font-family:var(--sans);font-size:14px;font-weight:550;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);border-radius:9px;padding:9px 15px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  button:active{transform:translateY(1px)}
+  button:disabled{opacity:.45;cursor:default}
+  .choices{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .choice{text-align:left;font-family:var(--mono);font-size:13.5px;line-height:1.4;white-space:pre-wrap}
+  .choice.sel{border-color:var(--accent)}
+  .choice.correct{background:var(--ok-bg);border-color:var(--ok)}
+  .choice.wrong{background:var(--bad-bg);border-color:var(--bad)}
+  .fb{margin-top:13px;border-radius:10px;padding:11px 13px;font-size:13.5px}
+  .fb .g{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+  .fb.exact{background:var(--ok-bg);border:1px solid var(--ok)} .fb.exact .g{color:var(--ok)}
+  .fb.close{background:var(--close-bg);border:1px solid var(--close)} .fb.close .g{color:var(--close)}
+  .fb.wrong{background:var(--bad-bg);border:1px solid var(--bad)} .fb.wrong .g{color:var(--bad)}
+  .fb pre{font-family:var(--mono);font-size:13px;white-space:pre-wrap;margin:6px 0 0;background:rgba(127,127,127,.10);padding:8px 10px;border-radius:7px}
+  .fb .why{margin-top:8px;color:var(--muted);font-family:var(--sans)}
+  .hintlink{font-size:12.5px;color:var(--accent);background:none;border:none;padding:4px 0;cursor:pointer;font-weight:550}
+  .panelhead{font-weight:600;font-size:14px;margin:0 0 10px}
+  .pills{display:flex;flex-wrap:wrap;gap:7px}
+  .pill{font-family:var(--mono);font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg);cursor:pointer;user-select:none}
+  .pill.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .pill.empty{opacity:.4;cursor:default}
+  .small{font-size:12px;color:var(--muted)}
+  .summary .big{font-family:var(--mono);font-size:30px;font-weight:600}
+  .bars{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .bar{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px}
+  .bar .track{flex:1;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--accent)}
+  .miss{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px}
+  .center{text-align:center}
+  details{margin-top:6px}
+  summary{cursor:pointer;font-size:13px;color:var(--muted)}
+  .kbd{font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ============================== DECK DATA ==============================
+   Single-file inline dataset. Keep a separate deck.json for editing and
+   paste the cards array back in here on rebuild.                          */
+const DECK_DATA = {
+ "meta": {
+  "version": "1.1",
+  "reference_lang": "en",
+  "level": "intermediate",
+  "subject": "bash/linux",
+  "created": "2026-07-06"
+ },
+ "topics": [
+  {
+   "id": "b1",
+   "label": "Quoting & expansion"
+  },
+  {
+   "id": "b2",
+   "label": "Globbing & wildcards"
+  },
+  {
+   "id": "b3",
+   "label": "Pipes & redirection"
+  },
+  {
+   "id": "b4",
+   "label": "Exit codes & logic"
+  },
+  {
+   "id": "b5",
+   "label": "Variables & environment"
+  },
+  {
+   "id": "b6",
+   "label": "Text processing"
+  },
+  {
+   "id": "b7",
+   "label": "Files & permissions"
+  },
+  {
+   "id": "b8",
+   "label": "Processes & jobs"
+  },
+  {
+   "id": "b9",
+   "label": "Tests & conditionals"
+  },
+  {
+   "id": "b10",
+   "label": "Loops & scripting"
+  },
+  {
+   "id": "b11",
+   "label": "Networking basics"
+  },
+  {
+   "id": "b12",
+   "label": "Arrays"
+  },
+  {
+   "id": "b13",
+   "label": "Argument parsing"
+  },
+  {
+   "id": "b14",
+   "label": "Gotcha gauntlet"
+  }
+ ],
+ "cards": [
+  {
+   "id": "b1-001",
+   "topic": "b1",
+   "name": "Single vs double quotes",
+   "summary": "Single quotes are literal: nothing inside expands. Double quotes expand $variables and $(commands) but protect against word splitting and globbing. Rule of thumb: double-quote every expansion; single-quote when you mean the literal text.",
+   "predict": [
+    {
+     "code": "x=world\necho '$x'\necho \"$x\"",
+     "output": "$x\nworld",
+     "why": "Single quotes suppress expansion; double quotes perform it."
+    }
+   ]
+  },
+  {
+   "id": "b1-002",
+   "topic": "b1",
+   "name": "Word splitting on unquoted expansion",
+   "summary": "An unquoted $x is split on whitespace into separate words before the command runs; \"$x\" stays one word. This is THE reason to quote expansions — filenames with spaces break otherwise.",
+   "predict": [
+    {
+     "code": "x='a   b'\nprintf '%s\\n' $x\nprintf '%s\\n' \"$x\"",
+     "output": "a\nb\na   b",
+     "why": "Unquoted, $x becomes two arguments; quoted, it stays one (inner spaces preserved)."
+    }
+   ]
+  },
+  {
+   "id": "b1-003",
+   "topic": "b1",
+   "name": "Command substitution",
+   "summary": "$(cmd) runs cmd and substitutes its stdout (trailing newlines stripped) into the line. It nests cleanly, unlike the legacy backticks.",
+   "predict": [
+    {
+     "code": "echo \"Now: $(echo hi)\"",
+     "output": "Now: hi",
+     "why": "The inner command's output is spliced into the string."
+    }
+   ]
+  },
+  {
+   "id": "b1-004",
+   "topic": "b1",
+   "name": "Default value ${var:-word}",
+   "summary": "${var:-word} expands to $var if set and non-empty, else to word — without assigning. ${var:=word} additionally assigns. The whole family (:-, :=, :?, :+) handles unset/empty parameters.",
+   "predict": [
+    {
+     "code": "unset name\necho \"${name:-guest}\"",
+     "output": "guest",
+     "why": "name is unset, so the fallback after :- is used."
+    }
+   ]
+  },
+  {
+   "id": "b1-005",
+   "topic": "b1",
+   "name": "String length ${#var}",
+   "summary": "${#var} is the length of the value in characters. Part of a larger ${...} toolbox: ${var#pat}/${var%pat} strip prefixes/suffixes, ${var/pat/rep} substitutes.",
+   "predict": [
+    {
+     "code": "s=hello\necho ${#s}",
+     "output": "5",
+     "why": "# before the name inside braces yields the length."
+    }
+   ]
+  },
+  {
+   "id": "b1-006",
+   "topic": "b1",
+   "name": "Arithmetic $(( ))",
+   "summary": "$((expr)) does integer arithmetic with C-like precedence and operators — no bc needed for whole numbers. Variables inside need no $.",
+   "predict": [
+    {
+     "code": "echo $((2 + 3 * 4))",
+     "output": "14",
+     "why": "* binds tighter than +, like C: 2 + 12."
+    }
+   ]
+  },
+  {
+   "id": "b1-007",
+   "topic": "b1",
+   "name": "Brace expansion",
+   "summary": "Braces generate strings BEFORE any variable expansion: {1..3} ranges, {a,b} alternatives. It is textual generation, not globbing — nothing needs to exist on disk.",
+   "predict": [
+    {
+     "code": "echo file{1..3}.txt",
+     "output": "file1.txt file2.txt file3.txt",
+     "why": "The brace range stamps out one word per value."
+    }
+   ]
+  },
+  {
+   "id": "b1-008",
+   "topic": "b1",
+   "name": "Variable name boundaries",
+   "summary": "$x0 is the variable named x0, not $x followed by 0 — the name greedily takes letters/digits/underscores. Braces mark the boundary: ${x}0.",
+   "predict": [
+    {
+     "code": "x=5\necho \"A$x0\"\necho \"A${x}0\"",
+     "output": "A\nA50",
+     "why": "$x0 is the (unset, empty) variable x0; ${x}0 is x then a literal 0."
+    }
+   ]
+  },
+  {
+   "id": "b1-f01",
+   "topic": "b1",
+   "name": "Fallback operator",
+   "summary": "The :- operator inside ${ } supplies a value when the variable is unset or empty, without modifying it.",
+   "fill": [
+    {
+     "code": "port=\"${PORT__8080}\"   # use 8080 when PORT is unset/empty",
+     "answer": ":-",
+     "hint": "the use-default operator"
+    }
+   ]
+  },
+  {
+   "id": "b1-f02",
+   "topic": "b1",
+   "name": "Length operator",
+   "summary": "A leading # inside the braces turns the expansion into the value's character count.",
+   "fill": [
+    {
+     "code": "n=${_name}   # number of characters in $name",
+     "answer": "#",
+     "hint": "one character, before the name"
+    }
+   ]
+  },
+  {
+   "id": "b1-f03",
+   "topic": "b1",
+   "name": "Capture command output",
+   "summary": "$( opens a command substitution; prefer it over backticks — it nests and reads clearly.",
+   "fill": [
+    {
+     "code": "today=__date +%F)   # capture the command's stdout",
+     "answer": "$(",
+     "hint": "the modern substitution opener"
+    }
+   ]
+  },
+  {
+   "id": "b1-c01",
+   "topic": "b1",
+   "name": "Which quotes expand?",
+   "summary": "Double quotes expand $var and $(cmd) but keep the result one word; single quotes are fully literal. Unquoted expands AND splits AND globs — the dangerous one.",
+   "confusable": [
+    {
+     "prompt": "You want $HOME expanded but the result kept as ONE word even if it contains spaces. Which?",
+     "options": [
+      "'$HOME'",
+      "\"$HOME\"",
+      "$HOME",
+      "\\$HOME"
+     ],
+     "answer": 1,
+     "explain": "Double quotes: expansion happens, splitting and globbing don't. Single quotes would print the literal $HOME; unquoted risks splitting."
+    }
+   ]
+  },
+  {
+   "id": "b1-c02",
+   "topic": "b1",
+   "name": "Boundary or braces",
+   "summary": "Braces delimit the variable name explicitly — the fix whenever a variable abuts more text.",
+   "confusable": [
+    {
+     "prompt": "x=5. Which prints 50?",
+     "options": [
+      "echo $x0",
+      "echo ${x}0",
+      "echo $[x]0",
+      "echo $((x))0  # prints 50 too, but which is the plain-string idiom?"
+     ],
+     "answer": 1,
+     "explain": "${x}0 ends the name at x. $x0 reads the variable x0. (The arithmetic form also works numerically but braces are the general string idiom.)"
+    }
+   ]
+  },
+  {
+   "id": "b2-001",
+   "topic": "b2",
+   "name": "* matches any run of characters",
+   "summary": "Globs are matched by the SHELL against filenames before the command runs; the command receives the expanded list. * = any run (not across /, not leading dots), ? = one char, [..] = a class.",
+   "predict": [
+    {
+     "code": "# dir contains: a.txt  b.txt  notes.md\nls *.txt",
+     "output": "a.txt  b.txt",
+     "why": "The shell expands *.txt to the matching names; ls just lists what it was handed."
+    }
+   ]
+  },
+  {
+   "id": "b2-002",
+   "topic": "b2",
+   "name": "? matches exactly one character",
+   "summary": "? matches exactly one character — a?.log matches a1.log but not a22.log (two chars where one is allowed).",
+   "predict": [
+    {
+     "code": "# dir contains: a1.log  a22.log  b1.log\nls a?.log",
+     "output": "a1.log",
+     "why": "? is one character: a1 fits, a22 needs two."
+    }
+   ]
+  },
+  {
+   "id": "b2-003",
+   "topic": "b2",
+   "name": "Unmatched glob stays literal",
+   "summary": "By default an unmatched glob is passed through UNCHANGED as the literal pattern — commands then see *.xyz as an argument. shopt -s nullglob makes it expand to nothing; failglob makes it an error.",
+   "predict": [
+    {
+     "code": "# dir contains: a.txt\necho *.xyz",
+     "output": "*.xyz",
+     "why": "No match, so the pattern itself becomes the argument (default bash behaviour)."
+    }
+   ]
+  },
+  {
+   "id": "b2-004",
+   "topic": "b2",
+   "name": "Dotfiles are excluded",
+   "summary": "* and ? never match a leading dot: hidden files are skipped unless you ask (.* or shopt -s dotglob). That is why ls * misses .env.",
+   "predict": [
+    {
+     "code": "# dir contains: .env  a.txt\necho *",
+     "output": "a.txt",
+     "why": "Leading-dot names require an explicit leading dot in the pattern."
+    }
+   ]
+  },
+  {
+   "id": "b2-005",
+   "topic": "b2",
+   "name": "Character classes",
+   "summary": "[ab]* matches names starting with a or b; [!ab]* (or [^ab]*) negates; ranges like [0-9] work. Same bracket idea as regex, but the surrounding grammar is glob, not regex.",
+   "predict": [
+    {
+     "code": "# dir contains: a1.txt  b2.txt  c3.txt\nls [ab]*.txt",
+     "output": "a1.txt  b2.txt",
+     "why": "The class matches a first letter of a or b; c3.txt is excluded."
+    }
+   ]
+  },
+  {
+   "id": "b2-f01",
+   "topic": "b2",
+   "name": "Single-character wildcard",
+   "summary": "? is the one-character wildcard; combine with literals to pin a length: ??? matches exactly three characters.",
+   "fill": [
+    {
+     "code": "ls report_.pdf   # match report1.pdf, reportA.pdf — one char only",
+     "answer": "?",
+     "hint": "one character, one symbol"
+    }
+   ]
+  },
+  {
+   "id": "b2-c01",
+   "topic": "b2",
+   "name": "Glob is not regex",
+   "summary": "Globs match filenames in the shell (* = any run); regexes match text in tools like grep (.* = any run, * alone = repeat previous). Quoting a pattern stops the shell globbing it before grep sees it.",
+   "confusable": [
+    {
+     "prompt": "In grep (regex), what is the equivalent of the shell glob *.txt's 'any characters'?",
+     "options": [
+      "*",
+      "%",
+      ".*",
+      "?"
+     ],
+     "answer": 2,
+     "explain": "Regex: . is any char, * repeats it, so .* = any run. A bare * in regex modifies the previous atom — not a wildcard on its own."
+    }
+   ]
+  },
+  {
+   "id": "b2-008",
+   "topic": "b2",
+   "name": "dotglob switches hidden files on",
+   "summary": "shopt -s dotglob makes * match leading-dot names too — the clean way to include hidden files in a glob. shopt -u dotglob switches it back off.",
+   "predict": [
+    {
+     "code": "touch .hidden visible\necho *\nshopt -s dotglob\necho *",
+     "output": "visible\n.hidden visible",
+     "why": "By default * skips leading-dot names; with dotglob set, .hidden joins the (alphabetically sorted) expansion."
+    }
+   ]
+  },
+  {
+   "id": "b2-009",
+   "topic": "b2",
+   "name": "extglob negation",
+   "summary": "shopt -s extglob unlocks extended patterns: !(pat) everything EXCEPT, ?(pat) zero-or-one, +(pat) one-or-more, @(a|b) exactly one of. Enable it on its own line — the parser must see the option before it reads the pattern.",
+   "predict": [
+    {
+     "code": "shopt -s extglob\ntouch a.txt b.log c.txt\nprintf '%s\\n' !(*.log)",
+     "output": "a.txt\nc.txt",
+     "why": "!(*.log) matches every name that does NOT match *.log. (On one ;-joined line this would be a syntax error — extglob must be on before the pattern is parsed.)"
+    }
+   ]
+  },
+  {
+   "id": "b2-f02",
+   "topic": "b2",
+   "name": "Empty instead of literal",
+   "summary": "With nullglob set, a glob that matches nothing expands to NOTHING instead of staying literal — so for f in *.txt simply runs zero times in an empty directory rather than once with the literal '*.txt'.",
+   "fill": [
+    {
+     "code": "shopt -s ________   # unmatched globs expand to nothing, not themselves",
+     "answer": "nullglob",
+     "hint": "shopt option, 8 letters"
+    }
+   ]
+  },
+  {
+   "id": "b2-c02",
+   "topic": "b2",
+   "name": "The .* trap",
+   "summary": "The pattern .* matches every leading-dot name — INCLUDING the directory entries . and .. themselves. Scripts that loop or rm over .* touch the current and parent directory. Use dotglob, or the pattern .[!.]* for real dotfiles.",
+   "confusable": [
+    {
+     "prompt": "for f in .* — why is this loop over hidden files risky?",
+     "options": [
+      "It also matches . and .. (current and parent directory)",
+      ".* is regex syntax, not a glob",
+      "Hidden files cannot be globbed at all",
+      "It matches non-hidden files too"
+     ],
+     "answer": 0,
+     "explain": ".* happily matches the . and .. entries, so the loop visits the current and parent directory. shopt -s dotglob with *, or the pattern .[!.]*, avoids them."
+    }
+   ]
+  },
+  {
+   "id": "b3-001",
+   "topic": "b3",
+   "name": "> writes a file",
+   "summary": "> redirects stdout to a file, creating or TRUNCATING it. The file is opened before the command runs — which is why 'cmd < f > f' destroys f.",
+   "predict": [
+    {
+     "code": "echo hi > f.txt\ncat f.txt",
+     "output": "hi",
+     "why": "stdout of echo went into f.txt; cat reads it back."
+    }
+   ]
+  },
+  {
+   "id": "b3-002",
+   "topic": "b3",
+   "name": ">> appends",
+   "summary": ">> opens the file for append instead of truncating — the log-file operator.",
+   "predict": [
+    {
+     "code": "echo a > f.txt\necho b >> f.txt\ncat f.txt",
+     "output": "a\nb",
+     "why": "> created the file with a; >> appended b."
+    }
+   ]
+  },
+  {
+   "id": "b3-003",
+   "topic": "b3",
+   "name": "> truncates every time",
+   "summary": "A second > on the same file wipes it first — only the last write survives. Append needs >>.",
+   "predict": [
+    {
+     "code": "echo a > f.txt\necho b > f.txt\ncat f.txt",
+     "output": "b",
+     "why": "The second > truncated the file before writing."
+    }
+   ]
+  },
+  {
+   "id": "b3-004",
+   "topic": "b3",
+   "name": "Pipes connect stdout to stdin",
+   "summary": "cmd1 | cmd2 wires cmd1's stdout to cmd2's stdin, running both concurrently. Only STDOUT travels the pipe; stderr still goes to the terminal.",
+   "predict": [
+    {
+     "code": "echo hello | tr a-z A-Z",
+     "output": "HELLO",
+     "why": "tr reads the piped text and upcases it."
+    }
+   ]
+  },
+  {
+   "id": "b3-005",
+   "topic": "b3",
+   "name": "stderr is a separate stream",
+   "summary": "fd 1 is stdout, fd 2 is stderr. 2>/dev/null discards errors while stdout flows normally — the two streams are independent until you merge them with 2>&1.",
+   "predict": [
+    {
+     "code": "{ echo out; echo err 1>&2; } 2>/dev/null",
+     "output": "out",
+     "why": "The stderr line was redirected to /dev/null; only stdout remains."
+    }
+   ]
+  },
+  {
+   "id": "b3-006",
+   "topic": "b3",
+   "name": "Counting lines through a pipe",
+   "summary": "wc -l counts newline-terminated lines from stdin — the canonical pipe terminator for 'how many'.",
+   "predict": [
+    {
+     "code": "printf 'a\\nb\\nc\\n' | wc -l",
+     "output": "3",
+     "why": "Three newline-terminated lines."
+    }
+   ]
+  },
+  {
+   "id": "b3-007",
+   "topic": "b3",
+   "name": "< feeds a file to stdin",
+   "summary": "cmd < file connects the file to the command's stdin — how you feed programs that only read standard input.",
+   "predict": [
+    {
+     "code": "echo hi > f.txt\ncat < f.txt",
+     "output": "hi",
+     "why": "cat read from stdin, which was the file."
+    }
+   ]
+  },
+  {
+   "id": "b3-f01",
+   "topic": "b3",
+   "name": "Discard errors",
+   "summary": "/dev/null is the bit bucket: redirect a stream there to silence it. 2> targets stderr specifically.",
+   "fill": [
+    {
+     "code": "cmd 2>_________   # silence error output",
+     "answer": "/dev/null",
+     "hint": "the discard device"
+    }
+   ]
+  },
+  {
+   "id": "b3-f02",
+   "topic": "b3",
+   "name": "Write AND pass along",
+   "summary": "tee duplicates its stdin to a file and to stdout — logging in the middle of a pipeline. -a appends.",
+   "fill": [
+    {
+     "code": "make 2>&1 | ___ build.log   # save output and still see it",
+     "answer": "tee",
+     "hint": "the T-junction command"
+    }
+   ]
+  },
+  {
+   "id": "b3-c01",
+   "topic": "b3",
+   "name": "Redirection order matters",
+   "summary": "Redirections apply left to right. >f 2>&1 first points stdout at f, then points stderr at 'wherever stdout points' (f). Reversed, stderr copies the terminal before stdout moves — so errors stay on screen.",
+   "confusable": [
+    {
+     "prompt": "Which sends BOTH stdout and stderr into f?",
+     "options": [
+      "cmd 2>&1 > f",
+      "cmd > f 2>&1",
+      "cmd 2> f 1>&2 > f",
+      "cmd | f"
+     ],
+     "answer": 1,
+     "explain": "> f moves stdout first; then 2>&1 duplicates stderr onto it. The reversed order snapshots the terminal into stderr before stdout moves."
+    }
+   ]
+  },
+  {
+   "id": "b3-c02",
+   "topic": "b3",
+   "name": "What travels a pipe",
+   "summary": "Only stdout enters the pipe. To pipe errors too, merge first: cmd 2>&1 | next — or use |& in bash.",
+   "confusable": [
+    {
+     "prompt": "cmd prints to stdout and stderr. In `cmd | grep x`, what does grep see?",
+     "options": [
+      "both streams",
+      "only stdout",
+      "only stderr",
+      "neither"
+     ],
+     "answer": 1,
+     "explain": "Pipes carry fd 1 only. Merge with 2>&1 before the | (or use |&) to include stderr."
+    }
+   ]
+  },
+  {
+   "id": "b3-r01",
+   "topic": "b3",
+   "name": "Lines into arguments",
+   "summary": "xargs turns stdin into command-line arguments: ls *.bak | xargs rm. With find, prefer find -print0 | xargs -0 so filenames with spaces survive — or find -exec.",
+   "recall": [
+    {
+     "prompt": "Which command turns stdin lines into ARGUMENTS for another command?",
+     "answer": "xargs"
+    }
+   ]
+  },
+  {
+   "id": "b3-r02",
+   "topic": "b3",
+   "name": "Watching the end of a file",
+   "summary": "tail prints the last lines (-n 20); tail -f FOLLOWS the file as it grows — the standard way to watch a log live. head is its mirror for the first lines.",
+   "recall": [
+    {
+     "prompt": "Which command prints the LAST lines of a file, and follows it live with -f?",
+     "answer": "tail"
+    }
+   ]
+  },
+  {
+   "id": "b4-001",
+   "topic": "b4",
+   "name": "$? is the last exit status",
+   "summary": "Every command exits with a status: 0 = success, non-zero = failure. $? holds the status of the most recent foreground command — and is overwritten by the very next one, so capture it immediately if you need it.",
+   "predict": [
+    {
+     "code": "true\necho $?\nfalse\necho $?",
+     "output": "0\n1",
+     "why": "true exits 0, false exits 1; each echo reports the one just before it."
+    }
+   ]
+  },
+  {
+   "id": "b4-002",
+   "topic": "b4",
+   "name": "&& runs on success",
+   "summary": "A && B runs B only if A exited 0. It short-circuits exactly like a logical AND over exit codes.",
+   "predict": [
+    {
+     "code": "false && echo yes\necho done",
+     "output": "done",
+     "why": "false failed, so the && right side is skipped; the next line runs regardless."
+    }
+   ]
+  },
+  {
+   "id": "b4-003",
+   "topic": "b4",
+   "name": "|| runs on failure",
+   "summary": "A || B runs B only if A failed — the fallback operator: cmd || echo 'cmd failed' >&2.",
+   "predict": [
+    {
+     "code": "false || echo fallback",
+     "output": "fallback",
+     "why": "false failed, so || fires its right side."
+    }
+   ]
+  },
+  {
+   "id": "b4-004",
+   "topic": "b4",
+   "name": "Chaining success",
+   "summary": "cmd1 && cmd2 && cmd3 is the 'stop at the first failure' pipeline of actions — the shell's guard chain.",
+   "predict": [
+    {
+     "code": "true && echo step2",
+     "output": "step2",
+     "why": "true succeeded, so the chain continues."
+    }
+   ]
+  },
+  {
+   "id": "b4-005",
+   "topic": "b4",
+   "name": "A pipeline's status is the last command's",
+   "summary": "By default $? after a pipeline is the LAST command's status — earlier failures vanish. set -o pipefail makes any failing stage fail the pipeline; essential in scripts.",
+   "predict": [
+    {
+     "code": "false | true\necho $?",
+     "output": "0",
+     "why": "true (the last stage) succeeded, masking false. pipefail would change this."
+    }
+   ]
+  },
+  {
+   "id": "b4-006",
+   "topic": "b4",
+   "name": "; separates unconditionally",
+   "summary": "; just sequences commands — the next runs regardless of the previous status. Compare && (on success) and || (on failure).",
+   "predict": [
+    {
+     "code": "false; echo next",
+     "output": "next",
+     "why": "; carries no condition; the failure of false is irrelevant."
+    }
+   ]
+  },
+  {
+   "id": "b4-007",
+   "topic": "b4",
+   "name": "grep's exit code",
+   "summary": "grep exits 0 if it matched, 1 if not, 2 on error — so grep -q (quiet) is a pure test: if grep -q pat file; then ...",
+   "predict": [
+    {
+     "code": "printf 'apple\\n' | grep -q banana\necho $?",
+     "output": "1",
+     "why": "No match: grep exits 1. -q suppresses output, leaving just the status."
+    }
+   ]
+  },
+  {
+   "id": "b4-f01",
+   "topic": "b4",
+   "name": "On success",
+   "summary": "&& is the success connector — 'and then': the right side runs only if the left exited 0. The standard guard for dependent steps (mkdir && cd, configure && make).",
+   "fill": [
+    {
+     "code": "mkdir build __ cd build   # enter only if creation succeeded",
+     "answer": "&&",
+     "hint": "the and-then operator"
+    }
+   ]
+  },
+  {
+   "id": "b4-f02",
+   "topic": "b4",
+   "name": "On failure",
+   "summary": "|| is the failure connector — 'or else': the right side runs only if the left exited non-zero. The standard fallback or error-message hook (cmd || echo failed).",
+   "fill": [
+    {
+     "code": "ping -c1 host __ echo 'host down'   # message only on failure",
+     "answer": "||",
+     "hint": "the or-else operator"
+    }
+   ]
+  },
+  {
+   "id": "b4-f03",
+   "topic": "b4",
+   "name": "Status variable",
+   "summary": "$? is read-once-in-practice: the next command replaces it. rc=$? immediately if you need it later.",
+   "fill": [
+    {
+     "code": "cmd\nrc=$_   # capture the exit status before anything else runs",
+     "answer": "?",
+     "hint": "one character after the dollar"
+    }
+   ]
+  },
+  {
+   "id": "b4-c01",
+   "topic": "b4",
+   "name": "A && B || C is not if/else",
+   "summary": "A && B || C runs C when A fails — OR when B fails. If B can fail, the 'else' fires spuriously. Use a real if/then/else when B's status matters.",
+   "confusable": [
+    {
+     "prompt": "In `A && B || C`, when does C run?",
+     "options": [
+      "only when A fails",
+      "when A fails, or when A succeeds but B fails",
+      "only when B fails",
+      "never if A succeeds"
+     ],
+     "answer": 1,
+     "explain": "|| looks at the status of everything before it. B failing also triggers C — the classic pseudo-if bug."
+    }
+   ]
+  },
+  {
+   "id": "b4-c02",
+   "topic": "b4",
+   "name": "Success is zero",
+   "summary": "Shell inverts C convention: 0 means success (there is one way to succeed, many error codes to fail with). if/&&/|| all treat 0 as true.",
+   "confusable": [
+    {
+     "prompt": "In shell logic, which exit status counts as 'true' (success)?",
+     "options": [
+      "1",
+      "0",
+      "any non-zero",
+      "-1"
+     ],
+     "answer": 1,
+     "explain": "0 is success/true; any non-zero is failure/false — the reverse of C's truthiness, same as C's convention for main()'s return."
+    }
+   ]
+  },
+  {
+   "id": "b5-001",
+   "topic": "b5",
+   "name": "\"$@\" vs \"$*\"",
+   "summary": "\"$@\" expands to one word per positional parameter — the only safe way to forward arguments. \"$*\" joins them ALL into a single word, separated by the first character of IFS (a space by default). Unquoted, both re-split on whitespace and are almost always a bug.",
+   "predict": [
+    {
+     "code": "set -- a \"b c\" d\nprintf '[%s]' \"$@\"; echo\nprintf '[%s]' \"$*\"; echo",
+     "output": "[a][b c][d]\n[a b c d]",
+     "why": "\"$@\" keeps each argument as its own word (three brackets); \"$*\" produces one joined word."
+    }
+   ]
+  },
+  {
+   "id": "b5-002",
+   "topic": "b5",
+   "name": "Counting arguments",
+   "summary": "$# is the number of positional parameters. Quoting decides how many there are: a quoted string with spaces is one argument.",
+   "predict": [
+    {
+     "code": "set -- one \"two three\"\necho $#",
+     "output": "2",
+     "why": "Quotes keep \"two three\" as a single positional parameter."
+    }
+   ]
+  },
+  {
+   "id": "b5-003",
+   "topic": "b5",
+   "name": "export and child processes",
+   "summary": "A plain assignment creates a shell variable visible only in the current shell. export marks it as environment, so separately executed programs (scripts, bash -c, anything exec'd) inherit it.",
+   "predict": [
+    {
+     "code": "x=1\nexport y=2\nbash -c 'echo \"${x:-none} ${y:-none}\"'",
+     "output": "none 2",
+     "why": "bash -c starts a new process: it sees only exported variables. x stays behind; y travels."
+    }
+   ]
+  },
+  {
+   "id": "b5-004",
+   "topic": "b5",
+   "name": "Subshell isolation",
+   "summary": "Parentheses run commands in a subshell — a forked copy of the shell. It inherits everything (even unexported variables) but any changes it makes die with it.",
+   "predict": [
+    {
+     "code": "n=1\n(n=99)\necho $n",
+     "output": "1",
+     "why": "The assignment happened in the subshell's copy of n; the parent's n is untouched."
+    }
+   ]
+  },
+  {
+   "id": "b5-005",
+   "topic": "b5",
+   "name": "The pipeline-subshell trap",
+   "summary": "Every part of a pipeline runs in a subshell. A `cmd | while read` loop therefore updates variables in a subshell and the changes vanish when the pipe ends. Fix: redirect into the loop instead (while read ...; done < file) or use lastpipe.",
+   "predict": [
+    {
+     "code": "count=0\nprintf 'a\\nb\\n' | while read line; do count=$((count+1)); done\necho $count",
+     "output": "0",
+     "why": "The loop is on the right side of a pipe, so it runs in a subshell; its count is lost."
+    }
+   ]
+  },
+  {
+   "id": "b5-006",
+   "topic": "b5",
+   "name": "One-shot environment",
+   "summary": "VAR=value cmd exports VAR into the environment of that single command only. Afterwards the shell never had it. Common for LANG=C sort, DEBUG=1 ./run, etc.",
+   "predict": [
+    {
+     "code": "DEBUG=1 bash -c 'echo \"${DEBUG:-off}\"'\necho \"${DEBUG:-off}\"",
+     "output": "1\noff",
+     "why": "The prefix assignment lives only in the child's environment; the current shell keeps no DEBUG."
+    }
+   ]
+  },
+  {
+   "id": "b5-007",
+   "topic": "b5",
+   "name": ":- substitutes, := assigns",
+   "summary": "${x:-def} substitutes def when x is unset/empty but leaves x alone. ${x:=def} does the same AND assigns def to x, so later uses see it too.",
+   "predict": [
+    {
+     "code": "unset x\necho \"${x:-def}\"\necho \"$x.\"\necho \"${x:=assign}\"\necho \"$x\"",
+     "output": "def\n.\nassign\nassign",
+     "why": ":- printed a fallback without setting x (still empty on line 2); := printed AND stored it."
+    }
+   ]
+  },
+  {
+   "id": "b5-008",
+   "topic": "b5",
+   "name": "The colon in ${x:-…}",
+   "summary": "With a colon (:-, :=, :?), empty counts as missing. Without the colon (-, =, ?), only genuinely UNSET triggers the operator — an empty string is accepted as a value.",
+   "predict": [
+    {
+     "code": "x=\"\"\necho \"${x-A}.\"\necho \"${x:-B}.\"",
+     "output": ".\nB.",
+     "why": "x is set-but-empty: ${x-A} keeps the empty value; ${x:-B} treats empty as missing and falls back."
+    }
+   ]
+  },
+  {
+   "id": "b5-009",
+   "topic": "b5",
+   "name": "Length and slicing",
+   "summary": "${#s} is the string length. ${s:off:len} slices. A NEGATIVE offset needs a space or parentheses — ${s: -2} — because ${s:-2} is the fallback operator.",
+   "predict": [
+    {
+     "code": "s=variables\necho ${#s}\necho ${s:0:3}\necho ${s: -2}",
+     "output": "9\nvar\nes",
+     "why": "Length 9; first three chars; last two chars. Note the space before -2 — without it, :- means 'default to 2'."
+    }
+   ]
+  },
+  {
+   "id": "b5-010",
+   "topic": "b5",
+   "name": "Strip prefix / suffix",
+   "summary": "${p#pat} / ${p##pat} remove the shortest/longest matching PREFIX; ${p%pat} / ${p%%pat} the shortest/longest SUFFIX. Classic pair: ${p##*/} = basename, ${p%.*} = drop extension.",
+   "predict": [
+    {
+     "code": "p=/home/pippo/notes.txt\necho \"${p##*/}\"\necho \"${p%.*}\"",
+     "output": "notes.txt\n/home/pippo/notes",
+     "why": "##*/ eats the longest prefix ending in /; %.* trims the shortest suffix starting with a dot."
+    }
+   ]
+  },
+  {
+   "id": "b5-f01",
+   "topic": "b5",
+   "name": "Basename via expansion",
+   "summary": "${path##*/} removes the longest prefix matching */ — everything up to and including the last slash — leaving just the filename. Pure expansion, no basename process needed.",
+   "fill": [
+    {
+     "code": "base=\"${path____}\"   # keep only the filename after the last /",
+     "answer": "##*/",
+     "hint": "longest-prefix strip, pattern ends in /"
+    }
+   ]
+  },
+  {
+   "id": "b5-f02",
+   "topic": "b5",
+   "name": "Case conversion",
+   "summary": "Bash 4+ case operators: ${var^^} uppercases the whole value, ${var,,} lowercases it, ${var^} capitalises the first character.",
+   "fill": [
+    {
+     "code": "echo \"${name__}\"   # print name in ALL CAPS (bash 4+)",
+     "answer": "^^",
+     "hint": "doubled caret"
+    }
+   ]
+  },
+  {
+   "id": "b5-f03",
+   "topic": "b5",
+   "name": "Making a variable inheritable",
+   "summary": "export marks a variable for the environment so child processes inherit it. Assignment and export can be combined in one statement.",
+   "fill": [
+    {
+     "code": "______ PATH=\"$HOME/bin:$PATH\"   # make it visible to child processes",
+     "answer": "export",
+     "hint": "one builtin word"
+    }
+   ]
+  },
+  {
+   "id": "b5-c01",
+   "topic": "b5",
+   "name": "Forwarding arguments — which form?",
+   "summary": "\"$@\" is THE idiom for passing all arguments on unchanged: one word per original argument, spaces inside arguments preserved. \"$*\" merges everything into one word; unquoted forms re-split and re-glob.",
+   "confusable": [
+    {
+     "prompt": "Your wrapper script must pass all its arguments to another command, keeping each argument intact even if it contains spaces. Which?",
+     "options": [
+      "$*",
+      "\"$*\"",
+      "$@",
+      "\"$@\""
+     ],
+     "answer": 3,
+     "explain": "\"$@\" expands to one word per original argument. Unquoted $@ or $* re-split on whitespace; \"$*\" glues everything into a single word."
+    }
+   ]
+  },
+  {
+   "id": "b5-c02",
+   "topic": "b5",
+   "name": "Keeping loop variables alive",
+   "summary": "Pipes and parentheses spawn subshells, so variable changes inside them evaporate. Redirecting a file INTO the loop keeps the loop in the current shell.",
+   "confusable": [
+    {
+     "prompt": "Which construct lets a while-read loop update a counter that is still set after the loop?",
+     "options": [
+      "cat file | while read l; do n=$((n+1)); done",
+      "while read l; do n=$((n+1)); done < file",
+      "(while read l; do n=$((n+1)); done < file)",
+      "cat file | { read l; n=$((n+1)); }"
+     ],
+     "answer": 1,
+     "explain": "Redirection keeps the loop in the current shell. Anything right of a pipe, or wrapped in ( ), runs in a subshell and its variables vanish."
+    }
+   ]
+  },
+  {
+   "id": "b5-c03",
+   "topic": "b5",
+   "name": "Who sees an unexported variable?",
+   "summary": "Subshells (forks: ( ), $( ), pipeline parts) inherit ALL shell variables, exported or not. Fresh processes (scripts, bash -c, env) receive only the exported environment.",
+   "confusable": [
+    {
+     "prompt": "x=5 is set in your shell, NOT exported. Which statement is true?",
+     "options": [
+      "./script.sh sees x",
+      "bash -c 'echo $x' prints 5",
+      "echo $(echo $x) prints 5",
+      "env shows x"
+     ],
+     "answer": 2,
+     "explain": "$( ) is a subshell — a fork of the current shell — so it inherits everything. Scripts, bash -c and env are new processes and see only exported variables."
+    }
+   ]
+  },
+  {
+   "id": "b6-r01",
+   "topic": "b6",
+   "name": "Filter lines by pattern",
+   "summary": "grep prints the lines that match a pattern (regex by default). Key flags: -i ignore case, -v invert, -c count matching lines, -n line numbers, -r recurse, -E extended regex.",
+   "recall": [
+    {
+     "prompt": "Which command prints only the lines matching a pattern?",
+     "answer": "grep"
+    }
+   ]
+  },
+  {
+   "id": "b6-r02",
+   "topic": "b6",
+   "name": "Stream editor",
+   "summary": "sed edits a stream line by line. The workhorse is substitution: sed 's/old/new/' (first match per line) or s/old/new/g (all). -n with p prints selected lines; -i edits files in place.",
+   "recall": [
+    {
+     "prompt": "Which command edits text as a stream — e.g. replace with s/old/new/?",
+     "answer": "sed"
+    }
+   ]
+  },
+  {
+   "id": "b6-r03",
+   "topic": "b6",
+   "name": "Field-oriented language",
+   "summary": "awk splits each line into fields ($1, $2, …, $NF; whole line $0) and runs pattern{action} rules. -F sets the field separator. It can reorder fields, sum columns, filter numerically — the heavyweight of the pipe zoo.",
+   "recall": [
+    {
+     "prompt": "Which command is the field-and-column mini language — e.g. print the 2nd column of every line?",
+     "answer": "awk"
+    }
+   ]
+  },
+  {
+   "id": "b6-r04",
+   "topic": "b6",
+   "name": "Column extractor",
+   "summary": "cut slices columns: -d sets the delimiter, -f picks fields (-f2, -f1,3, -f2-). -c cuts by character position. It can select fields but never reorder them.",
+   "recall": [
+    {
+     "prompt": "Which command extracts a column by delimiter, e.g. -d, -f2?",
+     "answer": "cut"
+    }
+   ]
+  },
+  {
+   "id": "b6-r05",
+   "topic": "b6",
+   "name": "Duplicate collapser",
+   "summary": "uniq collapses ADJACENT duplicate lines only, which is why it is nearly always preceded by sort. -c prefixes counts, -d shows only duplicated lines, -u only unique ones.",
+   "recall": [
+    {
+     "prompt": "Which command removes ADJACENT duplicate lines (usually run right after sort)?",
+     "answer": "uniq"
+    }
+   ]
+  },
+  {
+   "id": "b6-r06",
+   "topic": "b6",
+   "name": "Character translator",
+   "summary": "tr maps or deletes CHARACTERS (not strings): tr 'a-z' 'A-Z' uppercases, tr -d deletes a set, tr -s squeezes repeats. It only reads stdin — no filename arguments.",
+   "recall": [
+    {
+     "prompt": "Which command translates or deletes characters, e.g. lowercase to uppercase?",
+     "answer": "tr"
+    }
+   ]
+  },
+  {
+   "id": "b6-r07",
+   "topic": "b6",
+   "name": "Line / word / byte counter",
+   "summary": "wc counts lines (-l), words (-w), bytes (-c) and characters (-m). wc -l < file prints just the number — no filename — because wc never saw a name.",
+   "recall": [
+    {
+     "prompt": "Which command counts lines, words and bytes?",
+     "answer": "wc"
+    }
+   ]
+  },
+  {
+   "id": "b6-001",
+   "topic": "b6",
+   "name": "grep -c counts lines, not hits",
+   "summary": "grep -c counts MATCHING LINES, not occurrences. For total occurrences use grep -o pattern | wc -l, since -o prints each match on its own line.",
+   "predict": [
+    {
+     "code": "printf 'aa\\nba\\ncc\\n' | grep -c a",
+     "output": "2",
+     "why": "Two lines contain an 'a' (aa and ba) — the doubled a in line 1 still counts once, because -c counts lines."
+    }
+   ]
+  },
+  {
+   "id": "b6-002",
+   "topic": "b6",
+   "name": "sed: first match vs /g",
+   "summary": "s/old/new/ replaces only the FIRST occurrence on each line; the g flag replaces all of them. A number (s/old/new/2) targets the nth occurrence.",
+   "predict": [
+    {
+     "code": "echo 'red red red' | sed 's/red/blue/'\necho 'red red red' | sed 's/red/blue/g'",
+     "output": "blue red red\nblue blue blue",
+     "why": "Without /g sed substitutes once per line; with /g it substitutes every occurrence."
+    }
+   ]
+  },
+  {
+   "id": "b6-003",
+   "topic": "b6",
+   "name": "awk field selection",
+   "summary": "awk splits on runs of whitespace by default and exposes fields as $1…$NF. '{print $2}' runs for every line because there is no pattern in front of the action.",
+   "predict": [
+    {
+     "code": "printf 'a b c\\nd e f\\n' | awk '{print $2}'",
+     "output": "b\ne",
+     "why": "The action runs on each line and prints its second whitespace-separated field."
+    }
+   ]
+  },
+  {
+   "id": "b6-004",
+   "topic": "b6",
+   "name": "uniq needs sorted input",
+   "summary": "uniq compares each line only with the PREVIOUS one. Unsorted input with scattered duplicates passes through almost untouched — hence the sort | uniq idiom, or simply sort -u.",
+   "predict": [
+    {
+     "code": "printf 'b\\na\\nb\\n' | uniq",
+     "output": "b\na\nb",
+     "why": "No two adjacent lines are equal, so uniq removes nothing. sort first, then uniq."
+    }
+   ]
+  },
+  {
+   "id": "b6-005",
+   "topic": "b6",
+   "name": "tr character classes",
+   "summary": "tr maps character ranges positionally: 'a-z' onto 'A-Z' uppercases. Characters outside the set pass through unchanged. Remember: tr reads stdin only.",
+   "predict": [
+    {
+     "code": "echo 'Bash 5.2' | tr 'a-z' 'A-Z'",
+     "output": "BASH 5.2",
+     "why": "Lowercase letters map to uppercase; digits, dot and space are untouched."
+    }
+   ]
+  },
+  {
+   "id": "b6-006",
+   "topic": "b6",
+   "name": "grep -v inverts",
+   "summary": "grep -v prints the lines that do NOT match — the standard way to filter things out of a stream (grep -v '^#' strips comments).",
+   "predict": [
+    {
+     "code": "printf 'apple\\nbanana\\ncherry\\n' | grep -v an",
+     "output": "apple\ncherry",
+     "why": "-v inverts the match: banana contains 'an' and is dropped."
+    }
+   ]
+  },
+  {
+   "id": "b6-f01",
+   "topic": "b6",
+   "name": "Case-insensitive grep",
+   "summary": "grep -i ignores case when matching — Error, ERROR and error all hit.",
+   "fill": [
+    {
+     "code": "grep -__ 'error' app.log   # match Error and ERROR too",
+     "answer": "i",
+     "hint": "one letter"
+    }
+   ]
+  },
+  {
+   "id": "b6-f02",
+   "topic": "b6",
+   "name": "Frequency count idiom",
+   "summary": "sort | uniq -c | sort -rn is the classic frequency table: sort groups duplicates, uniq -c counts them, sort -rn ranks by count.",
+   "fill": [
+    {
+     "code": "sort names.txt | uniq -__ | sort -rn   # rank names by frequency",
+     "answer": "c",
+     "hint": "prefix each line with its count"
+    }
+   ]
+  },
+  {
+   "id": "b6-f03",
+   "topic": "b6",
+   "name": "awk with a custom separator",
+   "summary": "-F sets awk's input field separator: awk -F: on /etc/passwd, awk -F, on CSV-ish data. (For real CSV with quoted commas, use a proper parser.)",
+   "fill": [
+    {
+     "code": "awk -__':' '{print $1}' /etc/passwd   # first field = username",
+     "answer": "F",
+     "hint": "capital letter flag"
+    }
+   ]
+  },
+  {
+   "id": "b6-c01",
+   "topic": "b6",
+   "name": "Reordering columns",
+   "summary": "cut can only SELECT fields in their original order; awk can select, reorder, transform and compute. The moment you need field 3 before field 1, you have left cut territory.",
+   "confusable": [
+    {
+     "prompt": "Print field 3 then field 1 of a comma-separated file, in that order. Which tool does it in one step?",
+     "options": [
+      "cut",
+      "awk",
+      "tr",
+      "uniq"
+     ],
+     "answer": 1,
+     "explain": "awk -F, '{print $3, $1}' reorders freely. cut always emits fields in file order; tr works on characters; uniq on duplicate lines."
+    }
+   ]
+  },
+  {
+   "id": "b6-c02",
+   "topic": "b6",
+   "name": "Deleting characters",
+   "summary": "tr -d removes every occurrence of a character set from the stream — the natural tool for stripping digits, control characters or newlines. sed can too, but needs the /g flag to catch them all.",
+   "confusable": [
+    {
+     "prompt": "Delete ALL digits from a stream. Which one actually does that?",
+     "options": [
+      "sed 's/[0-9]//'",
+      "tr -d '0-9'",
+      "cut -d0",
+      "grep -v '[0-9]'"
+     ],
+     "answer": 1,
+     "explain": "tr -d deletes every listed character. The sed shown lacks /g and removes only the first digit per line; grep -v drops whole lines; cut -d0 just sets a bizarre delimiter."
+    }
+   ]
+  },
+  {
+   "id": "b6-r08",
+   "topic": "b6",
+   "name": "Ordering lines",
+   "summary": "sort orders lines: -n numerically, -r reversed, -k by field, -u unique (sort -u replaces sort | uniq), -h human sizes (10K < 2M). The mandatory warm-up before uniq.",
+   "recall": [
+    {
+     "prompt": "Which command orders the lines of a stream (-n numeric, -r reverse, -u unique)?",
+     "answer": "sort"
+    }
+   ]
+  },
+  {
+   "id": "b7-001",
+   "topic": "b7",
+   "name": "chmod octal",
+   "summary": "Octal permissions: each digit is owner/group/other, each a sum of r=4, w=2, x=1. 640 = rw- r-- ---. stat -c '%a' shows the octal value.",
+   "predict": [
+    {
+     "code": "touch f\nchmod 640 f\nstat -c '%a' f",
+     "output": "640",
+     "why": "640: owner rw (4+2), group r (4), others nothing."
+    }
+   ]
+  },
+  {
+   "id": "b7-002",
+   "topic": "b7",
+   "name": "chmod symbolic",
+   "summary": "Symbolic mode edits bits relative to the current state: u/g/o/a select who, +/-/= act, rwx are the bits. Several clauses join with commas: u+x,g+r.",
+   "predict": [
+    {
+     "code": "touch f\nchmod 600 f\nchmod u+x,g+r f\nstat -c '%a' f",
+     "output": "740",
+     "why": "600 (rw- --- ---) gains owner x -> 7, and group r -> 4: 740."
+    }
+   ]
+  },
+  {
+   "id": "b7-003",
+   "topic": "b7",
+   "name": "umask on new files",
+   "summary": "umask is subtracted (bit-cleared) from the default creation mode: 666 for files, 777 for directories. umask 027 gives files 640 and directories 750. New files never get x automatically.",
+   "predict": [
+    {
+     "code": "umask 027\ntouch f\nstat -c '%a' f",
+     "output": "640",
+     "why": "File default 666 with mask 027 cleared: 666 & ~027 = 640."
+    }
+   ]
+  },
+  {
+   "id": "b7-004",
+   "topic": "b7",
+   "name": "umask on new directories",
+   "summary": "Directories start from 777 before the umask is applied (they need x to be enterable). umask 022 gives the classic 755.",
+   "predict": [
+    {
+     "code": "umask 022\nmkdir d\nstat -c '%a' d",
+     "output": "755",
+     "why": "Directory default 777 minus mask 022 = 755: owner rwx, everyone else rx."
+    }
+   ]
+  },
+  {
+   "id": "b7-005",
+   "topic": "b7",
+   "name": "Hard links share the inode",
+   "summary": "ln target name creates a hard link: a second directory entry for the SAME inode. The link count (stat %h, third ls -l column) rises. Symlinks are separate files pointing at a path and do not touch the count.",
+   "predict": [
+    {
+     "code": "touch f\nln f h\nln -s f s\nstat -c '%h' f",
+     "output": "2",
+     "why": "f and h are two names for one inode (count 2); the symlink s is its own file and adds nothing."
+    }
+   ]
+  },
+  {
+   "id": "b7-006",
+   "topic": "b7",
+   "name": "Delete the original — who survives?",
+   "summary": "rm removes one name; the inode lives while any hard link remains. A symlink stores only the PATH — when the target name disappears, the symlink dangles.",
+   "predict": [
+    {
+     "code": "echo hi > f\nln f h\nln -s f s\nrm f\ncat h\ncat s 2>/dev/null || echo broken",
+     "output": "hi\nbroken",
+     "why": "h still names the inode, so the data is intact. s points at the now-missing path f and is dangling."
+    }
+   ]
+  },
+  {
+   "id": "b7-007",
+   "topic": "b7",
+   "name": "find by name pattern",
+   "summary": "find walks a tree and prints matching paths. -name takes a glob (quote it so the shell doesn't expand it first). Matching is against the basename only.",
+   "predict": [
+    {
+     "code": "# dir contains: a.txt  b.log  sub/c.txt\nfind . -name '*.txt' | sort",
+     "output": "./a.txt\n./sub/c.txt",
+     "why": "-name '*.txt' matches basenames in the whole tree, including sub/. b.log is skipped."
+    }
+   ]
+  },
+  {
+   "id": "b7-008",
+   "topic": "b7",
+   "name": "find by type",
+   "summary": "-type filters by kind: f regular file, d directory, l symlink. Note that find lists the starting point itself (.) when it matches.",
+   "predict": [
+    {
+     "code": "# dir contains: a.txt  sub/c.txt  sub/deep/d.txt\nfind . -type d | sort",
+     "output": ".\n./sub\n./sub/deep",
+     "why": "-type d keeps only directories — including the starting directory . itself."
+    }
+   ]
+  },
+  {
+   "id": "b7-f01",
+   "topic": "b7",
+   "name": "The classic script mode",
+   "summary": "755 = rwx r-x r-x: owner full control, everyone else can read and execute. The standard mode for scripts and binaries.",
+   "fill": [
+    {
+     "code": "chmod ___ deploy.sh   # rwx for owner, rx for group and others",
+     "answer": "755",
+     "hint": "three octal digits"
+    }
+   ]
+  },
+  {
+   "id": "b7-f02",
+   "topic": "b7",
+   "name": "find by size",
+   "summary": "find -size +10M matches files larger than 10 MiB; -10M smaller; suffixes k, M, G. + and - mean over/under; no sign means exactly.",
+   "fill": [
+    {
+     "code": "find . -____ +10M   # files larger than 10 MB",
+     "answer": "size",
+     "hint": "the test's own name"
+    }
+   ]
+  },
+  {
+   "id": "b7-f03",
+   "topic": "b7",
+   "name": "Making a symlink",
+   "summary": "ln -s target name creates a symbolic link. Without -s you get a hard link — same inode, no cross-filesystem, no directories.",
+   "fill": [
+    {
+     "code": "ln -__ target linkname   # symbolic, not hard",
+     "answer": "s",
+     "hint": "one letter"
+    }
+   ]
+  },
+  {
+   "id": "b7-f04",
+   "topic": "b7",
+   "name": "Recursive chmod",
+   "summary": "chmod -R applies the mode down the whole tree. Combine with symbolic X (capital) to set x only on directories and already-executable files: chmod -R u+rwX,go+rX.",
+   "fill": [
+    {
+     "code": "chmod -__ 755 public   # apply to the whole tree",
+     "answer": "R",
+     "hint": "capital letter"
+    }
+   ]
+  },
+  {
+   "id": "b7-c01",
+   "topic": "b7",
+   "name": "Reading the permission string",
+   "summary": "ls -l mode strings read as type + three rwx triplets: owner, group, others. -rw-r----- is a regular file, owner rw, group r, others nothing (i.e. 640).",
+   "confusable": [
+    {
+     "prompt": "A file shows -rw-r----- in ls -l. Which statement is true?",
+     "options": [
+      "Others can read it",
+      "The group can modify it",
+      "The owner can execute it",
+      "It is octal 640"
+     ],
+     "answer": 3,
+     "explain": "rw- r-- --- = 6 4 0. Owner reads and writes (no x), group reads only, others get nothing."
+    }
+   ]
+  },
+  {
+   "id": "b7-c02",
+   "topic": "b7",
+   "name": "The directory x bit",
+   "summary": "On a directory, r lets you LIST names, x lets you ENTER and reach the inodes (cd, open files inside), w lets you create/delete entries. r without x means you can see names but not use them.",
+   "confusable": [
+    {
+     "prompt": "You can ls a directory but cd into it fails with permission denied. Which bit is missing?",
+     "options": [
+      "r",
+      "w",
+      "x",
+      "the sticky bit"
+     ],
+     "answer": 2,
+     "explain": "Listing needs r; entering (and reaching anything inside) needs x. Directories without x are effectively sealed."
+    }
+   ]
+  },
+  {
+   "id": "b7-c03",
+   "topic": "b7",
+   "name": "When only a symlink will do",
+   "summary": "Hard links cannot span filesystems (an inode number is only meaningful within one) and cannot point at directories. Symlinks can do both — they are just a stored path.",
+   "confusable": [
+    {
+     "prompt": "You need a link to a DIRECTORY on another filesystem. Which works?",
+     "options": [
+      "ln",
+      "ln -s",
+      "either one",
+      "neither"
+     ],
+     "answer": 1,
+     "explain": "Hard links are directory entries for an inode — same filesystem only, and not for directories. A symlink stores a path, so it crosses both limits."
+    }
+   ]
+  },
+  {
+   "id": "b7-r01",
+   "topic": "b7",
+   "name": "Changing the owner",
+   "summary": "chown user:group file changes ownership (root only for the user part). chgrp changes just the group. -R recurses.",
+   "recall": [
+    {
+     "prompt": "Which command changes the OWNER of a file?",
+     "answer": "chown"
+    }
+   ]
+  },
+  {
+   "id": "b7-r02",
+   "topic": "b7",
+   "name": "Disk usage of a tree",
+   "summary": "du sums the space used under a path: du -sh dir gives one human-readable total; du -h --max-depth=1 breaks it down per subdirectory.",
+   "recall": [
+    {
+     "prompt": "Which command shows how much disk space a directory tree USES?",
+     "answer": "du"
+    }
+   ]
+  },
+  {
+   "id": "b7-r03",
+   "topic": "b7",
+   "name": "Free space per filesystem",
+   "summary": "df -h reports size, used and available space per mounted filesystem — the 'is the disk full?' command. du measures usage of a tree; df measures the filesystems.",
+   "recall": [
+    {
+     "prompt": "Which command shows FREE space per mounted filesystem?",
+     "answer": "df"
+    }
+   ]
+  },
+  {
+   "id": "b8-r01",
+   "topic": "b8",
+   "name": "Listing processes",
+   "summary": "ps shows a snapshot of processes. The classic full view is ps aux (BSD style) or ps -ef (POSIX style). Just ps shows only your current terminal's processes.",
+   "recall": [
+    {
+     "prompt": "Which command lists running processes (snapshot, e.g. with aux)?",
+     "answer": "ps"
+    }
+   ]
+  },
+  {
+   "id": "b8-r02",
+   "topic": "b8",
+   "name": "Sending signals",
+   "summary": "kill sends a signal to a PID — despite the name, any signal: kill -TERM (default), kill -9, kill -HUP. kill %1 targets job 1 of the current shell.",
+   "recall": [
+    {
+     "prompt": "Which command sends a signal to a process by PID?",
+     "answer": "kill"
+    }
+   ]
+  },
+  {
+   "id": "b8-r03",
+   "topic": "b8",
+   "name": "Listing shell jobs",
+   "summary": "jobs lists the current shell's background and stopped jobs with their job numbers (%1, %2 …). Jobs belong to the shell session, unlike PIDs which are system-wide.",
+   "recall": [
+    {
+     "prompt": "Which builtin lists the current shell's background and stopped jobs?",
+     "answer": "jobs"
+    }
+   ]
+  },
+  {
+   "id": "b8-r04",
+   "topic": "b8",
+   "name": "Back to the foreground",
+   "summary": "fg brings a job back to the foreground (most recent by default, or fg %2). Ctrl+Z stops the foreground job; fg resumes it in front, bg resumes it behind.",
+   "recall": [
+    {
+     "prompt": "Which builtin brings the most recent job back to the foreground?",
+     "answer": "fg"
+    }
+   ]
+  },
+  {
+   "id": "b8-r05",
+   "topic": "b8",
+   "name": "Resume in the background",
+   "summary": "bg resumes a STOPPED job in the background, as if it had been started with &. Typical dance: Ctrl+Z to stop, then bg to let it continue behind.",
+   "recall": [
+    {
+     "prompt": "Which builtin resumes a stopped job in the BACKGROUND?",
+     "answer": "bg"
+    }
+   ]
+  },
+  {
+   "id": "b8-r06",
+   "topic": "b8",
+   "name": "Surviving logout",
+   "summary": "nohup cmd & makes the command immune to the hangup signal (SIGHUP) sent when the terminal closes, and redirects output to nohup.out. Alternatives: disown, setsid, or a terminal multiplexer.",
+   "recall": [
+    {
+     "prompt": "Which command makes a job immune to hangup so it survives closing the terminal?",
+     "answer": "nohup"
+    }
+   ]
+  },
+  {
+   "id": "b8-r07",
+   "topic": "b8",
+   "name": "Live process view",
+   "summary": "top gives a continuously updating view of processes, CPU and memory (htop is the friendlier cousin). ps is a snapshot; top is a movie.",
+   "recall": [
+    {
+     "prompt": "Which command shows a LIVE, continuously updating process and CPU view?",
+     "answer": "top"
+    }
+   ]
+  },
+  {
+   "id": "b8-001",
+   "topic": "b8",
+   "name": "& returns immediately, wait blocks",
+   "summary": "cmd & starts a background job and the script continues at once. wait (no arguments) blocks until ALL background children have finished — the standard end of a parallel section.",
+   "predict": [
+    {
+     "code": "sleep 0.1 &\necho started\nwait\necho done",
+     "output": "started\ndone",
+     "why": "The & job runs behind; echo started prints immediately, and wait holds the script until sleep ends."
+    }
+   ]
+  },
+  {
+   "id": "b8-002",
+   "topic": "b8",
+   "name": "wait $! returns the job's status",
+   "summary": "$! is the PID of the most recent background job. wait $pid blocks on that job and returns ITS exit status — how a script collects results from parallel work.",
+   "predict": [
+    {
+     "code": "(exit 3) &\nwait $!\necho $?",
+     "output": "3",
+     "why": "wait on the job's PID adopts the job's exit status, here 3."
+    }
+   ]
+  },
+  {
+   "id": "b8-003",
+   "topic": "b8",
+   "name": "exec replaces the process",
+   "summary": "exec cmd REPLACES the current shell process with cmd — same PID, no return. Anything after the exec line never runs. (exec with only redirections rewires the shell's own fds instead.)",
+   "predict": [
+    {
+     "code": "bash -c 'echo before; exec echo replaced; echo after'",
+     "output": "before\nreplaced",
+     "why": "exec swaps the shell's process image for echo; the third command no longer exists to run."
+    }
+   ]
+  },
+  {
+   "id": "b8-004",
+   "topic": "b8",
+   "name": "Trapping a signal",
+   "summary": "trap 'handler' SIGNAL runs the handler when the signal arrives instead of the default action. Common for cleanup: trap 'rm -f \"$tmp\"' EXIT. SIGKILL and SIGSTOP can never be trapped.",
+   "predict": [
+    {
+     "code": "trap 'echo caught' TERM\nkill -TERM $$\necho alive",
+     "output": "caught\nalive",
+     "why": "The trap intercepts SIGTERM: the handler runs and the script carries on instead of dying."
+    }
+   ]
+  },
+  {
+   "id": "b8-f01",
+   "topic": "b8",
+   "name": "The un-catchable kill",
+   "summary": "Signal 9, SIGKILL, terminates a process at kernel level: it cannot be caught, blocked or ignored. Last resort — the process gets no chance to clean up. Try plain kill (TERM) first.",
+   "fill": [
+    {
+     "code": "kill -_ 1234   # forceful, cannot be caught or ignored",
+     "answer": "9",
+     "hint": "signal number"
+    }
+   ]
+  },
+  {
+   "id": "b8-f02",
+   "topic": "b8",
+   "name": "The polite default",
+   "summary": "Signal 15, SIGTERM, is kill's default: a termination REQUEST the process may catch to clean up. 9 is the sledgehammer; 15 is the knock on the door.",
+   "fill": [
+    {
+     "code": "kill -__ 1234   # the polite termination request (the default)",
+     "answer": "15",
+     "hint": "signal number of SIGTERM"
+    }
+   ]
+  },
+  {
+   "id": "b8-f03",
+   "topic": "b8",
+   "name": "Starting in the background",
+   "summary": "A trailing & starts the command as a background job: the shell prints the job number and PID and returns to the prompt immediately.",
+   "fill": [
+    {
+     "code": "long-task __   # start it as a background job",
+     "answer": "&",
+     "hint": "one character"
+    }
+   ]
+  },
+  {
+   "id": "b8-f04",
+   "topic": "b8",
+   "name": "Blocking on a child",
+   "summary": "wait $pid blocks until that background process finishes and returns its exit status. Plain wait waits for all children.",
+   "fill": [
+    {
+     "code": "____ $pid   # block until that background job finishes",
+     "answer": "wait",
+     "hint": "builtin, four letters"
+    }
+   ]
+  },
+  {
+   "id": "b8-c01",
+   "topic": "b8",
+   "name": "The signal nothing stops",
+   "summary": "SIGKILL (9) and SIGSTOP are handled by the kernel alone — a process cannot catch, block or ignore them. Every other signal, including TERM, INT and HUP, can be trapped.",
+   "confusable": [
+    {
+     "prompt": "Which signal can a process NEVER catch, block or ignore?",
+     "options": [
+      "SIGTERM",
+      "SIGINT",
+      "SIGKILL",
+      "SIGHUP"
+     ],
+     "answer": 2,
+     "explain": "SIGKILL is enforced by the kernel; the process is never consulted. TERM, INT and HUP can all be trapped."
+    }
+   ]
+  },
+  {
+   "id": "b8-c02",
+   "topic": "b8",
+   "name": "What Ctrl+C sends",
+   "summary": "Terminal keys map to signals: Ctrl+C sends SIGINT (2), Ctrl+Z sends SIGTSTP (stop), Ctrl+\\ sends SIGQUIT. Closing the terminal sends SIGHUP.",
+   "confusable": [
+    {
+     "prompt": "Pressing Ctrl+C in the terminal sends the foreground process which signal?",
+     "options": [
+      "SIGTERM",
+      "SIGINT",
+      "SIGKILL",
+      "SIGSTOP"
+     ],
+     "answer": 1,
+     "explain": "Ctrl+C is SIGINT (interrupt, signal 2). SIGTERM comes from kill's default; Ctrl+Z sends the stop request."
+    }
+   ]
+  },
+  {
+   "id": "b8-c03",
+   "topic": "b8",
+   "name": "kill %1 vs kill 1",
+   "summary": "A % prefix means a JOB of the current shell: kill %1 signals job 1. A bare number is a PID — and PID 1 is init/systemd. The percent sign is the difference between tidying your shell and poking the init system.",
+   "confusable": [
+    {
+     "prompt": "What does kill %1 do?",
+     "options": [
+      "Sends TERM to the process with PID 1",
+      "Sends TERM to job 1 of the current shell",
+      "Kills 1% of your processes",
+      "It is a syntax error"
+     ],
+     "answer": 1,
+     "explain": "%N refers to shell job N (see jobs). kill 1 — without the % — would target PID 1, which is init/systemd."
+    }
+   ]
+  },
+  {
+   "id": "b9-001",
+   "topic": "b9",
+   "name": "[ vs [[ with an empty variable",
+   "summary": "[ is a command: its arguments word-split like any other, so an unquoted empty variable simply VANISHES and changes the test's shape. [[ is shell syntax: no word splitting, no globbing — unquoted variables are safe inside it.",
+   "predict": [
+    {
+     "code": "x=\"\"\n[ -n $x ] && echo one\n[[ -n $x ]] && echo two",
+     "output": "one",
+     "why": "Unquoted empty $x disappears: [ -n ] tests the single string '-n' (non-empty, true!). In [[ ]] nothing splits, -n sees the empty value and is correctly false."
+    }
+   ]
+  },
+  {
+   "id": "b9-002",
+   "topic": "b9",
+   "name": "== pattern matching in [[",
+   "summary": "Inside [[ ]], the right side of == (and !=) is a PATTERN unless quoted: [[ $f == *.txt ]] glob-matches. In old [ ], == compares literal strings only.",
+   "predict": [
+    {
+     "code": "f=notes.txt\n[[ $f == *.txt ]] && echo match\n[ \"$f\" == \"*.txt\" ] && echo literal",
+     "output": "match",
+     "why": "[[ treats unquoted *.txt as a glob pattern — hit. [ compares the literal string '*.txt' — miss."
+    }
+   ]
+  },
+  {
+   "id": "b9-003",
+   "topic": "b9",
+   "name": "File tests: -s and -d",
+   "summary": "-e exists, -f regular file, -d directory, -s exists AND has size > 0. An empty file passes -f and -e but fails -s.",
+   "predict": [
+    {
+     "code": "mkdir sub\ntouch empty\necho hi > full\n[ -s empty ] && echo A\n[ -s full ] && echo B\n[ -d sub ] && echo D",
+     "output": "B\nD",
+     "why": "empty exists but has size 0, so -s fails; full has content; sub is a directory."
+    }
+   ]
+  },
+  {
+   "id": "b9-004",
+   "topic": "b9",
+   "name": "-z and -n",
+   "summary": "-z is true for a ZERO-length string, -n for a Non-empty one. Always quote the variable in [ ] — see the empty-variable trap.",
+   "predict": [
+    {
+     "code": "x=\"\"\ny=abc\n[ -z \"$x\" ] && echo xEmpty\n[ -n \"$y\" ] && echo yFull",
+     "output": "xEmpty\nyFull",
+     "why": "-z: x has zero length. -n: y is non-empty. The quotes keep the empty x visible to the test."
+    }
+   ]
+  },
+  {
+   "id": "b9-005",
+   "topic": "b9",
+   "name": "Numeric -gt vs string >",
+   "summary": "-eq/-ne/-gt/-lt/-ge/-le compare NUMBERS. Inside [[ ]], < and > compare STRINGS lexicographically — where \"10\" sorts before \"9\" because '1' < '9'.",
+   "predict": [
+    {
+     "code": "[ 10 -gt 9 ] && echo num\n[[ 10 > 9 ]] && echo str || echo strno",
+     "output": "num\nstrno",
+     "why": "-gt compares values: 10 > 9. The [[ > compares text: \"10\" starts with '1', which sorts before '9', so it is NOT greater."
+    }
+   ]
+  },
+  {
+   "id": "b9-006",
+   "topic": "b9",
+   "name": "(( )) arithmetic context",
+   "summary": "(( )) evaluates C-style arithmetic: variables need no $, comparison operators are the familiar > < ==, and assignments work. Exit status is 0 when the result is non-zero — so it slots straight into if and &&.",
+   "predict": [
+    {
+     "code": "n=5\n(( n > 3 )) && echo big\n(( n = n + 2 ))\necho $n",
+     "output": "big\n7",
+     "why": "Arithmetic context: bare n works, > is numeric, and the assignment sticks."
+    }
+   ]
+  },
+  {
+   "id": "b9-007",
+   "topic": "b9",
+   "name": "Tests are just exit codes",
+   "summary": "[ expr ] is a command whose exit status IS the answer: 0 for true, 1 for false. That is the whole mechanism behind if and && — there is no boolean type, only exit codes.",
+   "predict": [
+    {
+     "code": "[ 3 -eq 3 ]; echo $?\n[ 3 -eq 4 ]; echo $?",
+     "output": "0\n1",
+     "why": "True is exit 0, false is exit 1 — the shell convention that if/&&/|| are built on."
+    }
+   ]
+  },
+  {
+   "id": "b9-f01",
+   "topic": "b9",
+   "name": "Regular-file test",
+   "summary": "-f is true for an existing REGULAR file (not a directory or device). The standard guard before sourcing or reading a file.",
+   "fill": [
+    {
+     "code": "[ -_ \"$config\" ] && source \"$config\"   # only if the regular file exists",
+     "answer": "f",
+     "hint": "one letter"
+    }
+   ]
+  },
+  {
+   "id": "b9-f02",
+   "topic": "b9",
+   "name": "Create-unless-exists",
+   "summary": "-d tests for a directory. [ -d path ] || mkdir path is the classic idempotent setup line (or just mkdir -p).",
+   "fill": [
+    {
+     "code": "[ -_ \"$cache\" ] || mkdir \"$cache\"   # create unless the directory exists",
+     "answer": "d",
+     "hint": "one letter"
+    }
+   ]
+  },
+  {
+   "id": "b9-f03",
+   "topic": "b9",
+   "name": "Numeric equality",
+   "summary": "-eq compares integers by VALUE: 07 -eq 7 is true, \"07\" = \"7\" is not. Use = / == for strings, -eq for numbers.",
+   "fill": [
+    {
+     "code": "[ \"$count\" -__ 0 ] && echo none   # numerically equal",
+     "answer": "eq",
+     "hint": "two letters"
+    }
+   ]
+  },
+  {
+   "id": "b9-c01",
+   "topic": "b9",
+   "name": "The unquoted-safe test",
+   "summary": "[[ ]] is parsed as shell syntax before expansion, so variables inside it neither word-split nor glob. [ and test are ordinary commands and need every expansion quoted.",
+   "confusable": [
+    {
+     "prompt": "$x may be empty or contain spaces, and you refuse to quote it. Which test still behaves correctly?",
+     "options": [
+      "[ -n $x ]",
+      "[[ -n $x ]]",
+      "test -n $x",
+      "they all break"
+     ],
+     "answer": 1,
+     "explain": "[[ suppresses word splitting and globbing. [ and test are commands — the unquoted empty variable vanishes from their argument list and warps the test."
+    }
+   ]
+  },
+  {
+   "id": "b9-c02",
+   "topic": "b9",
+   "name": "AND inside one [ ]",
+   "summary": "Within a single [ ] the AND operator is -a (OR is -o) — && would end the command. POSIX marks -a/-o obsolescent: prefer [ x ] && [ y ], or [[ x && y ]].",
+   "confusable": [
+    {
+     "prompt": "Combine two conditions INSIDE one [ ] test. Which operator?",
+     "options": [
+      "&&",
+      "-a",
+      "and",
+      "&"
+     ],
+     "answer": 1,
+     "explain": "[ is a command, so && would split the line into two commands. -a works inside it — though two separate [ ]s joined by &&, or [[ with &&, is the modern style."
+    }
+   ]
+  },
+  {
+   "id": "b9-c03",
+   "topic": "b9",
+   "name": "Comparing numbers",
+   "summary": "= and == are STRING comparison: leading zeros and spaces matter. -eq (with -ne/-gt/-lt/-ge/-le) compares integer values — or use (( )) with plain ==.",
+   "confusable": [
+    {
+     "prompt": "In [ ], compare two integers by numeric value. Which?",
+     "options": [
+      "==",
+      "-eq",
+      "=",
+      "-same"
+     ],
+     "answer": 1,
+     "explain": "-eq is numeric: [ 07 -eq 7 ] is true. = and == are string tests, so \"07\" and \"7\" differ. (In (( )) you would use == — different context, different rules.)"
+    }
+   ]
+  },
+  {
+   "id": "b9-r01",
+   "topic": "b9",
+   "name": "What [ really is",
+   "summary": "[ is literally another name for the test builtin — which is why it needs spaces around everything and a closing ] as its last argument. [[ is different: a keyword with its own parsing rules.",
+   "recall": [
+    {
+     "prompt": "The [ command is another name for which builtin?",
+     "answer": "test"
+    }
+   ]
+  },
+  {
+   "id": "b10-001",
+   "topic": "b10",
+   "name": "Brace-range loop",
+   "summary": "{1..3} brace-expands to 1 2 3 before the loop even runs; {a..e} and {01..10} (zero-padded) work too. Fixed literal ranges only — variables don't expand inside braces.",
+   "predict": [
+    {
+     "code": "for i in {1..3}; do echo \"n$i\"; done",
+     "output": "n1\nn2\nn3",
+     "why": "The brace range expands to the words 1 2 3, and the loop visits each."
+    }
+   ]
+  },
+  {
+   "id": "b10-002",
+   "topic": "b10",
+   "name": "C-style for",
+   "summary": "for ((init; cond; step)) is a full C-style loop in arithmetic context — no $, normal operators. The tool when the bound is a variable or the step isn't 1.",
+   "predict": [
+    {
+     "code": "for ((i=0; i<3; i++)); do printf '%d' $i; done; echo",
+     "output": "012",
+     "why": "Arithmetic for: i runs 0,1,2; printf without newlines packs them onto one line."
+    }
+   ]
+  },
+  {
+   "id": "b10-003",
+   "topic": "b10",
+   "name": "Loop words come from splitting",
+   "summary": "for x in $items loops over the WORDS after splitting — quoting the variable makes it a single word and the loop runs once. The same quoting rules as everywhere, applied to loop lists.",
+   "predict": [
+    {
+     "code": "items=\"a b c\"\nfor x in $items; do printf '[%s]' \"$x\"; done; echo\nfor x in \"$items\"; do printf '[%s]' \"$x\"; done; echo",
+     "output": "[a][b][c]\n[a b c]",
+     "why": "Unquoted, the value splits into three loop words; quoted, it stays one word and the loop body runs once."
+    }
+   ]
+  },
+  {
+   "id": "b10-004",
+   "topic": "b10",
+   "name": "read -r",
+   "summary": "Without -r, read treats backslashes as escape characters and eats them. -r means RAW — take the line as-is. There is essentially no reason to omit -r; while IFS= read -r line is the canonical line loop.",
+   "predict": [
+    {
+     "code": "printf '%s\\n' 'a\\tb' | while read line; do echo \"$line\"; done\nprintf '%s\\n' 'a\\tb' | while read -r line; do echo \"$line\"; done",
+     "output": "atb\na\\tb",
+     "why": "Plain read strips the backslash (a\\tb becomes atb); read -r delivers the line untouched."
+    }
+   ]
+  },
+  {
+   "id": "b10-005",
+   "topic": "b10",
+   "name": "case patterns",
+   "summary": "case matches a value against glob patterns top-down and runs the first hit; ;; ends a branch, *) is the default. Multiple patterns join with |: yes|y).",
+   "predict": [
+    {
+     "code": "x=start\ncase $x in\n  sta*) echo matched;;\n  *) echo default;;\nesac",
+     "output": "matched",
+     "why": "sta* glob-matches 'start'; the first matching branch runs and ;; stops there."
+    }
+   ]
+  },
+  {
+   "id": "b10-006",
+   "topic": "b10",
+   "name": "local variables",
+   "summary": "Variables in functions are GLOBAL unless declared local. local n=... confines the name to the function (and its callees) — without it, functions quietly overwrite the caller's variables.",
+   "predict": [
+    {
+     "code": "f(){ local n=inner; echo $n; }\nn=outer\nf\necho $n",
+     "output": "inner\nouter",
+     "why": "local gives the function its own n; the global one is untouched after the call."
+    }
+   ]
+  },
+  {
+   "id": "b10-007",
+   "topic": "b10",
+   "name": "Function arguments",
+   "summary": "Functions receive arguments as their own $1, $2, … $@ — the script's positional parameters are shadowed for the duration of the call. There are no named parameters.",
+   "predict": [
+    {
+     "code": "greet(){ echo \"hi $1\"; }\ngreet world",
+     "output": "hi world",
+     "why": "Inside the function, $1 is the function's first argument, not the script's."
+    }
+   ]
+  },
+  {
+   "id": "b10-008",
+   "topic": "b10",
+   "name": "set -e aborts on error",
+   "summary": "set -e makes the script exit as soon as a command fails (with the failing status). Combined as set -euo pipefail it is 'strict mode': also fail on unset variables and on failures anywhere in a pipeline.",
+   "predict": [
+    {
+     "code": "bash -c 'set -e; false; echo after'\necho \"exit=$?\"",
+     "output": "exit=1",
+     "why": "Under set -e, the failing false terminates the inner script immediately — 'after' never prints, and the shell exits with false's status 1."
+    }
+   ]
+  },
+  {
+   "id": "b10-f01",
+   "topic": "b10",
+   "name": "The canonical line loop",
+   "summary": "while IFS= read -r line; do …; done < file processes a file line by line: read pulls one line per iteration, -r keeps backslashes, IFS= keeps leading/trailing whitespace.",
+   "fill": [
+    {
+     "code": "while ____ -r line; do echo \"$line\"; done < notes.txt   # line by line",
+     "answer": "read",
+     "hint": "builtin, four letters"
+    }
+   ]
+  },
+  {
+   "id": "b10-f02",
+   "topic": "b10",
+   "name": "Strict mode",
+   "summary": "set -euo pipefail: -e exit on error, -u error on unset variables, -o pipefail makes a pipeline fail if ANY stage fails (not just the last). The standard first line of a robust script.",
+   "fill": [
+    {
+     "code": "set -euo ________   # strict mode: pipeline failures count too",
+     "answer": "pipefail",
+     "hint": "one word, -o option"
+    }
+   ]
+  },
+  {
+   "id": "b10-f03",
+   "topic": "b10",
+   "name": "Scoping a function variable",
+   "summary": "local declares a variable that exists only for the function call. Without it, every assignment inside a function lands in the global scope.",
+   "fill": [
+    {
+     "code": "cleanup(){ _____ tmp=/tmp/work; rm -rf \"$tmp\"; }   # keep tmp out of global scope",
+     "answer": "local",
+     "hint": "one keyword"
+    }
+   ]
+  },
+  {
+   "id": "b10-f04",
+   "topic": "b10",
+   "name": "Dropping processed arguments",
+   "summary": "shift discards $1 and renumbers the rest down ($2 becomes $1 …); shift 2 drops two. The engine of manual argument-parsing while loops.",
+   "fill": [
+    {
+     "code": "_____   # discard $1 and move the remaining arguments down",
+     "answer": "shift",
+     "hint": "builtin, five letters"
+    }
+   ]
+  },
+  {
+   "id": "b10-c01",
+   "topic": "b10",
+   "name": "Looping to a variable bound",
+   "summary": "Brace expansion happens BEFORE variable expansion, so {1..$n} stays literal. For a variable bound use seq, or the C-style for ((i=1; i<=n; i++)).",
+   "confusable": [
+    {
+     "prompt": "Loop from 1 to $n, where n is a variable. Which works?",
+     "options": [
+      "for i in {1..$n}",
+      "for i in $(seq 1 \"$n\")",
+      "both",
+      "neither"
+     ],
+     "answer": 1,
+     "explain": "Brace expansion runs before variable expansion, so {1..$n} never sees n's value — the loop gets the literal word {1..$n}. seq (or a C-style for) evaluates the variable."
+    }
+   ]
+  },
+  {
+   "id": "b10-c02",
+   "topic": "b10",
+   "name": "Why IFS= before read",
+   "summary": "read splits and trims using IFS. Setting IFS= empty for just the read keeps leading and trailing whitespace intact — combined with -r, the line arrives exactly as it is in the file.",
+   "confusable": [
+    {
+     "prompt": "In while IFS= read -r line — what is the IFS= for?",
+     "options": [
+      "Preserve leading/trailing whitespace in the line",
+      "Make read faster",
+      "Read the whole file at once",
+      "It disables -r"
+     ],
+     "answer": 0,
+     "explain": "With default IFS, read trims leading/trailing spaces and tabs. IFS= (empty, for that one command) switches trimming off."
+    }
+   ]
+  },
+  {
+   "id": "b10-c03",
+   "topic": "b10",
+   "name": "Iterating over files safely",
+   "summary": "Globs expand to one word PER FILENAME, spaces included — for f in *.txt is safe. Parsing ls output splits on whitespace and breaks on any filename with a space.",
+   "confusable": [
+    {
+     "prompt": "Loop over the .txt files in a directory, some of which have spaces in their names. Which is safe?",
+     "options": [
+      "for f in $(ls *.txt)",
+      "for f in *.txt",
+      "ls *.txt | while read f",
+      "for f in `ls`"
+     ],
+     "answer": 1,
+     "explain": "The glob gives one loop word per file regardless of spaces. Every ls-parsing variant word-splits filenames apart (and the pipe version has the subshell problem on top)."
+    }
+   ]
+  },
+  {
+   "id": "b11-r01",
+   "topic": "b11",
+   "name": "Talking to URLs",
+   "summary": "curl transfers data to/from a URL — THE tool for APIs and downloads: -O save with remote name, -o name, -I headers only, -s silent, -L follow redirects, -X POST -d for request bodies.",
+   "recall": [
+    {
+     "prompt": "Which command transfers data from a URL (APIs, downloads, -X POST)?",
+     "answer": "curl"
+    }
+   ]
+  },
+  {
+   "id": "b11-r02",
+   "topic": "b11",
+   "name": "Remote shell",
+   "summary": "ssh opens a secure shell on a remote machine: ssh user@host, or run one command with ssh user@host 'cmd'. Key-based auth via ~/.ssh; -p for a non-default port.",
+   "recall": [
+    {
+     "prompt": "Which command opens a secure shell on a remote machine?",
+     "answer": "ssh"
+    }
+   ]
+  },
+  {
+   "id": "b11-r03",
+   "topic": "b11",
+   "name": "Copying over ssh",
+   "summary": "scp copies files over ssh: scp file user@host:/path (and back). Simple and fine for one-offs — for big or repeated transfers, rsync is the better tool.",
+   "recall": [
+    {
+     "prompt": "Which command copies files over ssh with cp-like syntax?",
+     "answer": "scp"
+    }
+   ]
+  },
+  {
+   "id": "b11-r04",
+   "topic": "b11",
+   "name": "Efficient sync",
+   "summary": "rsync synchronises directories transferring only the DIFFERENCES — resumable, preserves metadata with -a, works locally and over ssh. rsync -av --delete src/ dest/ mirrors exactly (trailing slash matters: src/ = contents, src = the directory itself).",
+   "recall": [
+    {
+     "prompt": "Which command syncs directories efficiently, transferring only what changed?",
+     "answer": "rsync"
+    }
+   ]
+  },
+  {
+   "id": "b11-r05",
+   "topic": "b11",
+   "name": "Is it alive?",
+   "summary": "ping sends ICMP echo requests to check reachability and latency: ping -c 4 host sends four and stops. First stop when 'the network is down'.",
+   "recall": [
+    {
+     "prompt": "Which command checks whether a host is reachable (ICMP echo)?",
+     "answer": "ping"
+    }
+   ]
+  },
+  {
+   "id": "b11-r06",
+   "topic": "b11",
+   "name": "Mirroring downloads",
+   "summary": "wget is the non-interactive downloader: resumes with -c, mirrors whole sites with -r/-m. curl is better at APIs; wget at bulk/recursive fetching.",
+   "recall": [
+    {
+     "prompt": "Which downloader mirrors entire sites recursively with -r?",
+     "answer": "wget"
+    }
+   ]
+  },
+  {
+   "id": "b11-r07",
+   "topic": "b11",
+   "name": "DNS lookups",
+   "summary": "dig queries DNS directly: dig example.com, dig +short for just the answer, dig MX for mail records. (nslookup is the older equivalent.)",
+   "recall": [
+    {
+     "prompt": "Which command queries DNS records (+short for a terse answer)?",
+     "answer": "dig"
+    }
+   ]
+  },
+  {
+   "id": "b11-f01",
+   "topic": "b11",
+   "name": "Saving with the remote name",
+   "summary": "curl prints to stdout by default. -O (capital) saves using the remote filename; -o name chooses your own. Add -L when the URL redirects.",
+   "fill": [
+    {
+     "code": "curl -_ https://host/tool.tar.gz   # save with the remote filename",
+     "answer": "O",
+     "hint": "capital letter"
+    }
+   ]
+  },
+  {
+   "id": "b11-f02",
+   "topic": "b11",
+   "name": "Local port forward",
+   "summary": "ssh -L local:host:port forwards a local port through the ssh connection: ssh -L 8080:localhost:80 server makes the server's port 80 reachable at localhost:8080. -R goes the other way.",
+   "fill": [
+    {
+     "code": "ssh -_ 8080:localhost:80 server   # reach the server's port 80 locally",
+     "answer": "L",
+     "hint": "Local forward"
+    }
+   ]
+  },
+  {
+   "id": "b11-f03",
+   "topic": "b11",
+   "name": "Archive mode",
+   "summary": "rsync -a is archive mode: recursive, preserving permissions, times, symlinks, owners — 'copy it faithfully'. Usually paired with -v: rsync -av.",
+   "fill": [
+    {
+     "code": "rsync -_v src/ backup/   # recursive, preserve permissions and times",
+     "answer": "a",
+     "hint": "archive"
+    }
+   ]
+  },
+  {
+   "id": "b11-c01",
+   "topic": "b11",
+   "name": "curl or wget?",
+   "summary": "Both fetch URLs. wget's strength is bulk: recursion, mirroring, resume-by-default. curl's is protocol control: methods, headers, bodies — the API tool.",
+   "confusable": [
+    {
+     "prompt": "Download an entire documentation site for offline reading. Which is built for that?",
+     "options": [
+      "curl",
+      "wget",
+      "scp",
+      "dig"
+     ],
+     "answer": 1,
+     "explain": "wget -r/-m mirrors sites recursively. curl fetches single URLs (great for APIs); scp needs ssh access to the server; dig only asks DNS."
+    }
+   ]
+  },
+  {
+   "id": "b11-c02",
+   "topic": "b11",
+   "name": "The interrupted transfer",
+   "summary": "scp restarts from zero every time. rsync compares source and destination and sends only missing/changed pieces — re-running after an interruption finishes the job instead of repeating it.",
+   "confusable": [
+    {
+     "prompt": "A huge copy to a server died at 90%. Which tool finishes the remaining 10% instead of starting over?",
+     "options": [
+      "scp again",
+      "rsync",
+      "curl",
+      "ping"
+     ],
+     "answer": 1,
+     "explain": "rsync's delta transfer picks up where things stand. scp would re-send everything."
+    }
+   ]
+  },
+  {
+   "id": "b11-c03",
+   "topic": "b11",
+   "name": "Which key file goes where",
+   "summary": "Your key pair lives in ~/.ssh: id_ed25519 (PRIVATE — never leaves your machine) and id_ed25519.pub (public). The SERVER's ~/.ssh/authorized_keys lists public keys allowed to log in; known_hosts is your client's record of server fingerprints.",
+   "confusable": [
+    {
+     "prompt": "On the SERVER, which file lists the keys that are allowed to log in?",
+     "options": [
+      "id_ed25519",
+      "id_ed25519.pub",
+      "authorized_keys",
+      "known_hosts"
+     ],
+     "answer": 2,
+     "explain": "authorized_keys on the server holds permitted public keys. The .pub is what you copy INTO it; the private key stays home; known_hosts is the client-side server-fingerprint list."
+    }
+   ]
+  },
+  {
+   "id": "b12-001",
+   "topic": "b12",
+   "name": "Array basics",
+   "summary": "a=(x y z) builds an indexed array. Elements are ${a[i]} (zero-based); ${#a[@]} is the element count. The braces are mandatory — $a[0] is ${a[0]} only inside braces.",
+   "predict": [
+    {
+     "code": "a=(x y z)\necho ${a[0]}\necho ${#a[@]}",
+     "output": "x\n3",
+     "why": "Index 0 is the first element; #…[@] counts elements."
+    }
+   ]
+  },
+  {
+   "id": "b12-002",
+   "topic": "b12",
+   "name": "Bare $a is element zero",
+   "summary": "Referencing an array without an index gives ONLY ${a[0]} — a classic silent bug. All elements is \"${a[@]}\".",
+   "predict": [
+    {
+     "code": "a=(first second third)\necho $a",
+     "output": "first",
+     "why": "Without an index, an array expands to element 0 alone."
+    }
+   ]
+  },
+  {
+   "id": "b12-003",
+   "topic": "b12",
+   "name": "\"${a[@]}\" keeps elements whole",
+   "summary": "\"${a[@]}\" expands to one word per element, spaces inside elements preserved — the array twin of \"$@\". Element count is independent of spaces in the values.",
+   "predict": [
+    {
+     "code": "a=(one \"two three\" four)\nprintf '[%s]' \"${a[@]}\"; echo\necho ${#a[@]}",
+     "output": "[one][two three][four]\n3",
+     "why": "Quoted [@] yields exactly one word per element — 'two three' stays intact, and the count is 3."
+    }
+   ]
+  },
+  {
+   "id": "b12-004",
+   "topic": "b12",
+   "name": "\"${a[*]}\" joins",
+   "summary": "\"${a[*]}\" joins all elements into ONE word separated by the first IFS character — the array twin of \"$*\". Use it only when you deliberately want a joined string.",
+   "predict": [
+    {
+     "code": "a=(p q r)\nprintf '[%s]' \"${a[*]}\"; echo",
+     "output": "[p q r]",
+     "why": "[*] in quotes joins everything into a single word — one bracket, not three."
+    }
+   ]
+  },
+  {
+   "id": "b12-005",
+   "topic": "b12",
+   "name": "Appending",
+   "summary": "a+=(item) appends (one or more) elements; a+=(x y) adds two. Plain a+=x would string-append to element 0 — the parentheses make it an array append.",
+   "predict": [
+    {
+     "code": "a=(1 2)\na+=(3)\necho ${#a[@]} ${a[2]}",
+     "output": "3 3",
+     "why": "+=(…) appends an element: count becomes 3, and index 2 holds the new value 3."
+    }
+   ]
+  },
+  {
+   "id": "b12-006",
+   "topic": "b12",
+   "name": "Array slicing",
+   "summary": "${a[@]:off:len} slices arrays like strings: offset and length count ELEMENTS. Works on positional parameters too: ${@:2} is 'everything from the second argument'.",
+   "predict": [
+    {
+     "code": "a=(a b c d e)\necho ${a[@]:1:2}",
+     "output": "b c",
+     "why": "From offset 1 (the second element), take two elements."
+    }
+   ]
+  },
+  {
+   "id": "b12-007",
+   "topic": "b12",
+   "name": "Associative arrays",
+   "summary": "declare -A makes a bash-4 associative array: string keys, m[key]=value, lookup ${m[key]}, count ${#m[@]}. The declare -A MUST come first.",
+   "predict": [
+    {
+     "code": "declare -A cap\ncap[UK]=London\ncap[PL]=Warsaw\necho ${cap[PL]}\necho ${#cap[@]}",
+     "output": "Warsaw\n2",
+     "why": "String-keyed lookup returns Warsaw; two keys are stored."
+    }
+   ]
+  },
+  {
+   "id": "b12-008",
+   "topic": "b12",
+   "name": "Listing the keys",
+   "summary": "${!m[@]} expands to the KEYS (indices) of an array — the ! flips values to names. Associative key order is unspecified, so sort if order matters.",
+   "predict": [
+    {
+     "code": "declare -A m\nm[beta]=2\nm[alpha]=1\nprintf '%s\\n' \"${!m[@]}\" | sort",
+     "output": "alpha\nbeta",
+     "why": "!…[@] yields the keys; associative order is arbitrary, hence the sort."
+    }
+   ]
+  },
+  {
+   "id": "b12-f01",
+   "topic": "b12",
+   "name": "Declaring string keys",
+   "summary": "declare -A is required BEFORE using string keys. Without it, m[foo]=1 treats foo as arithmetic (an unset variable = 0) and you silently build an indexed array with everything at index 0.",
+   "fill": [
+    {
+     "code": "declare -_ colors   # associative array with string keys",
+     "answer": "A",
+     "hint": "capital letter"
+    }
+   ]
+  },
+  {
+   "id": "b12-f02",
+   "topic": "b12",
+   "name": "Looping over elements",
+   "summary": "for e in \"${arr[@]}\" is the canonical element loop: one iteration per element, spaces preserved — exactly like looping over \"$@\".",
+   "fill": [
+    {
+     "code": "for f in \"${files[_]}\"; do echo \"$f\"; done   # one iteration per element",
+     "answer": "@",
+     "hint": "one character"
+    }
+   ]
+  },
+  {
+   "id": "b12-f03",
+   "topic": "b12",
+   "name": "Keys, not values",
+   "summary": "A leading ! inside the braces lists an array's keys: ${!map[@]}. (The same ! on a plain variable is indirect expansion — a different feature.)",
+   "fill": [
+    {
+     "code": "printf '%s\\n' \"${_map[@]}\"   # the KEYS of the associative array",
+     "answer": "!",
+     "hint": "one character before the name"
+    }
+   ]
+  },
+  {
+   "id": "b12-c01",
+   "topic": "b12",
+   "name": "[@] vs [*] — which one?",
+   "summary": "Same rule as \"$@\" vs \"$*\": quoted [@] gives one word per element (looping, forwarding); quoted [*] joins into a single word (building one string). Unquoted, both split and glob.",
+   "confusable": [
+    {
+     "prompt": "Pass every element of arr to a command as separate, space-safe arguments. Which?",
+     "options": [
+      "${arr[@]}",
+      "\"${arr[@]}\"",
+      "\"${arr[*]}\"",
+      "$arr"
+     ],
+     "answer": 1,
+     "explain": "Quoted [@] is one word per element. Unquoted re-splits on spaces; quoted [*] mashes all elements into one argument; bare $arr is just element 0."
+    }
+   ]
+  },
+  {
+   "id": "b12-c02",
+   "topic": "b12",
+   "name": "Forgetting declare -A",
+   "summary": "Without declare -A, subscripts are ARITHMETIC: m[foo]=1 evaluates foo (unset = 0) and assigns to index 0. Several string keys silently overwrite each other at m[0].",
+   "confusable": [
+    {
+     "prompt": "You skip declare -A and run m[alice]=1; m[bob]=2. What happens?",
+     "options": [
+      "It works as an associative array",
+      "Both land on index 0 — bob overwrites alice",
+      "Syntax error",
+      "bash creates the keys as strings automatically"
+     ],
+     "answer": 1,
+     "explain": "In an indexed array the subscript is arithmetic: unset names evaluate to 0, so both assignments hit m[0] and the last one wins. declare -A first."
+    }
+   ]
+  },
+  {
+   "id": "b13-r01",
+   "topic": "b13",
+   "name": "The option parser",
+   "summary": "getopts is the builtin for parsing SHORT options (-v, -n 3) in a while loop. It sets the option into your variable, the argument into OPTARG, and tracks position in OPTIND.",
+   "recall": [
+    {
+     "prompt": "Which builtin parses short options (-v, -n 3) in a while loop?",
+     "answer": "getopts"
+    }
+   ]
+  },
+  {
+   "id": "b13-001",
+   "topic": "b13",
+   "name": "getopts in action",
+   "summary": "while getopts 'vn:' opt loops over the options: v is a flag, n: takes an argument (delivered in OPTARG). Afterwards shift $((OPTIND-1)) discards the parsed part, leaving the positional arguments.",
+   "predict": [
+    {
+     "code": "set -- -v -n 3 file\nwhile getopts 'vn:' opt; do\n  case $opt in\n    v) echo verbose;;\n    n) echo \"n=$OPTARG\";;\n  esac\ndone\nshift $((OPTIND-1))\necho \"rest=$1\"",
+     "output": "verbose\nn=3\nrest=file",
+     "why": "-v fires the flag branch; -n consumes 3 into OPTARG; the OPTIND shift exposes 'file' as $1."
+    }
+   ]
+  },
+  {
+   "id": "b13-002",
+   "topic": "b13",
+   "name": "Long options by hand",
+   "summary": "getopts cannot parse long options (--name). The idiom is a manual while/case/shift loop: match $1, consume its value with shift 2, plain flags with shift.",
+   "predict": [
+    {
+     "code": "set -- --name pip --force\nwhile [ $# -gt 0 ]; do\n  case $1 in\n    --name) name=$2; shift 2;;\n    --force) force=1; shift;;\n  esac\ndone\necho \"$name $force\"",
+     "output": "pip 1",
+     "why": "--name eats two positions (option + value), --force one; the loop drains $# to zero."
+    }
+   ]
+  },
+  {
+   "id": "b13-f01",
+   "topic": "b13",
+   "name": "Clearing the parsed options",
+   "summary": "OPTIND is getopts' cursor: the index of the next argument to parse. shift $((OPTIND-1)) after the loop removes everything getopts consumed, leaving the real positional arguments at $1….",
+   "fill": [
+    {
+     "code": "shift $((______-1))   # drop the parsed options, keep the rest",
+     "answer": "OPTIND",
+     "hint": "getopts' position variable"
+    }
+   ]
+  },
+  {
+   "id": "b13-f02",
+   "topic": "b13",
+   "name": "The option's value",
+   "summary": "When an option is declared with a colon (n:), getopts puts its argument into OPTARG for that iteration of the loop.",
+   "fill": [
+    {
+     "code": "n) count=$______;;   # the value that followed -n",
+     "answer": "OPTARG",
+     "hint": "getopts' argument variable"
+    }
+   ]
+  },
+  {
+   "id": "b13-c01",
+   "topic": "b13",
+   "name": "What the colon declares",
+   "summary": "In the getopts optstring, a trailing colon means 'this option TAKES AN ARGUMENT': 'vn:' = -v is a flag, -n expects a value. (A LEADING colon enables silent error handling — different colon, different job.)",
+   "confusable": [
+    {
+     "prompt": "In getopts 'vn:' — what does the colon after n mean?",
+     "options": [
+      "n is optional",
+      "n takes an argument (in OPTARG)",
+      "n may repeat",
+      "n must be numeric"
+     ],
+     "answer": 1,
+     "explain": "option: declares a required argument, delivered via OPTARG. All options are 'optional' by nature; repetition and types aren't the optstring's business."
+    }
+   ]
+  },
+  {
+   "id": "b13-c02",
+   "topic": "b13",
+   "name": "getopts and --long",
+   "summary": "getopts does short options only. For --long-options: write the manual while/case/shift loop, or use the external getopt (GNU) — but the hand-rolled loop is the portable habit.",
+   "confusable": [
+    {
+     "prompt": "Your script needs --verbose and --output FILE. What handles that?",
+     "options": [
+      "getopts 'verbose:output:'",
+      "a manual while/case/shift loop (or GNU getopt)",
+      "getopts -l verbose,output",
+      "bash expands --verbose to -v automatically"
+     ],
+     "answer": 1,
+     "explain": "getopts is short-options only — the optstring 'verbose:' would define seven single-letter options. Long options mean a hand-written loop or the external GNU getopt."
+    }
+   ]
+  },
+  {
+   "id": "b14-001",
+   "topic": "b14",
+   "name": "Gauntlet: the space in the filename",
+   "summary": "The b1 trap in the wild: an unquoted variable splits into words, so a filename with a space becomes two arguments. Quote every expansion.",
+   "predict": [
+    {
+     "code": "f='my file.txt'\ntouch \"$f\"\nls $f 2>/dev/null || echo split\nls \"$f\" >/dev/null && echo quoted",
+     "output": "split\nquoted",
+     "why": "Unquoted $f asks ls for 'my' and 'file.txt' — neither exists. Quoted, it is one (existing) name."
+    }
+   ]
+  },
+  {
+   "id": "b14-002",
+   "topic": "b14",
+   "name": "Gauntlet: the counter that survives",
+   "summary": "The b5 pipeline trap — and its fix. Redirecting from process substitution < <(cmd) feeds the loop WITHOUT a pipe, so it stays in the current shell and its variables persist.",
+   "predict": [
+    {
+     "code": "total=0\nwhile read n; do total=$((total+n)); done < <(seq 3)\necho $total",
+     "output": "6",
+     "why": "< <(seq 3) is a redirection, not a pipeline — the loop runs in the current shell and total keeps 1+2+3."
+    }
+   ]
+  },
+  {
+   "id": "b14-003",
+   "topic": "b14",
+   "name": "Gauntlet: two words in [ ]",
+   "summary": "The b9 trap from the other side: an unquoted variable with a SPACE explodes [ ] into too many arguments (an error, status 2). [[ ]] doesn't split and stays correct.",
+   "predict": [
+    {
+     "code": "v='a b'\n[ -n $v ] 2>/dev/null || echo broke\n[[ -n $v ]] && echo fine",
+     "output": "broke\nfine",
+     "why": "[ -n a b ] is 'too many arguments' — the test errors out. [[ never word-splits, so it simply checks the non-empty value."
+    }
+   ]
+  },
+  {
+   "id": "b14-004",
+   "topic": "b14",
+   "name": "Gauntlet: set -e meets grep",
+   "summary": "Two lessons collide: grep exits 1 on 'no match' (b4), and set -e treats any non-zero as fatal (b10). A merely-empty grep kills a strict-mode script. Guard it: grep -q pat file || true.",
+   "predict": [
+    {
+     "code": "bash -c 'set -e; echo start; grep -q x /dev/null; echo end'\necho \"exit=$?\"",
+     "output": "start\nexit=1",
+     "why": "No match = exit 1; under set -e that terminates the script before 'end'. Not an error — just grep saying 'nothing found'."
+    }
+   ]
+  },
+  {
+   "id": "b14-005",
+   "topic": "b14",
+   "name": "Gauntlet: the loop that runs once too often",
+   "summary": "The b2 trap inside a loop: an unmatched glob stays LITERAL, so for f in *.xyz runs once with f='*.xyz' in an empty directory. shopt -s nullglob makes it run zero times.",
+   "predict": [
+    {
+     "code": "count=0\nfor f in *.xyz; do count=$((count+1)); done\necho $count",
+     "output": "1",
+     "why": "Nothing matches, the glob survives as the literal word *.xyz, and the loop body runs once on it."
+    }
+   ]
+  },
+  {
+   "id": "b14-006",
+   "topic": "b14",
+   "name": "Gauntlet: the range that never expands",
+   "summary": "The b10 ordering trap live: brace expansion runs before variable expansion, so {1..$n} never becomes a range — the loop gets one literal word.",
+   "predict": [
+    {
+     "code": "n=3\nfor i in {1..$n}; do echo \"$i\"; done",
+     "output": "{1..3}",
+     "why": "Braces expanded first (and saw non-numeric $n, so did nothing); THEN $n became 3 — leaving the single literal word {1..3}."
+    }
+   ]
+  },
+  {
+   "id": "b14-007",
+   "topic": "b14",
+   "name": "Gauntlet: cd in a subshell",
+   "summary": "The b5 subshell rule applied to cd: (cd /tmp && …) changes directory only INSIDE the parentheses. Useful on purpose (do work elsewhere, come back for free) — a bug when accidental.",
+   "predict": [
+    {
+     "code": "before=$PWD\n(cd /tmp)\n[ \"$PWD\" = \"$before\" ] && echo unchanged",
+     "output": "unchanged",
+     "why": "The cd happened in the subshell's copy of the environment; the parent shell never moved."
+    }
+   ]
+  },
+  {
+   "id": "b14-008",
+   "topic": "b14",
+   "name": "Gauntlet: read eats the padding",
+   "summary": "The b10 IFS lesson as a demo: default IFS makes read trim leading and trailing whitespace. IFS= for just that read keeps the line intact.",
+   "predict": [
+    {
+     "code": "printf '  padded  \\n' | { read line; echo \"[$line]\"; }\nprintf '  padded  \\n' | { IFS= read line; echo \"[$line]\"; }",
+     "output": "[padded]\n[  padded  ]",
+     "why": "read splits/trims by IFS, so the spaces vanish; with IFS= the line arrives exactly as printed."
+    }
+   ]
+  },
+  {
+   "id": "b14-c01",
+   "topic": "b14",
+   "name": "Gauntlet: spot the true one",
+   "summary": "A tour of the test traps: vanished empty variables make [ -n $x ] true; lexicographic [[ > ]] disagrees with numbers; (( 0 )) is false; = compares strings, so 07 and 7 differ.",
+   "confusable": [
+    {
+     "prompt": "empty=''. Exactly one of these is TRUE — which?",
+     "options": [
+      "[ -n $empty ]",
+      "[[ 10 > 9 ]]",
+      "(( 0 ))",
+      "[ 07 = 7 ]"
+     ],
+     "answer": 0,
+     "explain": "The unquoted empty variable vanishes: [ -n ] tests the string '-n' itself — true! [[ 10 > 9 ]] is string comparison (false: '1' sorts before '9'); (( 0 )) is false; = is string equality, and '07' is not '7'."
+    }
+   ]
+  },
+  {
+   "id": "b14-c02",
+   "topic": "b14",
+   "name": "Gauntlet: works for me, empty in the script",
+   "summary": "The b5 environment rule as a symptom: a variable set interactively (no export) is invisible to ./script.sh, which is a NEW process. Export it, or pass it inline: VAR=x ./script.sh.",
+   "confusable": [
+    {
+     "prompt": "x=5 works in your terminal, but ./script.sh sees x as empty. Why?",
+     "options": [
+      "x was never exported to the environment",
+      "Scripts cannot read variables at all",
+      "The script needs sudo",
+      "$x is reserved in scripts"
+     ],
+     "answer": 0,
+     "explain": "./script.sh runs in a fresh process, which inherits only the exported environment. export x (or x=5 ./script.sh) fixes it."
+    }
+   ]
+  }
+ ]
+};
+
+/* ============================== STORAGE ============================== */
+var LS_AVAILABLE = false;
+try {
+  var __t = "__pd_test__";
+  window.localStorage.setItem(__t, "1");
+  window.localStorage.removeItem(__t);
+  LS_AVAILABLE = true;
+} catch (e) { LS_AVAILABLE = false; }
+
+var PROG_KEY = "bashdrill_progress_v1";
+var IS_TOUCH = false;
+try {
+  if (typeof matchMedia === "function") {
+    IS_TOUCH = matchMedia("(pointer: coarse)").matches;
+  } else {
+    IS_TOUCH = ("ontouchstart" in window);
+  }
+} catch (e) { IS_TOUCH = false; }
+function loadProgress(){
+  if(!LS_AVAILABLE) return {};
+  try { var raw = window.localStorage.getItem(PROG_KEY); return raw ? JSON.parse(raw) : {}; }
+  catch(e){ return {}; }
+}
+function saveProgress(){
+  if(!LS_AVAILABLE) return;
+  try { window.localStorage.setItem(PROG_KEY, JSON.stringify(progress)); } catch(e){}
+}
+
+/* ============================== STATE ============================== */
+var MODE_LABELS = [
+  ["predict","Predict output"],
+  ["fill","Fill the blank"],
+  ["complexity","Complexity"],
+  ["recall","Recall"],
+  ["confusable","Which fits"]
+];
+var progress = loadProgress();
+var enabledTopics = new Set(
+  DECK_DATA.topics
+    .filter(function(t){ return DECK_DATA.cards.some(function(c){return c.topic===t.id;}); })
+    .map(function(t){ return t.id; })
+);
+var enabledModes = new Set(
+  MODE_LABELS.map(function(m){ return m[0]; }).filter(function(mode){
+    return DECK_DATA.cards.some(function(c){ return unitsForCardMode(c, mode).length>0; });
+  })
+);
+var session = null;     // {queue:[], idx, results:[], review:false}
+var currentU = null;    // current question unit
+var feedback = null;    // grading result for current unit
+var picked = null;      // selected choice index (confusable)
+
+/* ============================== UNIT MODEL ============================== */
+function unitsForCardMode(card, mode){
+  if(mode==="predict")    return (card.predict||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="fill")       return (card.fill||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="confusable") return (card.confusable||[]).map(function(it){return {kind:"mc", item:it};});
+  if(mode==="recall")     return (card.recall||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="complexity"){
+    if(!card.ops) return [];
+    return Object.keys(card.ops).map(function(op){return {kind:"text", item:{op:op, info:card.ops[op]}};});
+  }
+  return [];
+}
+function qidFor(card, mode, i){ return card.id+":"+mode+":"+i; }
+
+function askableUnits(){
+  var out = [];
+  DECK_DATA.cards.forEach(function(card){
+    if(!enabledTopics.has(card.topic)) return;
+    MODE_LABELS.forEach(function(m){
+      var mode = m[0];
+      if(!enabledModes.has(mode)) return;
+      unitsForCardMode(card, mode).forEach(function(u, i){
+        out.push({card:card, mode:mode, i:i, kind:u.kind, item:u.item, qid:qidFor(card,mode,i)});
+      });
+    });
+  });
+  return out;
+}
+function topicHasMode(topicId, mode){
+  return DECK_DATA.cards.some(function(c){
+    return c.topic===topicId && unitsForCardMode(c, mode).length>0;
+  });
+}
+
+/* ============================== SPACED REPETITION ============================== */
+function weightFor(qid){
+  var p = progress[qid];
+  if(!p || !p.seen) return 12;              // never seen -> strong preference
+  var acc = p.correct / p.seen;             // 0..1
+  var w = 1 + (1 - acc) * 4;                // 1..5 with inaccuracy
+  w = w / (1 + 0.5 * (p.streak || 0));      // decay with correct streak
+  return Math.max(0.2, w);
+}
+function recordResult(qid, grade){
+  var p = progress[qid] || {seen:0, correct:0, streak:0};
+  p.seen += 1;
+  if(grade==="exact"){ p.correct += 1; p.streak = (p.streak||0)+1; }
+  else if(grade==="close"){ p.correct += 1; }          // near-miss: counts, holds streak
+  else { p.streak = 0; }
+  p.last = grade;
+  progress[qid] = p;
+  saveProgress();
+}
+
+/* weighted ordering: higher weight tends earlier, with variety */
+function buildQueue(units){
+  return units.map(function(u){
+      var w = weightFor(u.qid);
+      return { u:u, key: Math.pow(Math.random(), 1/Math.max(0.2,w)) };
+    })
+    .sort(function(a,b){ return b.key - a.key; })
+    .map(function(x){ return x.u; });
+}
+
+/* ============================== GRADING ============================== */
+function editDistance(a, b){   // optimal string alignment: single transposition = cost 1
+  var m=a.length, n=b.length, d=[];
+  for(var i=0;i<=m;i++){ d[i]=[i]; }
+  for(var j=0;j<=n;j++){ d[0][j]=j; }
+  for(i=1;i<=m;i++) for(j=1;j<=n;j++){
+    var cost = a[i-1]===b[j-1] ? 0 : 1;
+    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+cost);
+    if(i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1])
+      d[i][j] = Math.min(d[i][j], d[i-2][j-2]+cost);
+  }
+  return d[m][n];
+}
+function normLines(s){
+  return String(s).replace(/\r/g,"").split("\n")
+    .map(function(l){return l.replace(/\s+$/,"");})
+    .join("\n").replace(/^\n+|\n+$/g,"");
+}
+var EXC_RE = /\b([A-Z][A-Za-z]*(?:Error|Exception|Interrupt|Iteration|Warning))\b/;
+function gradeText(user, expected){
+  var u = normLines(user), e = normLines(expected);
+  if(u === e) return "exact";
+  if(u.replace(/\s+/g,"") === e.replace(/\s+/g,"")) return "close";       // whitespace only
+  var qu = u.replace(/['"]/g,'"'), qe = e.replace(/['"]/g,'"');           // quote style
+  if(qu === qe) return "close";
+  // short single-token answers: allow a 1-char typo for length>=5
+  if(!/\n/.test(e) && e.length>=5 && editDistance(qu, qe) <= 1) return "close";
+  return "wrong";
+}
+function gradeOutput(user, expected){
+  var e = normLines(expected), u = normLines(user);
+  var em = e.match(EXC_RE);
+  if(em){                                                                  // expected is an exception
+    var um = u.match(EXC_RE);
+    if(um && um[1] === em[1]) return (u === em[1]) ? "exact" : "close";    // right type (maybe extra msg)
+    if(/error|exception|raise|traceback/i.test(u)) return "close";        // knew it raised, wrong type
+    return "wrong";
+  }
+  return gradeText(user, expected);
+}
+
+function normBigO(s){ return String(s).toLowerCase().replace(/\s+/g,"").replace(/^[~\u2248]/,""); }
+function gradeBigO(user, expected){
+  var u=normBigO(user), e=normBigO(expected);
+  if(u===e) return "exact";
+  var inner=function(x){ var m=x.match(/^o\((.*)\)$/); return m?m[1]:x; };  // tolerate missing O(...)
+  if(inner(u)===inner(e)) return "close";
+  return "wrong";
+}
+
+/* ============================== RENDER ============================== */
+var app = document.getElementById("app");
+function el(html){ var d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstChild; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function topicLabel(id){ var t=DECK_DATA.topics.find(function(x){return x.id===id;}); return t?t.label:id; }
+function modeLabel(m){ var x=MODE_LABELS.find(function(p){return p[0]===m;}); return x?x[1]:m; }
+
+function header(){
+  var units = askableUnits();
+  var cards = new Set(units.map(function(u){return u.card.id;})).size;
+  return '<header><div class="logo">bash<b>Drill</b></div>'+
+    '<div class="stat">'+cards+' cards \u00b7 '+units.length+' questions</div></header>';
+}
+
+function render(){
+  app.innerHTML = "";
+  app.appendChild(el(header()));
+  if(session){ renderQuestion(); } else { renderHome(); }
+}
+
+function renderHome(){
+  // topic pills
+  var tp = DECK_DATA.topics.map(function(t){
+    var has = DECK_DATA.cards.some(function(c){return c.topic===t.id;});
+    var cls = "pill" + (enabledTopics.has(t.id)?" on":"") + (has?"":" empty");
+    var lbl = esc(t.label) + (has?"":" \u00b7 soon");
+    return '<span class="'+cls+'" data-topic="'+t.id+'">'+lbl+'</span>';
+  }).join("");
+  // mode pills
+  var mp = MODE_LABELS.map(function(m){
+    var any = DECK_DATA.cards.some(function(c){
+      return enabledTopics.has(c.topic) && unitsForCardMode(c,m[0]).length>0; });
+    var cls = "pill" + (enabledModes.has(m[0])?" on":"") + (any?"":" empty");
+    return '<span class="'+cls+'" data-mode="'+m[0]+'">'+esc(m[1])+'</span>';
+  }).join("");
+
+  var c1 = el('<div class="card"><div class="panelhead" style="display:flex;justify-content:space-between;align-items:baseline">Topics'+
+    '<span><button class="hintlink" data-sel="topics-all">All</button> <span class="small">\u00b7</span> '+
+    '<button class="hintlink" data-sel="topics-none">None</button></span></div><div class="pills">'+tp+'</div></div>');
+  c1.querySelector('[data-sel="topics-all"]').onclick = function(){
+    DECK_DATA.topics.forEach(function(t){
+      if(DECK_DATA.cards.some(function(c){return c.topic===t.id;})) enabledTopics.add(t.id);
+    });
+    render();
+  };
+  c1.querySelector('[data-sel="topics-none"]').onclick = function(){
+    enabledTopics.clear(); render();
+  };
+  c1.querySelectorAll("[data-topic]").forEach(function(p){
+    if(p.classList.contains("empty")) return;
+    p.onclick=function(){ var id=p.getAttribute("data-topic");
+      if(enabledTopics.has(id)) enabledTopics.delete(id); else enabledTopics.add(id);
+      render(); };
+  });
+  var c2 = el('<div class="card"><div class="panelhead" style="display:flex;justify-content:space-between;align-items:baseline">Drill modes'+
+    '<span><button class="hintlink" data-sel="modes-all">All</button> <span class="small">\u00b7</span> '+
+    '<button class="hintlink" data-sel="modes-none">None</button></span></div><div class="pills">'+mp+'</div>'+
+    '<div class="small" style="margin-top:10px">Predict-output is the high-value drill. '+
+    (IS_TOUCH
+      ? 'Type the answer, tap <span class="kbd">Check</span> to grade and <span class="kbd">Next</span> to continue.'
+      : 'Enter answers; <span class="kbd">\u2318/Ctrl + Enter</span> submits a snippet, <span class="kbd">Enter</span> advances.')
+    +'</div></div>');
+  c2.querySelector('[data-sel="modes-all"]').onclick = function(){
+    MODE_LABELS.forEach(function(m){
+      if(DECK_DATA.cards.some(function(c){return unitsForCardMode(c, m[0]).length>0;})) enabledModes.add(m[0]);
+    });
+    render();
+  };
+  c2.querySelector('[data-sel="modes-none"]').onclick = function(){
+    enabledModes.clear(); render();
+  };
+  c2.querySelectorAll("[data-mode]").forEach(function(p){
+    p.onclick=function(){ var id=p.getAttribute("data-mode");
+      if(enabledModes.has(id)) enabledModes.delete(id); else enabledModes.add(id);
+      render(); };
+  });
+
+  var units = askableUnits();
+  var startCard = el('<div class="card center"><button class="primary" id="startBtn" '+
+    (units.length?"":"disabled")+'>Start round \u00b7 '+units.length+' questions</button>'+
+    (LS_AVAILABLE?"":'<div class="small" style="margin-top:8px">Progress won\u2019t persist (storage unavailable here).</div>')+
+    '</div>');
+  startCard.querySelector("#startBtn").onclick = function(){ startRound(); };
+
+  app.appendChild(c1); app.appendChild(c2); app.appendChild(startCard);
+}
+
+function startRound(reviewUnits){
+  var review = Array.isArray(reviewUnits);
+  var units = review ? reviewUnits : askableUnits();
+  if(!units.length) return;
+  session = { queue: review ? units.slice() : buildQueue(units),
+              idx:0, results:[], review: review, total: units.length };
+  nextQuestion();
+}
+function nextQuestion(){
+  feedback=null; picked=null;
+  if(session.idx >= session.queue.length){ renderSummary(); return; }
+  currentU = session.queue[session.idx];
+  render();
+}
+
+function renderCodeWithBlank(code){
+  // replace runs of _ (>=1) with a styled blank
+  return esc(code).replace(/_{1,}/g, function(m){ return '<span class="blank">'+m+'</span>'; });
+}
+
+function renderQuestion(){
+  var u = currentU;
+  var head = '<div class="eyebrow"><span class="topic">'+esc(topicLabel(u.card.topic))+'</span>'+
+    '<span>'+esc(modeLabel(u.mode))+' \u00b7 '+(session.idx+1)+'/'+session.queue.length+
+    (session.review?' \u00b7 review':'')+'</span></div>';
+  var nameLine = '<p class="qname">'+esc(u.card.name)+'</p>';
+
+  if(u.mode==="confusable"){
+    renderMC(head, nameLine); return;
+  }
+
+  // text-answer modes: predict / fill / recall / complexity
+  var body="", lbl="", multiline=false, codeHtml="";
+  if(u.mode==="predict"){
+    codeHtml='<pre class="code"><span class="prompt">$ bash</span>\n'+esc(u.item.code)+'</pre>';
+    lbl="What appears on stdout? (exact)"; multiline=true;
+  } else if(u.mode==="fill"){
+    codeHtml='<pre class="code">'+renderCodeWithBlank(u.item.code)+'</pre>';
+    lbl="Fill the blank"; multiline=false;
+  } else if(u.mode==="recall"){
+    codeHtml=''; lbl="Type the answer"; multiline=false;
+    nameLine='<p class="qname">'+esc(u.item.prompt||u.card.name)+'</p>';
+  } else if(u.mode==="complexity"){
+    codeHtml='<pre class="code">'+esc(u.card.name)+'  \u2014  '+esc(u.item.op)+'</pre>';
+    lbl="Average-case complexity, e.g. O(1), O(n), O(log n)"; multiline=false;
+  }
+
+  var input = multiline
+    ? '<textarea id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="exact output\u2026"></textarea>'
+    : '<input class="ans" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="\u2026">';
+
+  var hintBtn = (u.item && (u.item.hint))
+    ? '<button class="hintlink" id="hintBtn">Show hint</button>' : '';
+
+  var c = el('<div class="card">'+head+nameLine+codeHtml+
+    '<label class="lbl">'+esc(lbl)+'</label>'+input+hintBtn+
+    '<div class="row"><button class="primary" id="submit">Check</button>'+
+    '<button id="skip">Skip</button></div><div id="fbslot"></div></div>');
+
+  var ansEl = c.querySelector("#ans");
+  c.querySelector("#submit").onclick = function(){ doGrade(ansEl.value); };
+  c.querySelector("#skip").onclick = function(){ commit("wrong", ""); };
+  if(hintBtn){
+    c.querySelector("#hintBtn").onclick = function(){
+      this.outerHTML='<div class="small" style="margin-top:6px">Hint: '+esc(u.item.hint)+'</div>';
+    };
+  }
+  ansEl.addEventListener("keydown", function(e){
+    if(e.key==="Enter"){
+      if(multiline && !(e.metaKey||e.ctrlKey)) return;   // allow newlines in snippet output
+      e.preventDefault(); doGrade(ansEl.value);
+    }
+  });
+  app.appendChild(c);
+  setTimeout(function(){ ansEl.focus(); }, 30);
+
+  function doGrade(val){
+    var expected = (u.mode==="predict") ? u.item.output
+                 : (u.mode==="fill")    ? u.item.answer
+                 : (u.mode==="recall")  ? u.item.answer
+                 : (u.mode==="complexity") ? u.item.info.bigO : "";
+    var grade = (u.mode==="predict") ? gradeOutput(val, expected)
+              : (u.mode==="complexity") ? gradeBigO(val, expected)
+              : gradeText(val, expected);
+    commit(grade, val, expected);
+  }
+}
+
+function renderMC(head, nameLine){
+  var u = currentU, it = u.item;
+  var opts = it.options.map(function(o,i){
+    return '<button class="choice" data-i="'+i+'">'+esc(o)+'</button>';
+  }).join("");
+  var c = el('<div class="card">'+head+nameLine+
+    '<p style="font-size:14px;margin:0 0 12px">'+esc(it.prompt)+'</p>'+
+    '<div class="choices">'+opts+'</div><div id="fbslot"></div></div>');
+  c.querySelectorAll(".choice").forEach(function(b){
+    b.onclick=function(){
+      if(feedback) return;
+      picked = parseInt(b.getAttribute("data-i"),10);
+      var grade = (picked===it.answer) ? "exact" : "wrong";
+      c.querySelectorAll(".choice").forEach(function(x,i){
+        x.disabled=true;
+        if(i===it.answer) x.classList.add("correct");
+        if(i===picked && picked!==it.answer) x.classList.add("wrong");
+      });
+      commitInto(c.querySelector("#fbslot"), grade, null, it.options[it.answer], it.explain);
+    };
+  });
+  app.appendChild(c);
+}
+
+function commit(grade, val, expected){
+  var why = currentU.mode==="complexity"
+    ? (currentU.item.info && currentU.item.info.note)
+    : currentU.item.why;
+  commitInto(document.getElementById("fbslot"), grade, val, expected, why);
+  // disable inputs
+  var s=document.getElementById("submit"); if(s) s.disabled=true;
+  var a=document.getElementById("ans"); if(a) a.disabled=true;
+}
+function commitInto(slot, grade, val, expected, why){
+  feedback = grade;
+  recordResult(currentU.qid, grade);
+  session.results.push({u:currentU, grade:grade});
+  var gtxt = grade==="exact"?"Correct":grade==="close"?"Close":"Not quite";
+  var html='<div class="fb '+grade+'"><span class="g">'+gtxt+'</span>';
+  if(expected!=null && grade!=="exact"){
+    html += '<pre>'+esc(expected)+'</pre>';
+  } else if(expected!=null && grade==="exact" && currentU.mode==="predict"){
+    html += '<pre>'+esc(expected)+'</pre>';
+  }
+  if(why) html += '<div class="why">'+esc(why)+'</div>';
+  html += '</div>';
+  var summary = currentU.card && currentU.card.summary;
+  var showTeach = summary && summary !== why;
+  if(showTeach) html += '<button class="hintlink" id="teach">Teach me this</button>';
+  html += '<div class="row"><button class="primary" id="next">'+
+    (session.idx+1>=session.queue.length?"Finish":"Next")+'</button></div>';
+  slot.innerHTML = html;
+  var nb = slot.querySelector("#next");
+  nb.onclick = advance;
+  if(showTeach){
+    slot.querySelector("#teach").onclick = function(){
+      this.outerHTML = '<div class="why" style="margin-top:6px">'+esc(summary)+'</div>';
+    };
+  }
+  setTimeout(function(){ document.addEventListener("keydown", enterAdvance); }, 0);
+}
+function enterAdvance(e){
+  if(e.key==="Enter"){ e.preventDefault(); advance(); }
+}
+function advance(){
+  document.removeEventListener("keydown", enterAdvance);
+  session.idx += 1;
+  nextQuestion();
+}
+
+function renderSummary(){
+  var res = session.results;
+  var exact = res.filter(function(r){return r.grade==="exact";}).length;
+  var close = res.filter(function(r){return r.grade==="close";}).length;
+  var wrong = res.filter(function(r){return r.grade==="wrong";}).length;
+  var n = res.length || 1;
+  var missed = res.filter(function(r){return r.grade==="wrong";}).map(function(r){return r.u;});
+
+  function barRow(lbl, val, color){
+    return '<div class="bar"><span style="width:54px">'+lbl+'</span>'+
+      '<span class="track"><span class="fill" style="width:'+Math.round(val/n*100)+'%;background:'+color+'"></span></span>'+
+      '<span style="width:28px;text-align:right">'+val+'</span></div>';
+  }
+  var missList = missed.length
+    ? '<div class="miss">Missed: '+missed.map(function(u){return esc(u.card.name);}).join(", ")+'</div>'
+    : '<div class="miss">Clean round \u2014 nothing missed.</div>';
+
+  var c = el('<div class="card summary center">'+
+    '<div class="eyebrow"><span class="topic">'+(session.review?"Review complete":"Round complete")+'</span><span></span></div>'+
+    '<div class="big">'+exact+'/'+res.length+'</div>'+
+    '<div class="small">exact \u00b7 '+close+' close \u00b7 '+wrong+' missed</div>'+
+    '<div class="bars" style="text-align:left;max-width:340px;margin:14px auto 0">'+
+      barRow("exact", exact, "var(--ok)")+
+      barRow("close", close, "var(--close)")+
+      barRow("missed", wrong, "var(--bad)")+
+    '</div>'+missList+
+    '<div class="row" style="justify-content:center;margin-top:16px">'+
+      (missed.length?'<button class="primary" id="reviewBtn">Re-drill '+missed.length+' missed</button>':'')+
+      '<button id="homeBtn">Done</button></div></div>');
+
+  if(missed.length){
+    c.querySelector("#reviewBtn").onclick = function(){ startRound(missed); };
+  }
+  c.querySelector("#homeBtn").onclick = function(){ session=null; render(); };
+  app.innerHTML=""; app.appendChild(el(header())); app.appendChild(c);
+}
+
+/* ============================== BOOT ============================== */
+render();
+
+/* expose for runtime probe / debugging */
+window.__pd = { DECK_DATA:DECK_DATA, askableUnits:askableUnits, buildQueue:buildQueue,
+  gradeText:gradeText, gradeOutput:gradeOutput, gradeBigO:gradeBigO, weightFor:weightFor, unitsForCardMode:unitsForCardMode };
+</script>
+</body>
+</html>

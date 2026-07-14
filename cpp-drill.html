@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b1d27">
+<title>cppDrill</title>
+<style>
+  :root{
+    --bg:#f3f2ee; --panel:#ffffff; --ink:#1b1d27; --muted:#6b6e7e;
+    --line:#e3e1da; --accent:#5b4bd6; --accent-ink:#fff;
+    --code-bg:#1b1d27; --code-ink:#e7e6f0; --prompt:#7c83a3;
+    --ok:#1f9d6b; --ok-bg:#e6f6ee; --close:#b8821b; --close-bg:#fbf2dd;
+    --bad:#cf4040; --bad-bg:#fbe7e7;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#15161d;--panel:#1f212b;--ink:#e7e6f0;--muted:#9296a8;
+      --line:#2c2f3b;--code-bg:#0f1016;--ok-bg:#16332a;--close-bg:#3a2f15;--bad-bg:#3a1f1f;}
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.45;-webkit-text-size-adjust:100%;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+  .wrap{max-width:680px;margin:0 auto;padding:14px 14px 40px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:4px 2px 14px}
+  .logo{font-family:var(--mono);font-weight:600;font-size:18px;letter-spacing:-.5px}
+  .logo b{color:var(--accent)}
+  .stat{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;justify-content:space-between}
+  .eyebrow .topic{color:var(--accent)}
+  .qname{font-weight:600;font-size:15px;margin:0 0 12px}
+  pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);
+    font-size:13.5px;line-height:1.55;padding:13px 14px;border-radius:10px;overflow-x:auto;margin:0 0 12px;white-space:pre}
+  pre.code .blank{background:rgba(123,131,163,.35);border-radius:3px;padding:0 .35em;color:#fff}
+  .prompt{color:var(--prompt)}
+  label.lbl{display:block;font-size:13px;color:var(--muted);margin:2px 0 6px}
+  textarea,input.ans{width:100%;font-family:var(--mono);font-size:14px;color:var(--ink);
+    background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 11px;resize:vertical}
+  textarea{min-height:70px;white-space:pre}
+  input.ans{height:42px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  button{font-family:var(--sans);font-size:14px;font-weight:550;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);border-radius:9px;padding:9px 15px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  button:active{transform:translateY(1px)}
+  button:disabled{opacity:.45;cursor:default}
+  .choices{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .choice{text-align:left;font-family:var(--mono);font-size:13.5px;line-height:1.4;white-space:pre-wrap}
+  .choice.sel{border-color:var(--accent)}
+  .choice.correct{background:var(--ok-bg);border-color:var(--ok)}
+  .choice.wrong{background:var(--bad-bg);border-color:var(--bad)}
+  .fb{margin-top:13px;border-radius:10px;padding:11px 13px;font-size:13.5px}
+  .fb .g{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+  .fb.exact{background:var(--ok-bg);border:1px solid var(--ok)} .fb.exact .g{color:var(--ok)}
+  .fb.close{background:var(--close-bg);border:1px solid var(--close)} .fb.close .g{color:var(--close)}
+  .fb.wrong{background:var(--bad-bg);border:1px solid var(--bad)} .fb.wrong .g{color:var(--bad)}
+  .fb pre{font-family:var(--mono);font-size:13px;white-space:pre-wrap;margin:6px 0 0;background:rgba(127,127,127,.10);padding:8px 10px;border-radius:7px}
+  .fb .why{margin-top:8px;color:var(--muted);font-family:var(--sans)}
+  .hintlink{font-size:12.5px;color:var(--accent);background:none;border:none;padding:4px 0;cursor:pointer;font-weight:550}
+  .panelhead{font-weight:600;font-size:14px;margin:0 0 10px}
+  .pills{display:flex;flex-wrap:wrap;gap:7px}
+  .pill{font-family:var(--mono);font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg);cursor:pointer;user-select:none}
+  .pill.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .pill.empty{opacity:.4;cursor:default}
+  .small{font-size:12px;color:var(--muted)}
+  .summary .big{font-family:var(--mono);font-size:30px;font-weight:600}
+  .bars{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .bar{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px}
+  .bar .track{flex:1;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--accent)}
+  .miss{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px}
+  .center{text-align:center}
+  details{margin-top:6px}
+  summary{cursor:pointer;font-size:13px;color:var(--muted)}
+  .kbd{font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ============================== DECK DATA ==============================
+   Single-file inline dataset. Keep a separate deck.json for editing and
+   paste the cards array back in here on rebuild.                          */
+const DECK_DATA = {
+  "meta": {
+    "version": "1.0",
+    "reference_lang": "en",
+    "level": "intermediate",
+    "subject": "C++ (C++17)",
+    "created": "2026-07-06"
+  },
+  "topics": [
+    {
+      "id": "c1",
+      "label": "Values, references & pointers"
+    },
+    {
+      "id": "c2",
+      "label": "const & initialization"
+    },
+    {
+      "id": "c3",
+      "label": "Arithmetic & types"
+    },
+    {
+      "id": "c4",
+      "label": "Strings & I/O"
+    },
+    {
+      "id": "c5",
+      "label": "Vectors & STL"
+    },
+    {
+      "id": "c6",
+      "label": "Functions & overloading"
+    },
+    {
+      "id": "c7",
+      "label": "Classes & RAII"
+    },
+    {
+      "id": "c8",
+      "label": "Inheritance & virtual"
+    },
+    {
+      "id": "c9",
+      "label": "Copies & moves"
+    },
+    {
+      "id": "c10",
+      "label": "Templates & auto"
+    },
+    {
+      "id": "c11",
+      "label": "Smart pointers & ownership"
+    }
+  ],
+  "cards": [
+    {
+      "id": "c1-001",
+      "topic": "c1",
+      "name": "Assignment copies the value",
+      "summary": "int b = a; copies the VALUE. b is a separate object; changing it never affects a. C++ value semantics are the default everywhere \u2014 the opposite of Python's name-binding.",
+      "predict": [
+        {
+          "code": "int a = 1;\nint b = a;\nb = 5;\nstd::cout << a;",
+          "output": "1",
+          "why": "b holds its own copy; a is untouched."
+        }
+      ]
+    },
+    {
+      "id": "c1-002",
+      "topic": "c1",
+      "name": "A reference is an alias",
+      "summary": "int& r = a; makes r another NAME for a \u2014 same object, no copy. Assigning through r assigns to a. A reference must be initialized and can never be reseated to another object.",
+      "predict": [
+        {
+          "code": "int a = 1;\nint& r = a;\nr = 2;\nstd::cout << a;",
+          "output": "2",
+          "why": "r IS a; writing r writes a."
+        }
+      ]
+    },
+    {
+      "id": "c1-003",
+      "topic": "c1",
+      "name": "Pass by value doesn't touch the caller",
+      "summary": "A by-value parameter is a copy made at the call. Mutating it changes only the copy \u2014 the caller's variable is safe. This is why large objects are passed by const&.",
+      "predict": [
+        {
+          "code": "void f(int x) { x = 9; }\nint main() {\n    int a = 1;\n    f(a);\n    std::cout << a;\n}",
+          "output": "1",
+          "why": "x is a copy; the assignment dies with the call."
+        }
+      ]
+    },
+    {
+      "id": "c1-004",
+      "topic": "c1",
+      "name": "Pass by reference mutates the caller",
+      "summary": "An int& parameter binds directly to the caller's object \u2014 assignments go straight through. The C++ way to write out-parameters and in-place modifiers (std::swap works this way).",
+      "predict": [
+        {
+          "code": "void f(int& x) { x = 9; }\nint main() {\n    int a = 1;\n    f(a);\n    std::cout << a;\n}",
+          "output": "9",
+          "why": "x aliases a for the duration of the call."
+        }
+      ]
+    },
+    {
+      "id": "c1-005",
+      "topic": "c1",
+      "name": "Pointers: & takes an address, * dereferences",
+      "summary": "int* p = &a stores a's address; *p reads/writes the object at that address. Unlike references, pointers can be reseated and can be nullptr \u2014 power plus responsibility.",
+      "predict": [
+        {
+          "code": "int a = 3;\nint* p = &a;\n*p = 7;\nstd::cout << a;",
+          "output": "7",
+          "why": "*p = 7 writes through the pointer into a."
+        }
+      ]
+    },
+    {
+      "id": "c1-006",
+      "topic": "c1",
+      "name": "Pointer arithmetic on arrays",
+      "summary": "An array name decays to a pointer to its first element; p + 1 advances by one ELEMENT (not one byte). *(v + i) is exactly v[i] \u2014 the two notations are defined to be the same.",
+      "predict": [
+        {
+          "code": "int v[] = {10, 20, 30};\nstd::cout << *(v + 1);",
+          "output": "20",
+          "why": "v+1 points at the second element; * reads it."
+        }
+      ]
+    },
+    {
+      "id": "c1-f01",
+      "topic": "c1",
+      "name": "Declare a reference",
+      "summary": "& in a declaration makes a reference (alias); the same symbol in an expression takes an address. Position decides the meaning.",
+      "fill": [
+        {
+          "code": "int _ r = a;   // r becomes an alias for a",
+          "answer": "&",
+          "hint": "one symbol between the type and the name"
+        }
+      ]
+    },
+    {
+      "id": "c1-f02",
+      "topic": "c1",
+      "name": "Read through a pointer",
+      "summary": "* in an expression dereferences: 'the object p points at'. In a declaration, the same symbol declares a pointer.",
+      "fill": [
+        {
+          "code": "std::cout << _p;   // print the value p points at",
+          "answer": "*",
+          "hint": "the dereference operator"
+        }
+      ]
+    },
+    {
+      "id": "c1-c01",
+      "topic": "c1",
+      "name": "Reference vs pointer",
+      "summary": "References: must bind at creation, can't be null, can't be reseated \u2014 safe aliases. Pointers: nullable, reseatable, support arithmetic \u2014 needed for optional or shifting targets. Prefer references when the object always exists.",
+      "confusable": [
+        {
+          "prompt": "Which is true of a C++ reference but NOT of a pointer?",
+          "options": [
+            "it can be null",
+            "it can be reseated to another object",
+            "it must be initialized and always refers to the same object",
+            "it supports arithmetic"
+          ],
+          "answer": 2,
+          "explain": "A reference binds once, at initialization, forever \u2014 and there is no null reference. Pointers have all the flexibility (and the hazards)."
+        }
+      ]
+    },
+    {
+      "id": "c2-001",
+      "topic": "c2",
+      "name": "Writing to const is a compile error",
+      "summary": "const makes an object read-only after initialization; the compiler rejects any assignment to it. Errors at compile time are the cheapest kind \u2014 const is free correctness.",
+      "predict": [
+        {
+          "code": "const int x = 5;\nx = 6;\nstd::cout << x;",
+          "output": "compile error",
+          "why": "Assignment to a const-qualified object is ill-formed."
+        }
+      ]
+    },
+    {
+      "id": "c2-002",
+      "topic": "c2",
+      "name": "const must be initialized",
+      "summary": "A const object with no initializer can never be given a value, so the declaration itself is rejected. Initialize at the point of definition.",
+      "predict": [
+        {
+          "code": "const int x;\nstd::cout << x;",
+          "output": "compile error",
+          "why": "Uninitialized const is ill-formed \u2014 there is no later chance to set it."
+        }
+      ]
+    },
+    {
+      "id": "c2-003",
+      "topic": "c2",
+      "name": "const& parameters read without copying",
+      "summary": "const std::string& s binds to the caller's string with no copy and no mutation rights \u2014 the default way to pass anything bigger than a few words. Cheap like a pointer, safe like a value.",
+      "predict": [
+        {
+          "code": "void show(const std::string& s) { std::cout << s.size(); }\nint main() { std::string t = \"hello\"; show(t); }",
+          "output": "5",
+          "why": "The reference reads the caller's string directly; size() is 5."
+        }
+      ]
+    },
+    {
+      "id": "c2-f01",
+      "topic": "c2",
+      "name": "Read-only parameter",
+      "summary": "const before the type in a reference parameter promises 'I only read' \u2014 callers can pass temporaries too, which plain & refuses.",
+      "fill": [
+        {
+          "code": "void print(_____ std::string& s);   // may read s, never modify",
+          "answer": "const",
+          "hint": "the read-only qualifier"
+        }
+      ]
+    },
+    {
+      "id": "c2-c01",
+      "topic": "c2",
+      "name": "const int* vs int* const",
+      "summary": "Read right to left: const int* p \u2014 pointer to const int (can't write *p, can move p). int* const p \u2014 const pointer to int (can write *p, can't move p). Both consts: neither.",
+      "confusable": [
+        {
+          "prompt": "With `const int* p`, which operation is forbidden?",
+          "options": [
+            "p = &other;",
+            "*p = 5;",
+            "reading *p",
+            "comparing p == nullptr"
+          ],
+          "answer": 1,
+          "explain": "const int* means the POINTEE is const: *p = 5 is rejected, but the pointer itself may be reseated. int* const is the mirror image."
+        }
+      ]
+    },
+    {
+      "id": "c3-001",
+      "topic": "c3",
+      "name": "Integer division truncates",
+      "summary": "When both operands are integers, / is integer division: the fraction is discarded (truncation toward zero). Make either operand floating (7.0/2 or a cast) for real division.",
+      "predict": [
+        {
+          "code": "std::cout << 7 / 2;",
+          "output": "3",
+          "why": "int / int is int: 3.5 truncates to 3."
+        }
+      ]
+    },
+    {
+      "id": "c3-002",
+      "topic": "c3",
+      "name": "One double makes it real division",
+      "summary": "Arithmetic converts the narrower operand up: int meets double, the int is promoted, and / is floating division. One .0 is enough.",
+      "predict": [
+        {
+          "code": "std::cout << 7.0 / 2;",
+          "output": "3.5",
+          "why": "7.0 is a double, so 2 promotes and the division is real."
+        }
+      ]
+    },
+    {
+      "id": "c3-003",
+      "topic": "c3",
+      "name": "% is the remainder",
+      "summary": "% gives the integer remainder (sign follows the dividend in C++). It exists only for integers \u2014 fmod covers floating point.",
+      "predict": [
+        {
+          "code": "std::cout << 7 % 2;",
+          "output": "1",
+          "why": "7 = 3*2 + 1."
+        }
+      ]
+    },
+    {
+      "id": "c3-004",
+      "topic": "c3",
+      "name": "Assigning a double to an int truncates",
+      "summary": "int x = 3.9 compiles (with a warning at best) and silently drops the fraction: x is 3. Narrowing conversions are legal in old-style init \u2014 brace init int x{3.9} refuses.",
+      "predict": [
+        {
+          "code": "int x = 3.9;\nstd::cout << x;",
+          "output": "3",
+          "why": "The fractional part is discarded, not rounded."
+        }
+      ]
+    },
+    {
+      "id": "c3-005",
+      "topic": "c3",
+      "name": "char + int promotes to int",
+      "summary": "In arithmetic, char promotes to int: 'a' + 1 is the integer 98, and cout prints an int as a number. Cast back \u2014 char('a'+1) \u2014 to print the letter b.",
+      "predict": [
+        {
+          "code": "std::cout << 'a' + 1;",
+          "output": "98",
+          "why": "'a' is 97; the sum is an int, printed numerically."
+        }
+      ]
+    },
+    {
+      "id": "c3-006",
+      "topic": "c3",
+      "name": "Cast back to char to print a letter",
+      "predict": [
+        {
+          "code": "std::cout << char('a' + 1);",
+          "output": "b",
+          "why": "The cast makes the type char again, so cout prints the character."
+        }
+      ],
+      "summary": "cout formats by TYPE: int prints digits, char prints the character. After promotion, an explicit char(...) restores letter output."
+    },
+    {
+      "id": "c3-007",
+      "topic": "c3",
+      "name": "bool prints as 1/0",
+      "summary": "Comparisons yield bool; cout prints bool as 1 or 0 by default (std::boolalpha switches to true/false). Same value as C truthiness, different type.",
+      "predict": [
+        {
+          "code": "std::cout << (3 > 2);",
+          "output": "1",
+          "why": "true prints as 1 without boolalpha."
+        }
+      ]
+    },
+    {
+      "id": "c3-008",
+      "topic": "c3",
+      "name": "Evaluation order inside an expression",
+      "summary": "Conversions happen per-operator, left to right by precedence: 1/2*2.0 groups as (1/2)*2.0 \u2014 the integer division already destroyed the fraction before the double arrived. Put the double first, or cast early.",
+      "predict": [
+        {
+          "code": "std::cout << 1 / 2 * 2.0;",
+          "output": "0",
+          "why": "1/2 is int division = 0; 0 * 2.0 is 0 (printed as 0)."
+        }
+      ]
+    },
+    {
+      "id": "c3-f01",
+      "topic": "c3",
+      "name": "The explicit cast",
+      "summary": "static_cast<double>(a) converts at the point you choose \u2014 do it BEFORE the division so the operation itself is floating. Prefer it over C-style casts: greppable and checked.",
+      "fill": [
+        {
+          "code": "double ratio = ___________<double>(hits) / total;",
+          "answer": "static_cast",
+          "hint": "the checked C++ cast"
+        }
+      ]
+    },
+    {
+      "id": "c3-c01",
+      "topic": "c3",
+      "name": "Why 1/2 is 0",
+      "summary": "The operator's result type is decided by its OPERANDS, not by where the result goes. Assigning int/int to a double doesn't help \u2014 the truncation already happened.",
+      "confusable": [
+        {
+          "prompt": "double d = 1 / 2; \u2014 what is d?",
+          "options": [
+            "0.5",
+            "0.0",
+            "compile error",
+            "undefined"
+          ],
+          "answer": 1,
+          "explain": "1/2 is evaluated as int division first (= 0); only then is 0 converted to double. Fix: 1.0 / 2 or a cast on one operand."
+        }
+      ]
+    },
+    {
+      "id": "c3-c02",
+      "topic": "c3",
+      "name": "++i vs i++",
+      "summary": "++i increments and yields the new value; i++ yields the OLD value, then increments. Standalone they're equivalent (prefer ++i by habit \u2014 it can be cheaper for iterators); inside expressions they differ.",
+      "confusable": [
+        {
+          "prompt": "int i = 5; int j = i++; \u2014 what are j and i afterwards?",
+          "options": [
+            "j=6, i=6",
+            "j=5, i=6",
+            "j=5, i=5",
+            "j=6, i=5"
+          ],
+          "answer": 1,
+          "explain": "Postfix hands back the old value (5) and then increments i to 6."
+        }
+      ]
+    },
+    {
+      "id": "c4-001",
+      "topic": "c4",
+      "name": "std::string concatenates with +=",
+      "summary": "std::string is a real value type: += appends, + concatenates into a new string, .size() is O(1). No manual memory, no strlen.",
+      "predict": [
+        {
+          "code": "std::string s = \"ab\";\ns += \"c\";\nstd::cout << s << s.size();",
+          "output": "abc3",
+          "why": "Append then print: abc and its length 3."
+        }
+      ]
+    },
+    {
+      "id": "c4-002",
+      "topic": "c4",
+      "name": "\"hello\" + 1 is pointer arithmetic",
+      "summary": "A string LITERAL is a const char array that decays to a pointer \u2014 + 1 moves the pointer one char forward; it does not concatenate. To glue text, at least one side must be std::string: std::string(\"hello\") + \"1\".",
+      "predict": [
+        {
+          "code": "std::cout << \"hello\" + 1;",
+          "output": "ello",
+          "why": "The pointer now starts at 'e'; cout prints from there to the terminator."
+        }
+      ]
+    },
+    {
+      "id": "c4-003",
+      "topic": "c4",
+      "name": "substr(pos, len)",
+      "summary": "s.substr(pos, len) copies len characters starting at pos (len clamps at the end; omitted = to the end). Note the second argument is a LENGTH, not an end index \u2014 unlike Python slicing.",
+      "predict": [
+        {
+          "code": "std::string s = \"hello\";\nstd::cout << s.substr(1, 3);",
+          "output": "ell",
+          "why": "3 characters starting at index 1."
+        }
+      ]
+    },
+    {
+      "id": "c4-004",
+      "topic": "c4",
+      "name": "Strings are mutable",
+      "summary": "Unlike Python, std::string is mutable: s[0] = 'H' writes in place. Indexing with [] is unchecked; .at() bounds-checks and throws.",
+      "predict": [
+        {
+          "code": "std::string s = \"hello\";\ns[0] = 'H';\nstd::cout << s;",
+          "output": "Hello",
+          "why": "Direct element assignment mutates the string."
+        }
+      ]
+    },
+    {
+      "id": "c4-005",
+      "topic": "c4",
+      "name": "to_string",
+      "summary": "std::to_string(x) converts numbers to std::string \u2014 the missing piece for building strings from mixed data. The reverse family: stoi, stod.",
+      "predict": [
+        {
+          "code": "std::cout << std::to_string(42) + \"x\";",
+          "output": "42x",
+          "why": "to_string makes a std::string, so + concatenates properly."
+        }
+      ]
+    },
+    {
+      "id": "c4-f01",
+      "topic": "c4",
+      "name": "Read a whole line",
+      "summary": "cin >> s stops at whitespace (one word); std::getline(cin, s) reads to the newline. Mixing them needs care: >> leaves the newline in the buffer for getline to consume.",
+      "fill": [
+        {
+          "code": "std::_______(std::cin, line);   // read up to the newline",
+          "answer": "getline",
+          "hint": "the line reader (free function, not a method)"
+        }
+      ]
+    },
+    {
+      "id": "c4-f02",
+      "topic": "c4",
+      "name": "Number to string",
+      "summary": "std::to_string handles the numeric-to-text direction; stoi/stod come back the other way.",
+      "fill": [
+        {
+          "code": "std::string label = std::_________(count) + \" items\";",
+          "answer": "to_string",
+          "hint": "the numeric converter"
+        }
+      ]
+    },
+    {
+      "id": "c4-c01",
+      "topic": "c4",
+      "name": "Comparing C-strings",
+      "summary": "Two char* compared with == compares ADDRESSES, not contents. std::string's == compares characters. Converting one side to std::string (or using strcmp) fixes it \u2014 one more reason to live in std::string.",
+      "confusable": [
+        {
+          "prompt": "const char* a and b hold identical text at different addresses. What does a == b test?",
+          "options": [
+            "character equality",
+            "pointer (address) equality",
+            "lengths",
+            "undefined"
+          ],
+          "answer": 1,
+          "explain": "Pointer comparison. Use std::string on at least one side, or strcmp, for content comparison."
+        }
+      ]
+    },
+    {
+      "id": "c4-c02",
+      "topic": "c4",
+      "name": "cin >> vs getline",
+      "summary": ">> is whitespace-delimited extraction (one token); getline takes the rest of the line, spaces included. 'Name with spaces read as one word' is the classic symptom of the wrong one.",
+      "confusable": [
+        {
+          "prompt": "The user types: Ada Lovelace. After std::cin >> name, what is name?",
+          "options": [
+            "Ada Lovelace",
+            "Ada",
+            "Lovelace",
+            "empty"
+          ],
+          "answer": 1,
+          "explain": ">> stops at the first whitespace. getline(cin, name) would capture the full line."
+        }
+      ]
+    },
+    {
+      "id": "c5-001",
+      "topic": "c5",
+      "name": "push_back grows the vector",
+      "summary": "std::vector is the default container: contiguous, cache-friendly, amortised O(1) push_back. size() is the element count; capacity() the allocated room.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{1, 2, 3};\nv.push_back(4);\nstd::cout << v.size();",
+          "output": "4",
+          "why": "One append on three elements: size 4."
+        }
+      ]
+    },
+    {
+      "id": "c5-002",
+      "topic": "c5",
+      "name": "Indexing",
+      "summary": "v[i] is unchecked O(1) access; v.at(i) checks bounds and throws std::out_of_range. Use [] in hot loops you've reasoned about, at() where indices come from outside.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{5, 6, 7};\nstd::cout << v[1];",
+          "output": "6",
+          "why": "Zero-based: index 1 is the second element."
+        }
+      ]
+    },
+    {
+      "id": "c5-003",
+      "topic": "c5",
+      "name": "Copying a vector copies elements",
+      "summary": "auto b = a; on a vector copies ALL elements \u2014 b is fully independent, and growing it never touches a. C++ containers have value semantics: the exact opposite of Python's list aliasing.",
+      "predict": [
+        {
+          "code": "std::vector<int> a{1, 2, 3};\nauto b = a;\nb.push_back(9);\nstd::cout << a.size() << b.size();",
+          "output": "34",
+          "why": "b is a deep, independent copy: a stays 3, b becomes 4."
+        }
+      ]
+    },
+    {
+      "id": "c5-004",
+      "topic": "c5",
+      "name": "Range-for",
+      "summary": "for (int x : v) copies each element into x; for (int& x : v) aliases them (mutation possible); for (const auto& x : v) is the read-only default for anything non-trivial.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{1, 2, 3};\nint sum = 0;\nfor (int x : v) sum += x;\nstd::cout << sum;",
+          "output": "6",
+          "why": "The loop visits each element once: 1+2+3."
+        }
+      ]
+    },
+    {
+      "id": "c5-cx1",
+      "topic": "c5",
+      "name": "Container operation costs",
+      "summary": "vector: contiguous array \u2014 O(1) index and push_back (amortised), O(n) anywhere in the middle or front, O(n) find. map: balanced tree \u2014 O(log n) everything, sorted order. unordered_map: hash table \u2014 O(1) average lookup/insert, no order. Pick by dominant operation.",
+      "ops": {
+        "vector index  v[i]": {
+          "bigO": "O(1)",
+          "note": "Contiguous array: direct offset."
+        },
+        "vector push_back": {
+          "bigO": "O(1)",
+          "note": "Amortised; occasional reallocation."
+        },
+        "vector insert front": {
+          "bigO": "O(n)",
+          "note": "Everything shifts \u2014 like Python's list.insert(0, x)."
+        },
+        "vector find (unsorted)": {
+          "bigO": "O(n)",
+          "note": "Linear scan; sort + binary_search or use a set."
+        },
+        "map find/insert": {
+          "bigO": "O(log n)",
+          "note": "Red-black tree; keys stay sorted."
+        },
+        "unordered_map find/insert": {
+          "bigO": "O(1)",
+          "note": "Hash table, average case \u2014 like Python's dict."
+        }
+      }
+    },
+    {
+      "id": "c5-c01",
+      "topic": "c5",
+      "name": "[] vs at()",
+      "summary": "[] trusts you (out of range = undefined behaviour); at() verifies and throws. The existence of both is the C++ deal: you choose where to pay for safety.",
+      "confusable": [
+        {
+          "prompt": "v has 3 elements. Which is guaranteed to throw an exception for index 10?",
+          "options": [
+            "v[10]",
+            "v.at(10)",
+            "*(v.begin()+10)",
+            "v.get(10)"
+          ],
+          "answer": 1,
+          "explain": "at() bounds-checks and throws std::out_of_range. v[10] is undefined behaviour \u2014 it might crash, might 'work'. There is no .get."
+        }
+      ]
+    },
+    {
+      "id": "c5-c02",
+      "topic": "c5",
+      "name": "Which container",
+      "summary": "Key-value with fastest lookup and no order needs: unordered_map (hash, like Python's dict). Sorted iteration or ordered queries: map. A sequence you index and append: vector.",
+      "confusable": [
+        {
+          "prompt": "You need key->value lookup, as fast as possible, order irrelevant. Which container?",
+          "options": [
+            "std::vector<std::pair<K,V>>",
+            "std::map",
+            "std::unordered_map",
+            "std::list"
+          ],
+          "answer": 2,
+          "explain": "unordered_map is the hash table \u2014 O(1) average, the moral equivalent of Python's dict. map costs O(log n) but keeps keys sorted."
+        }
+      ]
+    },
+    {
+      "id": "c6-001",
+      "topic": "c6",
+      "name": "Overloads are picked by argument type",
+      "summary": "The compiler chooses among same-named functions by matching parameter types at COMPILE time. f(2.5) picks f(double) exactly; f(3) picks f(int). Python has no overloading \u2014 one def replaces the previous.",
+      "predict": [
+        {
+          "code": "void f(int)    { std::cout << \"int\"; }\nvoid f(double) { std::cout << \"double\"; }\nint main() {\n    f(2.5);\n    f(3);\n}",
+          "output": "doubleint",
+          "why": "2.5 is a double literal, 3 is an int literal; each hits its exact overload."
+        }
+      ]
+    },
+    {
+      "id": "c6-002",
+      "topic": "c6",
+      "name": "Default arguments",
+      "summary": "A parameter with = value may be omitted at the call site; the default is filled in by the compiler. Defaults must be trailing \u2014 once one parameter has a default, everything to its right needs one too.",
+      "predict": [
+        {
+          "code": "int add(int a, int b = 10) { return a + b; }\nint main() {\n    std::cout << add(5);\n    std::cout << add(5, 1);\n}",
+          "output": "156",
+          "why": "add(5) uses b = 10 -> 15; add(5, 1) -> 6."
+        }
+      ]
+    },
+    {
+      "id": "c6-003",
+      "topic": "c6",
+      "name": "Ambiguous overload is a compile error",
+      "summary": "If two overloads fit equally well, the call is ambiguous and the program is ill-formed. double -> int and double -> long are both standard conversions of the same rank, so neither wins.",
+      "predict": [
+        {
+          "code": "void f(int)  { std::cout << \"int\"; }\nvoid f(long) { std::cout << \"long\"; }\nint main() {\n    f(2.5);\n}",
+          "output": "compile error",
+          "why": "double converts to int and to long equally well \u2014 ambiguous call."
+        }
+      ]
+    },
+    {
+      "id": "c6-004",
+      "topic": "c6",
+      "name": "Returning a local by value is safe",
+      "summary": "Returning a local object BY VALUE hands a copy (or move) to the caller \u2014 perfectly safe, and usually free thanks to elision. Returning a reference or pointer to a local is the dangling bug.",
+      "predict": [
+        {
+          "code": "std::string make() {\n    std::string s = \"hi\";\n    return s;\n}\nint main() {\n    auto t = make();\n    t += \"!\";\n    std::cout << t;\n}",
+          "output": "hi!",
+          "why": "The caller receives its own string; the local's death doesn't matter."
+        }
+      ]
+    },
+    {
+      "id": "c6-005",
+      "topic": "c6",
+      "name": "A reference return is assignable",
+      "summary": "A function returning T& hands back an alias to an existing object \u2014 so the CALL itself can sit on the left of =. This is exactly how v[i] = x works: operator[] returns a reference.",
+      "predict": [
+        {
+          "code": "int& smaller(int& a, int& b) {\n    return a < b ? a : b;\n}\nint main() {\n    int x = 3, y = 7;\n    smaller(x, y) = 0;\n    std::cout << x << y;\n}",
+          "output": "07",
+          "why": "smaller returns an alias for x; assigning through it zeroes x."
+        }
+      ]
+    },
+    {
+      "id": "c6-006",
+      "topic": "c6",
+      "name": "static locals survive between calls",
+      "summary": "A static local is initialized once (first pass through the declaration) and keeps its value across calls \u2014 function-owned persistent state. Ordinary locals are reborn every call.",
+      "predict": [
+        {
+          "code": "int counter() {\n    static int n = 0;\n    return ++n;\n}\nint main() {\n    counter();\n    counter();\n    std::cout << counter();\n}",
+          "output": "3",
+          "why": "n persists: 1, 2, then 3 on the printed call."
+        }
+      ]
+    },
+    {
+      "id": "c6-007",
+      "topic": "c6",
+      "name": "Lambdas are callable values",
+      "summary": "[](params){ body } builds an anonymous function object you can store in auto and call like a function. The [] is the capture list \u2014 empty means the lambda uses only its parameters.",
+      "predict": [
+        {
+          "code": "auto sq = [](int x) { return x * x; };\nstd::cout << sq(7);",
+          "output": "49",
+          "why": "sq holds a closure; sq(7) runs the body."
+        }
+      ]
+    },
+    {
+      "id": "c6-008",
+      "topic": "c6",
+      "name": "Capture by value vs by reference",
+      "summary": "[n] copies n INTO the lambda at creation \u2014 later changes to n are invisible. [&n] stores a reference \u2014 the lambda sees the current value at call time. Value capture freezes, reference capture tracks.",
+      "predict": [
+        {
+          "code": "int n = 1;\nauto byval = [n] { return n; };\nn = 5;\nstd::cout << byval();",
+          "output": "1",
+          "why": "The copy was taken when the lambda was created, while n was 1."
+        },
+        {
+          "code": "int n = 1;\nauto byref = [&n] { return n; };\nn = 5;\nstd::cout << byref();",
+          "output": "5",
+          "why": "The lambda holds a reference; it reads n as it is now."
+        }
+      ]
+    },
+    {
+      "id": "c6-f01",
+      "topic": "c6",
+      "name": "Capture by reference",
+      "summary": "& in front of a name in the capture list captures that variable by reference; the bare name captures by value.",
+      "fill": [
+        {
+          "code": "auto f = [_] { total += 1; };   // let the lambda modify the real total",
+          "answer": "&total",
+          "hint": "reference capture: one symbol, then the variable name"
+        }
+      ]
+    },
+    {
+      "id": "c6-c01",
+      "topic": "c6",
+      "name": "Promotion beats conversion",
+      "summary": "Overload resolution ranks matches: exact beats promotion beats conversion. float -> double is a promotion; float -> int is a conversion \u2014 so f(2.5f) picks f(double). Ties within a rank are ambiguous.",
+      "confusable": [
+        {
+          "prompt": "void f(int); void f(double); \u2014 which overload does f(2.5f) call?",
+          "options": [
+            "f(int)",
+            "f(double)",
+            "ambiguous \u2014 compile error",
+            "neither; float needs its own overload"
+          ],
+          "answer": 1,
+          "explain": "float promotes to double (rank above conversion), so f(double) wins outright."
+        }
+      ]
+    },
+    {
+      "id": "c6-c02",
+      "topic": "c6",
+      "name": "Read-only, no copy: the parameter idiom",
+      "summary": "const std::string& reads the caller's object without copying and without permission to modify \u2014 the default for any parameter that is expensive to copy. Pass small things (int, double, pointers) by plain value.",
+      "confusable": [
+        {
+          "prompt": "A function should read a large std::string without copying it and without modifying it. Best signature?",
+          "options": [
+            "void f(std::string s)",
+            "void f(std::string& s)",
+            "void f(const std::string& s)",
+            "void f(std::string* s)"
+          ],
+          "answer": 2,
+          "explain": "const& binds to anything, copies nothing, and the compiler enforces read-only. Plain & rejects temporaries and allows writes."
+        }
+      ]
+    },
+    {
+      "id": "c7-001",
+      "topic": "c7",
+      "name": "Constructor + member initializer list",
+      "summary": "P(int v) : x(v) {} \u2014 the part after the colon is the member initializer list; it constructs members directly, before the body runs. Prefer it over assigning inside the body: members are initialized exactly once.",
+      "predict": [
+        {
+          "code": "struct Point {\n    int x, y;\n    Point(int a, int b) : x(a), y(b) {}\n};\nint main() {\n    Point p(4, 2);\n    std::cout << p.x << p.y;\n}",
+          "output": "42",
+          "why": "x and y are built straight from the arguments via the initializer list."
+        }
+      ]
+    },
+    {
+      "id": "c7-002",
+      "topic": "c7",
+      "name": "The destructor runs at scope exit",
+      "summary": "~T() runs automatically the moment the object's scope ends \u2014 no del, no garbage collector, deterministic. This is the heart of RAII: cleanup you cannot forget.",
+      "predict": [
+        {
+          "code": "struct Guard {\n    ~Guard() { std::cout << \"~\"; }\n};\nint main() {\n    {\n        Guard g;\n        std::cout << \"in\";\n    }\n    std::cout << \"out\";\n}",
+          "output": "in~out",
+          "why": "g dies at the closing brace of the inner block \u2014 after \"in\", before \"out\"."
+        }
+      ]
+    },
+    {
+      "id": "c7-003",
+      "topic": "c7",
+      "name": "Destruction order is reverse construction order",
+      "summary": "Locals are destroyed in the exact reverse of their construction order (last in, first out). Later objects may depend on earlier ones, so the dependents must die first.",
+      "predict": [
+        {
+          "code": "struct T {\n    char c;\n    T(char c) : c(c) { std::cout << c; }\n    ~T() { std::cout << c; }\n};\nint main() {\n    T a('a');\n    T b('b');\n}",
+          "output": "abba",
+          "why": "Constructed a, b; destroyed b, a."
+        }
+      ]
+    },
+    {
+      "id": "c7-004",
+      "topic": "c7",
+      "name": "const objects can only call const members",
+      "summary": "int get() const promises not to modify the object \u2014 only such members are callable on a const object. Mark every non-mutating member const; it documents intent and the compiler enforces it.",
+      "predict": [
+        {
+          "code": "struct Counter {\n    int n = 0;\n    int get() const { return n; }\n    void bump() { ++n; }\n};\nint main() {\n    const Counter c;\n    c.bump();\n    std::cout << c.get();\n}",
+          "output": "compile error",
+          "why": "bump() is not const, so it cannot be called on the const object c."
+        }
+      ]
+    },
+    {
+      "id": "c7-005",
+      "topic": "c7",
+      "name": "Default member initializers + {}",
+      "summary": "int a = 3; inside the class is a default member initializer. Brace-initializing the object (S s{};) value-initializes members WITHOUT a default to zero. Plain S s; would leave b uninitialized \u2014 reading it is undefined.",
+      "predict": [
+        {
+          "code": "struct S {\n    int a = 3;\n    int b;\n};\nint main() {\n    S s{};\n    std::cout << s.a << s.b;\n}",
+          "output": "30",
+          "why": "a takes its in-class default; {} zero-initializes b."
+        }
+      ]
+    },
+    {
+      "id": "c7-006",
+      "topic": "c7",
+      "name": "RAII survives early returns",
+      "summary": "The destructor runs on EVERY path out of the scope \u2014 early return, exception, break. That is why locks, files and buffers belong in RAII objects: the release code cannot be skipped.",
+      "predict": [
+        {
+          "code": "struct Releaser {\n    ~Releaser() { std::cout << \"X\"; }\n};\nint f() {\n    Releaser r;\n    std::cout << \"A\";\n    return 1;\n}\nint main() {\n    f();\n    std::cout << \"B\";\n}",
+          "output": "AXB",
+          "why": "r is destroyed as f returns: A, then X, then back in main, B."
+        }
+      ]
+    },
+    {
+      "id": "c7-f01",
+      "topic": "c7",
+      "name": "Name the destructor",
+      "summary": "The destructor is spelled ~ClassName(), takes no parameters and has no return type. One per class; it runs when the object's lifetime ends.",
+      "fill": [
+        {
+          "code": "struct File {\n    _File() { close(); }   // destructor: release the handle\n};",
+          "answer": "~",
+          "hint": "one symbol in front of the class name"
+        }
+      ]
+    },
+    {
+      "id": "c7-f02",
+      "topic": "c7",
+      "name": "Start the initializer list",
+      "summary": "The member initializer list sits between the constructor's parameter list and its body, introduced by a colon: P(int v) : x(v) {}.",
+      "fill": [
+        {
+          "code": "Point(int a, int b) _ x(a), y(b) {}",
+          "answer": ":",
+          "hint": "one punctuation character before the members"
+        }
+      ]
+    },
+    {
+      "id": "c7-c01",
+      "topic": "c7",
+      "name": "struct vs class",
+      "summary": "The ONLY difference: members (and bases) of a struct are public by default, of a class private by default. Everything else \u2014 methods, inheritance, templates \u2014 is identical. Convention: struct for plain data, class for invariants.",
+      "confusable": [
+        {
+          "prompt": "In C++, what is the actual difference between struct and class?",
+          "options": [
+            "structs cannot have member functions",
+            "only the default access: struct = public, class = private",
+            "structs live on the stack, classes on the heap",
+            "classes support inheritance, structs don't"
+          ],
+          "answer": 1,
+          "explain": "It is purely the default visibility. A struct with private: is a class in all but keyword."
+        }
+      ]
+    },
+    {
+      "id": "c7-c02",
+      "topic": "c7",
+      "name": "What RAII means",
+      "summary": "RAII: acquire a resource in the constructor, release it in the destructor \u2014 the resource's lifetime IS the object's lifetime. std::lock_guard, std::vector, std::unique_ptr, fstream all work this way.",
+      "confusable": [
+        {
+          "prompt": "Which statement captures RAII?",
+          "options": [
+            "Resources are freed by a background garbage collector",
+            "You must pair every new with a delete by hand",
+            "A resource is bound to an object: acquired in the constructor, released in the destructor",
+            "All resources are allocated at program start"
+          ],
+          "answer": 2,
+          "explain": "Tie the resource to an object's lifetime and the destructor releases it on every exit path \u2014 leak-proof by construction."
+        }
+      ]
+    },
+    {
+      "id": "c8-001",
+      "topic": "c8",
+      "name": "Non-virtual calls bind to the static type",
+      "summary": "Without virtual, the compiler picks the function from the type of the expression it can SEE \u2014 here Base&. The Derived override is invisible through a base reference. This is the default in C++ (Python is always dynamic).",
+      "predict": [
+        {
+          "code": "struct Base {\n    void who() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    void who() { std::cout << \"D\"; }\n};\nint main() {\n    Derived d;\n    Base& r = d;\n    r.who();\n}",
+          "output": "B",
+          "why": "who() is not virtual: the call binds to Base at compile time."
+        }
+      ]
+    },
+    {
+      "id": "c8-002",
+      "topic": "c8",
+      "name": "virtual dispatches on the dynamic type",
+      "summary": "virtual makes the call go through the object's REAL type at run time \u2014 through a base reference or pointer the Derived version runs. This is the C++ switch for polymorphism; it is opt-in per function.",
+      "predict": [
+        {
+          "code": "struct Base {\n    virtual void who() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    void who() override { std::cout << \"D\"; }\n};\nint main() {\n    Derived d;\n    Base& r = d;\n    r.who();\n}",
+          "output": "D",
+          "why": "r's static type is Base&, but the object is a Derived \u2014 virtual dispatch finds D."
+        }
+      ]
+    },
+    {
+      "id": "c8-003",
+      "topic": "c8",
+      "name": "Object slicing",
+      "summary": "Base b = d; COPIES only the Base part of d into a brand-new Base \u2014 the Derived part is sliced off, and virtual can't help because b really is a Base. Polymorphism needs a reference or pointer, never a by-value Base.",
+      "predict": [
+        {
+          "code": "struct Base {\n    virtual void who() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    void who() override { std::cout << \"D\"; }\n};\nint main() {\n    Derived d;\n    Base b = d;\n    b.who();\n}",
+          "output": "B",
+          "why": "b is a genuine Base object holding a copy of d's Base slice."
+        }
+      ]
+    },
+    {
+      "id": "c8-004",
+      "topic": "c8",
+      "name": "Polymorphism through pointers",
+      "summary": "An array or vector of Base* keeps each object whole; every ->who() dispatches to the element's real type. This container-of-pointers pattern is how heterogeneous collections work in C++ (vector<Base> would slice).",
+      "predict": [
+        {
+          "code": "struct Base {\n    virtual void who() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    void who() override { std::cout << \"D\"; }\n};\nint main() {\n    Base b;\n    Derived d;\n    Base* arr[] = { &b, &d };\n    for (Base* p : arr) p->who();\n}",
+          "output": "BD",
+          "why": "Each pointer still points at the full object; virtual picks B then D."
+        }
+      ]
+    },
+    {
+      "id": "c8-005",
+      "topic": "c8",
+      "name": "override catches signature mismatches",
+      "summary": "override tells the compiler \"this MUST override a base virtual\" \u2014 if the signature doesn't match one, compilation fails instead of silently creating a new, unrelated function. Write it on every override.",
+      "predict": [
+        {
+          "code": "struct Base {\n    virtual void who() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    void who(int) override { std::cout << \"D\"; }\n};\nint main() {\n    Derived d;\n    d.who(1);\n}",
+          "output": "compile error",
+          "why": "who(int) overrides nothing in Base \u2014 override turns the silent bug into an error."
+        }
+      ]
+    },
+    {
+      "id": "c8-006",
+      "topic": "c8",
+      "name": "Virtual destructor: delete through Base*",
+      "summary": "delete p; on a Base* consults the destructor like any virtual call \u2014 with virtual ~Base(), the Derived destructor runs first, then Base's. WITHOUT virtual, deleting a derived object through a base pointer is undefined behaviour. Rule: a class meant as a polymorphic base gets a virtual destructor.",
+      "predict": [
+        {
+          "code": "struct Base {\n    virtual ~Base() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    ~Derived() { std::cout << \"D\"; }\n};\nint main() {\n    Base* p = new Derived;\n    delete p;\n}",
+          "output": "DB",
+          "why": "Virtual dtor finds ~Derived, which then chains into ~Base \u2014 derived-first, like reverse construction."
+        }
+      ]
+    },
+    {
+      "id": "c8-007",
+      "topic": "c8",
+      "name": "Calling the base version explicitly",
+      "summary": "Base::greet() with the scope operator calls the base implementation directly, skipping virtual dispatch \u2014 the standard way for an override to EXTEND rather than replace base behaviour (Python's super().greet()).",
+      "predict": [
+        {
+          "code": "struct Base {\n    virtual void greet() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    void greet() override {\n        Base::greet();\n        std::cout << \"D\";\n    }\n};\nint main() {\n    Derived d;\n    d.greet();\n}",
+          "output": "BD",
+          "why": "The override runs, first delegating to Base::greet, then adding its own part."
+        }
+      ]
+    },
+    {
+      "id": "c8-f01",
+      "topic": "c8",
+      "name": "Pure virtual",
+      "summary": "= 0 makes a virtual function pure: the class becomes abstract (cannot be instantiated) and derived classes must override the function to become concrete. This is the C++ interface mechanism.",
+      "fill": [
+        {
+          "code": "struct Shape {\n    virtual double area() = _;   // pure virtual: Shape is abstract\n};",
+          "answer": "0",
+          "hint": "a single digit"
+        }
+      ]
+    },
+    {
+      "id": "c8-c01",
+      "topic": "c8",
+      "name": "Abstract classes",
+      "summary": "A class with at least one pure virtual function (= 0) is abstract: you cannot create objects of it, only of concrete derived classes that override all pure virtuals. You CAN have pointers and references to it \u2014 that's the point.",
+      "confusable": [
+        {
+          "prompt": "struct Animal { virtual void speak() = 0; }; \u2014 what does this make impossible?",
+          "options": [
+            "Deriving from Animal",
+            "Creating an Animal object directly",
+            "Holding an Animal* pointer",
+            "Giving speak() a body in derived classes"
+          ],
+          "answer": 1,
+          "explain": "Pure virtual = abstract class: no direct instances, but pointers/references to Animal are exactly how you use it."
+        }
+      ]
+    },
+    {
+      "id": "c8-c02",
+      "topic": "c8",
+      "name": "vector<Base> slices",
+      "summary": "A std::vector<Base> stores Base OBJECTS by value \u2014 pushing a Derived copies only its Base slice in. For a polymorphic collection, store pointers: std::vector<std::unique_ptr<Base>> (or Base* if ownership lives elsewhere).",
+      "confusable": [
+        {
+          "prompt": "std::vector<Base> v; v.push_back(Derived{}); \u2014 what ends up in the vector?",
+          "options": [
+            "A full Derived object",
+            "A Base object: the Derived part is sliced off",
+            "A pointer to the temporary Derived",
+            "Nothing \u2014 it fails to compile"
+          ],
+          "answer": 1,
+          "explain": "The vector's elements ARE Base objects; copying a Derived into one keeps only the Base subobject. Use a vector of (smart) pointers for polymorphism."
+        }
+      ]
+    },
+    {
+      "id": "c9-001",
+      "topic": "c9",
+      "name": "When the copy constructor fires",
+      "summary": "T(const T&) runs whenever a new object is created FROM an existing one: pass-by-value, T b = a;, return-by-value of a named local (unless elided). Watching a printing copy ctor is the fastest way to see hidden copies.",
+      "predict": [
+        {
+          "code": "struct T {\n    T() {}\n    T(const T&) { std::cout << \"C\"; }\n};\nvoid f(T t) {}\nint main() {\n    T a;\n    f(a);\n    T b = a;\n}",
+          "output": "CC",
+          "why": "f(a) copies a into the parameter; T b = a; copy-constructs b. Two copies."
+        }
+      ]
+    },
+    {
+      "id": "c9-002",
+      "topic": "c9",
+      "name": "std::move lets the target steal",
+      "summary": "std::move(a) marks a as safe to plunder; the move constructor steals its buffer instead of copying it. Afterwards a is valid but unspecified \u2014 assign to it or leave it alone, don't read its old value.",
+      "predict": [
+        {
+          "code": "std::string a = \"hello\";\nstd::string b = std::move(a);\nstd::cout << b;",
+          "output": "hello",
+          "why": "b took over a's buffer \u2014 no character was copied."
+        }
+      ]
+    },
+    {
+      "id": "c9-003",
+      "topic": "c9",
+      "name": "Moving a container is O(1)",
+      "summary": "Moving a vector steals three pointers (data, size, capacity) \u2014 constant time no matter how many elements. Copying is O(n). This is why returning big containers by value is cheap.",
+      "predict": [
+        {
+          "code": "std::vector<int> a{1, 2, 3};\nstd::vector<int> b = std::move(a);\nstd::cout << b.size() << b[0];",
+          "output": "31",
+          "why": "b now owns the original buffer: 3 elements, first is 1."
+        }
+      ]
+    },
+    {
+      "id": "c9-004",
+      "topic": "c9",
+      "name": "Moving a const object silently copies",
+      "summary": "A move constructor takes T&& \u2014 it needs permission to MODIFY the source. A const object can't be modified, so overload resolution falls back to the copy constructor. std::move on const compiles fine and quietly copies.",
+      "predict": [
+        {
+          "code": "const std::string s = \"hi\";\nstd::string t = std::move(s);\nstd::cout << s << t;",
+          "output": "hihi",
+          "why": "const blocks the move ctor; t is a copy and s is untouched."
+        }
+      ]
+    },
+    {
+      "id": "c9-005",
+      "topic": "c9",
+      "name": "Guaranteed copy elision (C++17)",
+      "summary": "Since C++17, initializing from a returned prvalue (return T{};) constructs the object directly in the caller \u2014 no copy, no move, guaranteed by the standard. Only ONE T is ever created here.",
+      "predict": [
+        {
+          "code": "struct T {\n    T() { std::cout << \"T\"; }\n    T(const T&) { std::cout << \"C\"; }\n};\nT make() {\n    return T{};\n}\nint main() {\n    T t = make();\n}",
+          "output": "T",
+          "why": "The temporary is elided: t IS the object built inside make. No copy runs."
+        }
+      ]
+    },
+    {
+      "id": "c9-f01",
+      "topic": "c9",
+      "name": "Request a move",
+      "summary": "std::move performs no move itself \u2014 it is a cast to rvalue reference that makes move overloads eligible. The actual stealing happens in the move constructor/assignment it enables.",
+      "fill": [
+        {
+          "code": "std::string b = std::_(a);   // transfer a's buffer into b",
+          "answer": "move",
+          "hint": "the function is named after what it enables"
+        }
+      ]
+    },
+    {
+      "id": "c9-c01",
+      "topic": "c9",
+      "name": "Rule of zero",
+      "summary": "If every member manages itself (string, vector, unique_ptr\u2026), write NO destructor, no copy/move operations \u2014 the compiler-generated ones do the right thing member by member. Write all five only when you hold a raw resource directly.",
+      "confusable": [
+        {
+          "prompt": "A class holds only a std::string and a std::vector<int>. Which special member functions should you write?",
+          "options": [
+            "Destructor only",
+            "Copy constructor and copy assignment",
+            "All five (rule of five)",
+            "None \u2014 the compiler-generated ones are correct (rule of zero)"
+          ],
+          "answer": 3,
+          "explain": "The members already know how to copy, move and destroy themselves. Hand-written versions add nothing but bug surface."
+        }
+      ]
+    },
+    {
+      "id": "c9-c02",
+      "topic": "c9",
+      "name": "What std::move actually does",
+      "summary": "std::move moves nothing: it is static_cast<T&&> \u2014 a relabeling that says \"treat this as a temporary\". Whether anything is stolen depends on whether a move constructor/assignment exists and gets picked.",
+      "confusable": [
+        {
+          "prompt": "What does std::move(x) itself do?",
+          "options": [
+            "Copies x's data into a new object",
+            "Just casts x to an rvalue reference \u2014 no data moves",
+            "Destroys x immediately",
+            "Swaps x with an empty object"
+          ],
+          "answer": 1,
+          "explain": "It is purely a cast enabling move overloads. The 'move' happens later, in whatever constructor or assignment receives the rvalue."
+        }
+      ]
+    },
+    {
+      "id": "c10-001",
+      "topic": "c10",
+      "name": "Function template: one recipe, many types",
+      "summary": "template<class T> stamps out a fresh function per argument type, deduced from the call. twice(3) instantiates twice<int>, twice(std::string) reuses the same code for concatenation \u2014 compile-time duck typing.",
+      "predict": [
+        {
+          "code": "template<class T>\nT twice(T x) { return x + x; }\nint main() {\n    std::cout << twice(3);\n    std::cout << twice(std::string(\"ab\"));\n}",
+          "output": "6abab",
+          "why": "twice<int> adds, twice<std::string> concatenates \u2014 T is deduced per call."
+        }
+      ]
+    },
+    {
+      "id": "c10-002",
+      "topic": "c10",
+      "name": "Conflicting deduction is a compile error",
+      "summary": "With template<class T> T max2(T, T), the call max2(1, 2.5) asks T to be int AND double at once \u2014 deduction fails and the program is ill-formed. Fix: max2<double>(1, 2.5) or cast an argument.",
+      "predict": [
+        {
+          "code": "template<class T>\nT max2(T a, T b) { return a < b ? b : a; }\nint main() {\n    std::cout << max2(1, 2.5);\n}",
+          "output": "compile error",
+          "why": "T can't be int and double simultaneously \u2014 deduction is contradictory."
+        }
+      ]
+    },
+    {
+      "id": "c10-003",
+      "topic": "c10",
+      "name": "auto drops the reference",
+      "summary": "auto deduces a plain VALUE type: const and & are stripped. auto a = r; makes an independent int copy even when r is int& \u2014 assignments to a never reach the original. This is the #1 auto gotcha.",
+      "predict": [
+        {
+          "code": "int x = 5;\nint& r = x;\nauto a = r;\na = 9;\nstd::cout << x;",
+          "output": "5",
+          "why": "auto deduced int, not int& \u2014 a is a detached copy."
+        }
+      ]
+    },
+    {
+      "id": "c10-004",
+      "topic": "c10",
+      "name": "auto& keeps the alias",
+      "summary": "Write the & yourself: auto& a = r; deduces int& and a aliases the original. Rule of thumb \u2014 auto copies, auto& references, const auto& reads without copying.",
+      "predict": [
+        {
+          "code": "int x = 5;\nint& r = x;\nauto& a = r;\na = 9;\nstd::cout << x;",
+          "output": "9",
+          "why": "auto& preserved the reference; writing a writes x."
+        }
+      ]
+    },
+    {
+      "id": "c10-005",
+      "topic": "c10",
+      "name": "CTAD: the compiler fills in <\u2026> (C++17)",
+      "summary": "Class template argument deduction: std::pair p{1, 2.5}; deduces pair<int, double> from the initializers \u2014 no angle brackets needed. Works for pair, tuple, vector{\u2026} and your own templates.",
+      "predict": [
+        {
+          "code": "std::pair p{1, 2.5};\nstd::cout << p.first << \" \" << p.second;",
+          "output": "1 2.5",
+          "why": "C++17 deduces pair<int, double>; the members print as given."
+        }
+      ]
+    },
+    {
+      "id": "c10-006",
+      "topic": "c10",
+      "name": "Range-for: auto copies, auto& mutates",
+      "summary": "for (auto x : v) hands each iteration a COPY \u2014 writes vanish. for (auto& x : v) iterates over the real elements. Same auto rule as everywhere: no &, no alias.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{1, 2, 3};\nfor (auto x : v) x = 0;\nstd::cout << v[0];",
+          "output": "1",
+          "why": "x was a copy each round; v is untouched."
+        },
+        {
+          "code": "std::vector<int> v{1, 2, 3};\nfor (auto& x : v) x = 0;\nstd::cout << v[0];",
+          "output": "0",
+          "why": "auto& aliases each element; the zeros land in v."
+        }
+      ]
+    },
+    {
+      "id": "c10-f01",
+      "topic": "c10",
+      "name": "Mutating range-for",
+      "summary": "The & after auto makes the loop variable a reference to the element in the container \u2014 required whenever the loop should modify (or avoid copying) the elements.",
+      "fill": [
+        {
+          "code": "for (auto_ x : v) x *= 2;   // double every element in place",
+          "answer": "&",
+          "hint": "one symbol glued to auto"
+        }
+      ]
+    },
+    {
+      "id": "c10-c01",
+      "topic": "c10",
+      "name": "auto s = \"hi\" is not a string",
+      "summary": "A string literal has type const char[N] and decays under auto to const char* \u2014 a raw pointer, no .size(), no +=. For a real string: std::string s = \"hi\"; or auto s = std::string{\"hi\"}; or the \"hi\"s literal.",
+      "confusable": [
+        {
+          "prompt": "auto s = \"hi\"; \u2014 what is the type of s?",
+          "options": [
+            "std::string",
+            "const char*",
+            "char",
+            "std::string_view"
+          ],
+          "answer": 1,
+          "explain": "The literal decays to a pointer to its characters. auto never invents std::string for you."
+        }
+      ]
+    },
+    {
+      "id": "c10-c02",
+      "topic": "c10",
+      "name": "Templates are checked at instantiation",
+      "summary": "A template body is only fully type-checked when instantiated with concrete types. twice(x) compiles for any T with a working x + x and fails (often verbosely) for types without it \u2014 errors appear at the CALL, not the definition.",
+      "confusable": [
+        {
+          "prompt": "template<class T> T twice(T x) { return x + x; } \u2014 when does the compiler complain if T has no operator+?",
+          "options": [
+            "When the template is defined",
+            "When the template is instantiated with that T",
+            "At run time, with an exception",
+            "Never \u2014 it falls back to copying x"
+          ],
+          "answer": 1,
+          "explain": "Templates are recipes; requirements on T are checked per instantiation. That's why template errors point at call sites."
+        }
+      ]
+    },
+    {
+      "id": "c2-004",
+      "topic": "c2",
+      "name": "constexpr values exist at compile time",
+      "summary": "constexpr asks the compiler to compute the value during compilation \u2014 so it is usable anywhere a compile-time constant is required, like a C array bound or a template argument. const alone only promises read-only, not compile-time.",
+      "predict": [
+        {
+          "code": "constexpr int n = 3 * 4;\nint arr[n] = {};\nstd::cout << sizeof(arr) / sizeof(arr[0]);",
+          "output": "12",
+          "why": "n is a compile-time 12, legal as an array bound; the sizeof ratio counts elements."
+        }
+      ]
+    },
+    {
+      "id": "c2-005",
+      "topic": "c2",
+      "name": "Braces reject narrowing",
+      "summary": "Brace initialization refuses lossy conversions: int x{2.5}; is ill-formed because double -> int narrows. int x = 2.5; quietly truncates (c3-004). Braces turn a silent data-loss bug into a compile error \u2014 prefer them for initialization.",
+      "predict": [
+        {
+          "code": "int x{2.5};\nstd::cout << x;",
+          "output": "compile error",
+          "why": "Narrowing double -> int inside braces is ill-formed; = would have truncated silently."
+        }
+      ]
+    },
+    {
+      "id": "c2-006",
+      "topic": "c2",
+      "name": "Empty braces zero-initialize",
+      "summary": "T x{}; value-initializes: fundamental types become 0. Plain T x; on a local leaves fundamentals UNinitialized \u2014 reading them is undefined behaviour. Habit: never declare a local fundamental without an initializer; {} is the cheapest safe default.",
+      "predict": [
+        {
+          "code": "int a{};\ndouble b{};\nstd::cout << a << b;",
+          "output": "00",
+          "why": "Both are value-initialized to zero; a bare int a; would hold garbage."
+        }
+      ]
+    },
+    {
+      "id": "c2-007",
+      "topic": "c2",
+      "name": "constexpr functions run in the compiler",
+      "summary": "A constexpr function can be evaluated during compilation when its arguments are compile-time constants \u2014 the result is baked into the binary. Called with runtime values, the same function runs normally. One definition, both worlds.",
+      "predict": [
+        {
+          "code": "constexpr int sq(int n) { return n * n; }\nint main() {\n    constexpr int v = sq(9);\n    int arr[sq(3)] = {};\n    std::cout << v << sizeof(arr) / sizeof(arr[0]);\n}",
+          "output": "819",
+          "why": "sq(9) and sq(3) are computed by the compiler: v is 81, the array has 9 elements."
+        }
+      ]
+    },
+    {
+      "id": "c2-f02",
+      "topic": "c2",
+      "name": "Compile-time keyword",
+      "summary": "constexpr declares a value (or function) evaluable at compile time. It implies const for variables but is strictly stronger: const can be initialized at run time, constexpr cannot.",
+      "fill": [
+        {
+          "code": "_ int MAX = 100;   // usable as an array bound: computed at compile time",
+          "answer": "constexpr",
+          "hint": "one keyword, stronger than const"
+        }
+      ]
+    },
+    {
+      "id": "c2-c02",
+      "topic": "c2",
+      "name": "vector(3, 7) vs vector{3, 7}",
+      "summary": "Parentheses call the (count, value) constructor: three sevens. Braces build from the listed ELEMENTS: 3 and 7. When an initializer_list constructor exists, braces always prefer it \u2014 the classic vector trap.",
+      "confusable": [
+        {
+          "prompt": "std::vector<int> a(3, 7); std::vector<int> b{3, 7}; \u2014 what are a.size() and b.size()?",
+          "options": [
+            "a: 3, b: 2",
+            "a: 2, b: 3",
+            "both 2",
+            "both 3"
+          ],
+          "answer": 0,
+          "explain": "a is {7, 7, 7} via the count/value constructor; b is the two elements {3, 7} via initializer_list."
+        }
+      ]
+    },
+    {
+      "id": "c2-c03",
+      "topic": "c2",
+      "name": "const vs constexpr",
+      "summary": "const = read-only after initialization; the value may be computed at run time. constexpr = known at compile time (and therefore also read-only). const int n = rand(); is fine; constexpr int n = rand(); is not.",
+      "confusable": [
+        {
+          "prompt": "What does constexpr add over const?",
+          "options": [
+            "Nothing \u2014 they are synonyms",
+            "The value must be computable at compile time",
+            "The variable is stored in read-only memory",
+            "The variable becomes static"
+          ],
+          "answer": 1,
+          "explain": "const only forbids modification; constexpr additionally demands a compile-time value, which is what array bounds and template arguments need."
+        }
+      ]
+    },
+    {
+      "id": "c5-005",
+      "topic": "c5",
+      "name": "std::sort on a vector",
+      "summary": "std::sort(v.begin(), v.end()) sorts the range in place, ascending by default, in O(n log n). Algorithms take iterator PAIRS, not containers \u2014 that is the STL's decoupling of algorithms from data structures.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{3, 1, 2};\nstd::sort(v.begin(), v.end());\nfor (int x : v) std::cout << x;",
+          "output": "123",
+          "why": "In-place ascending sort of the whole range."
+        }
+      ]
+    },
+    {
+      "id": "c5-006",
+      "topic": "c5",
+      "name": "std::find returns an iterator",
+      "summary": "std::find hands back an iterator to the first match, or the range's end() when nothing matched \u2014 end() is the universal 'not found' sentinel, always compare against it before dereferencing. it - v.begin() converts a vector iterator to an index.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{4, 5, 6};\nauto it = std::find(v.begin(), v.end(), 5);\nstd::cout << (it - v.begin());",
+          "output": "1",
+          "why": "5 sits at index 1; subtracting begin() turns the iterator into that index."
+        },
+        {
+          "code": "std::vector<int> v{1, 2, 3};\nauto it = std::find(v.begin(), v.end(), 9);\nstd::cout << (it == v.end() ? \"no\" : \"yes\");",
+          "output": "no",
+          "why": "No match: find returns end(), the one iterator that means 'nothing here'."
+        }
+      ]
+    },
+    {
+      "id": "c5-007",
+      "topic": "c5",
+      "name": "The erase-remove idiom",
+      "summary": "std::remove can't change the vector's size (it only sees iterators) \u2014 it shifts the kept elements to the front and returns the new logical end. v.erase(newEnd, v.end()) then physically chops the tail. Two calls, one idiom.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{1, 2, 3, 2};\nv.erase(std::remove(v.begin(), v.end(), 2), v.end());\nstd::cout << v.size();\nfor (int x : v) std::cout << x;",
+          "output": "213",
+          "why": "remove compacts to {1, 3, ?, ?}; erase trims the tail \u2014 size 2, elements 1 and 3."
+        }
+      ]
+    },
+    {
+      "id": "c5-008",
+      "topic": "c5",
+      "name": "Sorting with a lambda comparator",
+      "summary": "The optional third argument to sort is a comparator: return true when a should come BEFORE b. [](int a, int b){ return a > b; } gives descending order. Same mechanism drives sorting structs by a field.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{1, 3, 2};\nstd::sort(v.begin(), v.end(), [](int a, int b) { return a > b; });\nfor (int x : v) std::cout << x;",
+          "output": "321",
+          "why": "'a before b when a > b' \u2014 largest first."
+        }
+      ]
+    },
+    {
+      "id": "c5-009",
+      "topic": "c5",
+      "name": "count_if with a predicate",
+      "summary": "std::count_if walks the range and counts elements for which the predicate returns true \u2014 the STL's way of saying sum(1 for x in v if pred(x)). Sibling algorithms: any_of, all_of, none_of, find_if.",
+      "predict": [
+        {
+          "code": "std::vector<int> v{1, 2, 3, 4};\nstd::cout << std::count_if(v.begin(), v.end(),\n    [](int x) { return x % 2 == 0; });",
+          "output": "2",
+          "why": "The predicate is true for 2 and 4."
+        }
+      ]
+    },
+    {
+      "id": "c5-f01",
+      "topic": "c5",
+      "name": "The range's start",
+      "summary": "STL algorithms take a half-open range [begin, end): begin() points at the first element, end() one past the last. Every standard algorithm call starts with this pair.",
+      "fill": [
+        {
+          "code": "std::sort(v._(), v.end());",
+          "answer": "begin",
+          "hint": "the partner of end"
+        }
+      ]
+    },
+    {
+      "id": "c5-c03",
+      "topic": "c5",
+      "name": "What std::remove really does",
+      "summary": "Algorithms see iterators, not containers, so remove cannot resize anything. It compacts the survivors to the front, returns the new logical end, and leaves the tail in a valid-but-unspecified state \u2014 hence the mandatory erase step.",
+      "confusable": [
+        {
+          "prompt": "After std::remove(v.begin(), v.end(), 2) \u2014 before any erase \u2014 what is true of v?",
+          "options": [
+            "All 2s are gone and v is shorter",
+            "v.size() is unchanged; kept elements are shifted to the front",
+            "Only the first 2 was removed",
+            "It throws if no 2 exists"
+          ],
+          "answer": 1,
+          "explain": "remove can only rearrange within the range and report the new end. The container shrinks only when v.erase eats the tail."
+        }
+      ]
+    },
+    {
+      "id": "c5-c04",
+      "topic": "c5",
+      "name": "push_back can invalidate iterators",
+      "summary": "When a vector outgrows its capacity, push_back reallocates: every element moves to a new buffer, and all existing iterators, pointers and references into the vector dangle. Never hold an iterator across a push_back unless you've reserved capacity.",
+      "confusable": [
+        {
+          "prompt": "You hold an iterator into a std::vector, then call push_back. What can happen to the iterator?",
+          "options": [
+            "Nothing \u2014 vector iterators are stable",
+            "It automatically follows the element",
+            "It may be invalidated if the vector reallocates",
+            "push_back is forbidden while iterators exist"
+          ],
+          "answer": 2,
+          "explain": "Growth beyond capacity moves the whole buffer; the old iterator then points into freed memory. reserve() up front avoids the reallocation."
+        }
+      ]
+    },
+    {
+      "id": "c2-r01",
+      "topic": "c2",
+      "name": "Recall: compile-time keyword",
+      "summary": "constexpr declares values and functions evaluable at compile time \u2014 the requirement for array bounds, template arguments and static_assert conditions.",
+      "recall": [
+        {
+          "prompt": "Keyword declaring a value the compiler must be able to compute at compile time",
+          "answer": "constexpr",
+          "why": "Stronger than const: read-only AND known during compilation."
+        }
+      ]
+    },
+    {
+      "id": "c5-r01",
+      "topic": "c5",
+      "name": "Recall: the vector deletion idiom",
+      "summary": "std::remove compacts survivors and returns the new logical end; the container's erase member then physically shrinks it: v.erase(std::remove(...), v.end()) \u2014 the erase-remove idiom.",
+      "recall": [
+        {
+          "prompt": "std::remove only shifts elements; the vector member function that then physically shrinks it: v.____(newEnd, v.end())",
+          "answer": "erase",
+          "why": "Algorithms can't resize containers \u2014 only the container's own erase can."
+        }
+      ]
+    },
+    {
+      "id": "c6-r01",
+      "topic": "c6",
+      "name": "Recall: reference capture",
+      "summary": "In a lambda's capture list, a bare name copies; & before the name captures by reference, so the lambda reads and writes the original variable.",
+      "recall": [
+        {
+          "prompt": "A lambda capture list [x] copies x. Write the capture that lets the lambda modify the real x",
+          "answer": "&x",
+          "why": "& in the capture list means by-reference, mirroring & in declarations."
+        }
+      ]
+    },
+    {
+      "id": "c7-r01",
+      "topic": "c7",
+      "name": "Recall: the resource idiom",
+      "summary": "RAII \u2014 Resource Acquisition Is Initialization: acquire in the constructor, release in the destructor, so the resource's lifetime is the object's lifetime and cleanup runs on every exit path.",
+      "recall": [
+        {
+          "prompt": "The C++ idiom tying a resource's lifetime to an object's lifetime (4-letter acronym, capitals)",
+          "answer": "RAII",
+          "why": "Resource Acquisition Is Initialization \u2014 lock_guard, vector, unique_ptr, fstream all are."
+        }
+      ]
+    },
+    {
+      "id": "c8-r01",
+      "topic": "c8",
+      "name": "Recall: dispatch keywords",
+      "summary": "virtual (on the base function) turns on dynamic dispatch; override (on the derived signature) makes the compiler verify it actually overrides a base virtual; = 0 makes a virtual pure and the class abstract.",
+      "recall": [
+        {
+          "prompt": "Keyword on a base member function that makes calls dispatch on the object's dynamic type",
+          "answer": "virtual",
+          "why": "Without it, calls bind to the static type the compiler sees."
+        },
+        {
+          "prompt": "Keyword after a derived member's signature that makes the compiler check it matches a base virtual",
+          "answer": "override",
+          "why": "A mismatch then fails compilation instead of silently declaring a new function."
+        }
+      ]
+    },
+    {
+      "id": "c9-r01",
+      "topic": "c9",
+      "name": "Recall: enabling a move",
+      "summary": "std::move is a cast to rvalue reference \u2014 it moves nothing itself, it only makes move constructors and move assignments eligible for the object.",
+      "recall": [
+        {
+          "prompt": "The std:: function (a pure cast) that marks an lvalue as movable-from: std::____",
+          "answer": "move",
+          "why": "static_cast<T&&> in disguise; the stealing happens in whatever move ctor/assignment receives it."
+        }
+      ]
+    },
+    {
+      "id": "c10-r01",
+      "topic": "c10",
+      "name": "Recall: deducing the angle brackets",
+      "summary": "CTAD \u2014 class template argument deduction (C++17): std::pair p{1, 2.5}; deduces pair<int, double> from the initializers, no explicit <...> needed.",
+      "recall": [
+        {
+          "prompt": "C++17 feature letting std::pair p{1, 2.5}; deduce its template arguments (4-letter acronym, capitals)",
+          "answer": "CTAD",
+          "why": "Class Template Argument Deduction \u2014 the constructor arguments pin down the types."
+        }
+      ]
+    },
+    {
+      "id": "c11-001",
+      "topic": "c11",
+      "name": "unique_ptr is heap RAII",
+      "summary": "std::make_unique<T>() allocates a T on the heap and wraps it in a unique_ptr \u2014 the destructor deletes it at scope exit, on every path. This is c7's RAII applied to memory: no naked new, no forgotten delete.",
+      "predict": [
+        {
+          "code": "struct T {\n    ~T() { std::cout << \"~\"; }\n};\nint main() {\n    {\n        auto p = std::make_unique<T>();\n        std::cout << \"in\";\n    }\n    std::cout << \"out\";\n}",
+          "output": "in~out",
+          "why": "p's destructor deletes the T at the inner brace \u2014 after \"in\", before \"out\"."
+        }
+      ]
+    },
+    {
+      "id": "c11-002",
+      "topic": "c11",
+      "name": "unique_ptr cannot be copied",
+      "summary": "unique means SOLE owner: the copy constructor and copy assignment are deleted, so two unique_ptrs can never own the same object. Compile error, not a runtime double-delete \u2014 the type system enforces the ownership rule.",
+      "predict": [
+        {
+          "code": "auto p = std::make_unique<int>(5);\nauto q = p;\nstd::cout << *q;",
+          "output": "compile error",
+          "why": "Copying is deleted \u2014 allowing it would give two owners and a double delete."
+        }
+      ]
+    },
+    {
+      "id": "c11-003",
+      "topic": "c11",
+      "name": "Ownership transfers by move",
+      "summary": "std::move hands the object over: q owns it, and the moved-from unique_ptr is GUARANTEED null (stronger than the usual valid-but-unspecified, c9-002). Testing a unique_ptr in an if/ternary asks 'does it own anything?'.",
+      "predict": [
+        {
+          "code": "auto p = std::make_unique<int>(5);\nauto q = std::move(p);\nstd::cout << *q << (p ? \"yes\" : \"no\");",
+          "output": "5no",
+          "why": "q took the int; the standard guarantees p is null afterwards."
+        }
+      ]
+    },
+    {
+      "id": "c11-004",
+      "topic": "c11",
+      "name": "shared_ptr counts its owners",
+      "summary": "Copying a shared_ptr is allowed and bumps a shared reference count; each destruction decrements it. use_count() reads the current number of owners \u2014 here 1, then 2 inside the block, then back to 1.",
+      "predict": [
+        {
+          "code": "auto a = std::make_shared<int>(7);\nstd::cout << a.use_count();\n{\n    auto b = a;\n    std::cout << b.use_count();\n}\nstd::cout << a.use_count();",
+          "output": "121",
+          "why": "b joins as second owner and leaves again at the brace."
+        }
+      ]
+    },
+    {
+      "id": "c11-005",
+      "topic": "c11",
+      "name": "Deletion happens at the last owner",
+      "summary": "The managed object dies exactly when the LAST shared_ptr owning it goes away \u2014 whether by destruction or reset(). Intermediate owners leaving just decrement the count. This is Python's refcounting, made explicit and deterministic.",
+      "predict": [
+        {
+          "code": "struct T {\n    ~T() { std::cout << \"~\"; }\n};\nint main() {\n    auto a = std::make_shared<T>();\n    {\n        auto b = a;\n        std::cout << \"in\";\n    }\n    std::cout << \"mid\";\n    a.reset();\n    std::cout << \"end\";\n}",
+          "output": "inmid~end",
+          "why": "b's exit drops the count 2 -> 1, no delete; a.reset() drops the last owner and ~T runs."
+        }
+      ]
+    },
+    {
+      "id": "c11-006",
+      "topic": "c11",
+      "name": "unique_ptr<Base> is the polymorphic owner",
+      "summary": "unique_ptr<Base> holding a Derived gives virtual dispatch through -> exactly like a raw Base* (c8-002) \u2014 plus automatic, correct deletion. Because the default deleter does delete on Base*, the base still needs its virtual destructor (c8-006). This is what belongs inside c8-c02's vector.",
+      "predict": [
+        {
+          "code": "struct Base {\n    virtual ~Base() {}\n    virtual void who() { std::cout << \"B\"; }\n};\nstruct Derived : Base {\n    void who() override { std::cout << \"D\"; }\n};\nint main() {\n    std::unique_ptr<Base> p = std::make_unique<Derived>();\n    p->who();\n}",
+          "output": "D",
+          "why": "p's static type is Base, the object is Derived \u2014 virtual finds D, and the virtual dtor makes the automatic delete correct."
+        }
+      ]
+    },
+    {
+      "id": "c11-007",
+      "topic": "c11",
+      "name": "get(): observe without owning",
+      "summary": "p.get() hands out the raw pointer for APIs that need one \u2014 ownership stays with the unique_ptr, which will still delete at scope exit. Never delete a get() pointer and never store it beyond the owner's lifetime.",
+      "predict": [
+        {
+          "code": "auto p = std::make_unique<int>(9);\nint* r = p.get();\n*r = 4;\nstd::cout << *p;",
+          "output": "4",
+          "why": "r is a non-owning view of the same int; writing through it is visible via p."
+        }
+      ]
+    },
+    {
+      "id": "c11-f01",
+      "topic": "c11",
+      "name": "Sole-owner allocation",
+      "summary": "std::make_unique<T>(args...) is the standard way to create a uniquely-owned heap object: exception-safe, no naked new, deduces the unique_ptr type for auto.",
+      "fill": [
+        {
+          "code": "auto p = std::_<Widget>();   // sole owner, no reference counting",
+          "answer": "make_unique",
+          "hint": "make_\u2026"
+        }
+      ]
+    },
+    {
+      "id": "c11-f02",
+      "topic": "c11",
+      "name": "Give up ownership",
+      "summary": "p.release() detaches the raw pointer and returns it WITHOUT deleting \u2014 the unique_ptr becomes null and deleting is now your job (or another owner's). Contrast get(), which keeps ownership inside.",
+      "fill": [
+        {
+          "code": "int* raw = p._();   // hand the pointer out; p becomes null, nothing is deleted",
+          "answer": "release",
+          "hint": "the opposite of holding on"
+        }
+      ]
+    },
+    {
+      "id": "c11-c01",
+      "topic": "c11",
+      "name": "get() vs release()",
+      "summary": "get(): lend the raw pointer, unique_ptr still owns and will delete. release(): surrender the raw pointer, unique_ptr becomes null and will NOT delete. Mixing them up leaks (release when you meant get) or double-deletes (delete after get).",
+      "confusable": [
+        {
+          "prompt": "On a std::unique_ptr, what distinguishes release() from get()?",
+          "options": [
+            "release() also deletes the object; get() doesn't",
+            "get() lends the pointer, ownership stays; release() surrenders ownership without deleting",
+            "They are synonyms",
+            "get() works only on shared_ptr"
+          ],
+          "answer": 1,
+          "explain": "After get() the unique_ptr still deletes at scope exit; after release() it is null and deletion is the caller's problem."
+        }
+      ]
+    },
+    {
+      "id": "c11-c02",
+      "topic": "c11",
+      "name": "Default to unique_ptr",
+      "summary": "Ownership hierarchy: plain values first, unique_ptr when heap + single owner, shared_ptr ONLY when lifetime is genuinely shared and no single owner exists. shared_ptr costs atomic counting and blurs who owns what \u2014 it is not the safe default.",
+      "confusable": [
+        {
+          "prompt": "You need a heap object with one clear owner. Which smart pointer?",
+          "options": [
+            "std::shared_ptr \u2014 sharing is always safer",
+            "std::unique_ptr \u2014 sole ownership, zero overhead over a raw pointer",
+            "std::weak_ptr",
+            "A raw pointer with a matching delete"
+          ],
+          "answer": 1,
+          "explain": "unique_ptr expresses exactly one owner and costs nothing extra. Reach for shared_ptr only when ownership truly must be shared."
+        }
+      ]
+    },
+    {
+      "id": "c11-c03",
+      "topic": "c11",
+      "name": "Why make_unique over new",
+      "summary": "auto p = std::make_unique<T>(args) beats unique_ptr<T>(new T(args)): no naked new to pair with anything, exception-safe in complex expressions, and the type is written once. 'No naked new' is the modern-C++ house rule.",
+      "confusable": [
+        {
+          "prompt": "Why prefer std::make_unique<T>() over std::unique_ptr<T>(new T())?",
+          "options": [
+            "make_unique is the only form that compiles since C++17",
+            "make_unique allocates on the stack instead",
+            "No naked new: exception-safe and the type appears only once",
+            "make_unique objects never need deleting"
+          ],
+          "answer": 2,
+          "explain": "Both compile and both heap-allocate; make_unique just removes the failure modes of a visible new and repeats less."
+        }
+      ]
+    },
+    {
+      "id": "c11-r01",
+      "topic": "c11",
+      "name": "Recall: the two owners",
+      "summary": "std::unique_ptr \u2014 sole ownership, move-only, zero overhead. std::shared_ptr \u2014 reference-counted shared ownership, object deleted when the last owner goes.",
+      "recall": [
+        {
+          "prompt": "The smart pointer for sole, move-only ownership: std::_____ptr (one word)",
+          "answer": "unique",
+          "why": "Copying is deleted; ownership moves. The default choice for heap objects."
+        },
+        {
+          "prompt": "The reference-counted smart pointer, deleting when the last owner is gone: std::_____ptr (one word)",
+          "answer": "shared",
+          "why": "Copies bump the count; destruction happens at count zero."
+        }
+      ]
+    }
+  ]
+};
+
+/* ============================== STORAGE ============================== */
+var LS_AVAILABLE = false;
+try {
+  var __t = "__pd_test__";
+  window.localStorage.setItem(__t, "1");
+  window.localStorage.removeItem(__t);
+  LS_AVAILABLE = true;
+} catch (e) { LS_AVAILABLE = false; }
+
+var PROG_KEY = "cppdrill_progress_v1";
+var IS_TOUCH = false;
+try {
+  if (typeof matchMedia === "function") {
+    IS_TOUCH = matchMedia("(pointer: coarse)").matches;
+  } else {
+    IS_TOUCH = ("ontouchstart" in window);
+  }
+} catch (e) { IS_TOUCH = false; }
+function loadProgress(){
+  if(!LS_AVAILABLE) return {};
+  try { var raw = window.localStorage.getItem(PROG_KEY); return raw ? JSON.parse(raw) : {}; }
+  catch(e){ return {}; }
+}
+function saveProgress(){
+  if(!LS_AVAILABLE) return;
+  try { window.localStorage.setItem(PROG_KEY, JSON.stringify(progress)); } catch(e){}
+}
+
+/* ============================== STATE ============================== */
+var MODE_LABELS = [
+  ["predict","Predict output"],
+  ["fill","Fill the blank"],
+  ["complexity","Complexity"],
+  ["recall","Recall"],
+  ["confusable","Which fits"]
+];
+var progress = loadProgress();
+var enabledTopics = new Set(
+  DECK_DATA.topics
+    .filter(function(t){ return DECK_DATA.cards.some(function(c){return c.topic===t.id;}); })
+    .map(function(t){ return t.id; })
+);
+var enabledModes = new Set(
+  MODE_LABELS.map(function(m){ return m[0]; }).filter(function(mode){
+    return DECK_DATA.cards.some(function(c){ return unitsForCardMode(c, mode).length>0; });
+  })
+);
+var session = null;     // {queue:[], idx, results:[], review:false}
+var currentU = null;    // current question unit
+var feedback = null;    // grading result for current unit
+var picked = null;      // selected choice index (confusable)
+
+/* ============================== UNIT MODEL ============================== */
+function unitsForCardMode(card, mode){
+  if(mode==="predict")    return (card.predict||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="fill")       return (card.fill||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="confusable") return (card.confusable||[]).map(function(it){return {kind:"mc", item:it};});
+  if(mode==="recall")     return (card.recall||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="complexity"){
+    if(!card.ops) return [];
+    return Object.keys(card.ops).map(function(op){return {kind:"text", item:{op:op, info:card.ops[op]}};});
+  }
+  return [];
+}
+function qidFor(card, mode, i){ return card.id+":"+mode+":"+i; }
+
+function askableUnits(){
+  var out = [];
+  DECK_DATA.cards.forEach(function(card){
+    if(!enabledTopics.has(card.topic)) return;
+    MODE_LABELS.forEach(function(m){
+      var mode = m[0];
+      if(!enabledModes.has(mode)) return;
+      unitsForCardMode(card, mode).forEach(function(u, i){
+        out.push({card:card, mode:mode, i:i, kind:u.kind, item:u.item, qid:qidFor(card,mode,i)});
+      });
+    });
+  });
+  return out;
+}
+function topicHasMode(topicId, mode){
+  return DECK_DATA.cards.some(function(c){
+    return c.topic===topicId && unitsForCardMode(c, mode).length>0;
+  });
+}
+
+/* ============================== SPACED REPETITION ============================== */
+function weightFor(qid){
+  var p = progress[qid];
+  if(!p || !p.seen) return 12;              // never seen -> strong preference
+  var acc = p.correct / p.seen;             // 0..1
+  var w = 1 + (1 - acc) * 4;                // 1..5 with inaccuracy
+  w = w / (1 + 0.5 * (p.streak || 0));      // decay with correct streak
+  return Math.max(0.2, w);
+}
+function recordResult(qid, grade){
+  var p = progress[qid] || {seen:0, correct:0, streak:0};
+  p.seen += 1;
+  if(grade==="exact"){ p.correct += 1; p.streak = (p.streak||0)+1; }
+  else if(grade==="close"){ p.correct += 1; }          // near-miss: counts, holds streak
+  else { p.streak = 0; }
+  p.last = grade;
+  progress[qid] = p;
+  saveProgress();
+}
+
+/* weighted ordering: higher weight tends earlier, with variety */
+function buildQueue(units){
+  return units.map(function(u){
+      var w = weightFor(u.qid);
+      return { u:u, key: Math.pow(Math.random(), 1/Math.max(0.2,w)) };
+    })
+    .sort(function(a,b){ return b.key - a.key; })
+    .map(function(x){ return x.u; });
+}
+
+/* ============================== GRADING ============================== */
+function editDistance(a, b){   // optimal string alignment: single transposition = cost 1
+  var m=a.length, n=b.length, d=[];
+  for(var i=0;i<=m;i++){ d[i]=[i]; }
+  for(var j=0;j<=n;j++){ d[0][j]=j; }
+  for(i=1;i<=m;i++) for(j=1;j<=n;j++){
+    var cost = a[i-1]===b[j-1] ? 0 : 1;
+    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+cost);
+    if(i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1])
+      d[i][j] = Math.min(d[i][j], d[i-2][j-2]+cost);
+  }
+  return d[m][n];
+}
+function normLines(s){
+  return String(s).replace(/\r/g,"").split("\n")
+    .map(function(l){return l.replace(/\s+$/,"");})
+    .join("\n").replace(/^\n+|\n+$/g,"");
+}
+var EXC_RE = /\b([A-Z][A-Za-z]*(?:Error|Exception|Interrupt|Iteration|Warning))\b/;
+function gradeText(user, expected){
+  var u = normLines(user), e = normLines(expected);
+  if(u === e) return "exact";
+  if(u.replace(/\s+/g,"") === e.replace(/\s+/g,"")) return "close";       // whitespace only
+  var qu = u.replace(/['"]/g,'"'), qe = e.replace(/['"]/g,'"');           // quote style
+  if(qu === qe) return "close";
+  // short single-token answers: allow a 1-char typo for length>=5
+  if(!/\n/.test(e) && e.length>=5 && editDistance(qu, qe) <= 1) return "close";
+  return "wrong";
+}
+function gradeOutput(user, expected){
+  var e = normLines(expected), u = normLines(user);
+  var em = e.match(EXC_RE);
+  if(em){                                                                  // expected is an exception
+    var um = u.match(EXC_RE);
+    if(um && um[1] === em[1]) return (u === em[1]) ? "exact" : "close";    // right type (maybe extra msg)
+    if(/error|exception|raise|traceback/i.test(u)) return "close";        // knew it raised, wrong type
+    return "wrong";
+  }
+  return gradeText(user, expected);
+}
+
+function normBigO(s){ return String(s).toLowerCase().replace(/\s+/g,"").replace(/^[~\u2248]/,""); }
+function gradeBigO(user, expected){
+  var u=normBigO(user), e=normBigO(expected);
+  if(u===e) return "exact";
+  var inner=function(x){ var m=x.match(/^o\((.*)\)$/); return m?m[1]:x; };  // tolerate missing O(...)
+  if(inner(u)===inner(e)) return "close";
+  return "wrong";
+}
+
+/* ============================== RENDER ============================== */
+var app = document.getElementById("app");
+function el(html){ var d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstChild; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function topicLabel(id){ var t=DECK_DATA.topics.find(function(x){return x.id===id;}); return t?t.label:id; }
+function modeLabel(m){ var x=MODE_LABELS.find(function(p){return p[0]===m;}); return x?x[1]:m; }
+
+function header(){
+  var units = askableUnits();
+  var cards = new Set(units.map(function(u){return u.card.id;})).size;
+  return '<header><div class="logo">cpp<b>Drill</b></div>'+
+    '<div class="stat">'+cards+' cards \u00b7 '+units.length+' questions</div></header>';
+}
+
+function render(){
+  app.innerHTML = "";
+  app.appendChild(el(header()));
+  if(session){ renderQuestion(); } else { renderHome(); }
+}
+
+function renderHome(){
+  // topic pills
+  var tp = DECK_DATA.topics.map(function(t){
+    var has = DECK_DATA.cards.some(function(c){return c.topic===t.id;});
+    var cls = "pill" + (enabledTopics.has(t.id)?" on":"") + (has?"":" empty");
+    var lbl = esc(t.label) + (has?"":" \u00b7 soon");
+    return '<span class="'+cls+'" data-topic="'+t.id+'">'+lbl+'</span>';
+  }).join("");
+  // mode pills
+  var mp = MODE_LABELS.map(function(m){
+    var any = DECK_DATA.cards.some(function(c){
+      return enabledTopics.has(c.topic) && unitsForCardMode(c,m[0]).length>0; });
+    var cls = "pill" + (enabledModes.has(m[0])?" on":"") + (any?"":" empty");
+    return '<span class="'+cls+'" data-mode="'+m[0]+'">'+esc(m[1])+'</span>';
+  }).join("");
+
+  var c1 = el('<div class="card"><div class="panelhead" style="display:flex;justify-content:space-between;align-items:baseline">Topics'+
+    '<span><button class="hintlink" data-sel="topics-all">All</button> <span class="small">\u00b7</span> '+
+    '<button class="hintlink" data-sel="topics-none">None</button></span></div><div class="pills">'+tp+'</div></div>');
+  c1.querySelector('[data-sel="topics-all"]').onclick = function(){
+    DECK_DATA.topics.forEach(function(t){
+      if(DECK_DATA.cards.some(function(c){return c.topic===t.id;})) enabledTopics.add(t.id);
+    });
+    render();
+  };
+  c1.querySelector('[data-sel="topics-none"]').onclick = function(){
+    enabledTopics.clear(); render();
+  };
+  c1.querySelectorAll("[data-topic]").forEach(function(p){
+    if(p.classList.contains("empty")) return;
+    p.onclick=function(){ var id=p.getAttribute("data-topic");
+      if(enabledTopics.has(id)) enabledTopics.delete(id); else enabledTopics.add(id);
+      render(); };
+  });
+  var c2 = el('<div class="card"><div class="panelhead" style="display:flex;justify-content:space-between;align-items:baseline">Drill modes'+
+    '<span><button class="hintlink" data-sel="modes-all">All</button> <span class="small">\u00b7</span> '+
+    '<button class="hintlink" data-sel="modes-none">None</button></span></div><div class="pills">'+mp+'</div>'+
+    '<div class="small" style="margin-top:10px">Predict-output is the high-value drill. '+
+    (IS_TOUCH
+      ? 'Type the answer, tap <span class="kbd">Check</span> to grade and <span class="kbd">Next</span> to continue.'
+      : 'Enter answers; <span class="kbd">\u2318/Ctrl + Enter</span> submits a snippet, <span class="kbd">Enter</span> advances.')
+    +'</div></div>');
+  c2.querySelector('[data-sel="modes-all"]').onclick = function(){
+    MODE_LABELS.forEach(function(m){
+      if(DECK_DATA.cards.some(function(c){return unitsForCardMode(c, m[0]).length>0;})) enabledModes.add(m[0]);
+    });
+    render();
+  };
+  c2.querySelector('[data-sel="modes-none"]').onclick = function(){
+    enabledModes.clear(); render();
+  };
+  c2.querySelectorAll("[data-mode]").forEach(function(p){
+    p.onclick=function(){ var id=p.getAttribute("data-mode");
+      if(enabledModes.has(id)) enabledModes.delete(id); else enabledModes.add(id);
+      render(); };
+  });
+
+  var units = askableUnits();
+  var startCard = el('<div class="card center"><button class="primary" id="startBtn" '+
+    (units.length?"":"disabled")+'>Start round \u00b7 '+units.length+' questions</button>'+
+    (LS_AVAILABLE?"":'<div class="small" style="margin-top:8px">Progress won\u2019t persist (storage unavailable here).</div>')+
+    '</div>');
+  startCard.querySelector("#startBtn").onclick = function(){ startRound(); };
+
+  app.appendChild(c1); app.appendChild(c2); app.appendChild(startCard);
+}
+
+function startRound(reviewUnits){
+  var review = Array.isArray(reviewUnits);
+  var units = review ? reviewUnits : askableUnits();
+  if(!units.length) return;
+  session = { queue: review ? units.slice() : buildQueue(units),
+              idx:0, results:[], review: review, total: units.length };
+  nextQuestion();
+}
+function nextQuestion(){
+  feedback=null; picked=null;
+  if(session.idx >= session.queue.length){ renderSummary(); return; }
+  currentU = session.queue[session.idx];
+  render();
+}
+
+function renderCodeWithBlank(code){
+  // replace runs of _ (>=1) with a styled blank
+  return esc(code).replace(/_{1,}/g, function(m){ return '<span class="blank">'+m+'</span>'; });
+}
+
+function renderQuestion(){
+  var u = currentU;
+  var head = '<div class="eyebrow"><span class="topic">'+esc(topicLabel(u.card.topic))+'</span>'+
+    '<span>'+esc(modeLabel(u.mode))+' \u00b7 '+(session.idx+1)+'/'+session.queue.length+
+    (session.review?' \u00b7 review':'')+'</span></div>';
+  var nameLine = '<p class="qname">'+esc(u.card.name)+'</p>';
+
+  if(u.mode==="confusable"){
+    renderMC(head, nameLine); return;
+  }
+
+  // text-answer modes: predict / fill / recall / complexity
+  var body="", lbl="", multiline=false, codeHtml="";
+  if(u.mode==="predict"){
+    codeHtml='<pre class="code"><span class="prompt">$ g++ -std=c++17 && ./a.out</span>\n'+esc(u.item.code)+'</pre>';
+    lbl="What does this print? (or type: compile error)"; multiline=true;
+  } else if(u.mode==="fill"){
+    codeHtml='<pre class="code">'+renderCodeWithBlank(u.item.code)+'</pre>';
+    lbl="Fill the blank"; multiline=false;
+  } else if(u.mode==="recall"){
+    codeHtml=''; lbl="Type the answer"; multiline=false;
+    nameLine='<p class="qname">'+esc(u.item.prompt||u.card.name)+'</p>';
+  } else if(u.mode==="complexity"){
+    codeHtml='<pre class="code">'+esc(u.card.name)+'  \u2014  '+esc(u.item.op)+'</pre>';
+    lbl="Average-case complexity, e.g. O(1), O(n), O(log n)"; multiline=false;
+  }
+
+  var input = multiline
+    ? '<textarea id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="exact output\u2026"></textarea>'
+    : '<input class="ans" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="\u2026">';
+
+  var hintBtn = (u.item && (u.item.hint))
+    ? '<button class="hintlink" id="hintBtn">Show hint</button>' : '';
+
+  var c = el('<div class="card">'+head+nameLine+codeHtml+
+    '<label class="lbl">'+esc(lbl)+'</label>'+input+hintBtn+
+    '<div class="row"><button class="primary" id="submit">Check</button>'+
+    '<button id="skip">Skip</button></div><div id="fbslot"></div></div>');
+
+  var ansEl = c.querySelector("#ans");
+  c.querySelector("#submit").onclick = function(){ doGrade(ansEl.value); };
+  c.querySelector("#skip").onclick = function(){ commit("wrong", ""); };
+  if(hintBtn){
+    c.querySelector("#hintBtn").onclick = function(){
+      this.outerHTML='<div class="small" style="margin-top:6px">Hint: '+esc(u.item.hint)+'</div>';
+    };
+  }
+  ansEl.addEventListener("keydown", function(e){
+    if(e.key==="Enter"){
+      if(multiline && !(e.metaKey||e.ctrlKey)) return;   // allow newlines in snippet output
+      e.preventDefault(); doGrade(ansEl.value);
+    }
+  });
+  app.appendChild(c);
+  setTimeout(function(){ ansEl.focus(); }, 30);
+
+  function doGrade(val){
+    var expected = (u.mode==="predict") ? u.item.output
+                 : (u.mode==="fill")    ? u.item.answer
+                 : (u.mode==="recall")  ? u.item.answer
+                 : (u.mode==="complexity") ? u.item.info.bigO : "";
+    var grade = (u.mode==="predict") ? gradeOutput(val, expected)
+              : (u.mode==="complexity") ? gradeBigO(val, expected)
+              : gradeText(val, expected);
+    commit(grade, val, expected);
+  }
+}
+
+function renderMC(head, nameLine){
+  var u = currentU, it = u.item;
+  var opts = it.options.map(function(o,i){
+    return '<button class="choice" data-i="'+i+'">'+esc(o)+'</button>';
+  }).join("");
+  var c = el('<div class="card">'+head+nameLine+
+    '<p style="font-size:14px;margin:0 0 12px">'+esc(it.prompt)+'</p>'+
+    '<div class="choices">'+opts+'</div><div id="fbslot"></div></div>');
+  c.querySelectorAll(".choice").forEach(function(b){
+    b.onclick=function(){
+      if(feedback) return;
+      picked = parseInt(b.getAttribute("data-i"),10);
+      var grade = (picked===it.answer) ? "exact" : "wrong";
+      c.querySelectorAll(".choice").forEach(function(x,i){
+        x.disabled=true;
+        if(i===it.answer) x.classList.add("correct");
+        if(i===picked && picked!==it.answer) x.classList.add("wrong");
+      });
+      commitInto(c.querySelector("#fbslot"), grade, null, it.options[it.answer], it.explain);
+    };
+  });
+  app.appendChild(c);
+}
+
+function commit(grade, val, expected){
+  var why = currentU.mode==="complexity"
+    ? (currentU.item.info && currentU.item.info.note)
+    : currentU.item.why;
+  commitInto(document.getElementById("fbslot"), grade, val, expected, why);
+  // disable inputs
+  var s=document.getElementById("submit"); if(s) s.disabled=true;
+  var a=document.getElementById("ans"); if(a) a.disabled=true;
+}
+function commitInto(slot, grade, val, expected, why){
+  feedback = grade;
+  recordResult(currentU.qid, grade);
+  session.results.push({u:currentU, grade:grade});
+  var gtxt = grade==="exact"?"Correct":grade==="close"?"Close":"Not quite";
+  var html='<div class="fb '+grade+'"><span class="g">'+gtxt+'</span>';
+  if(expected!=null && grade!=="exact"){
+    html += '<pre>'+esc(expected)+'</pre>';
+  } else if(expected!=null && grade==="exact" && currentU.mode==="predict"){
+    html += '<pre>'+esc(expected)+'</pre>';
+  }
+  if(why) html += '<div class="why">'+esc(why)+'</div>';
+  html += '</div>';
+  var summary = currentU.card && currentU.card.summary;
+  var showTeach = summary && summary !== why;
+  if(showTeach) html += '<button class="hintlink" id="teach">Teach me this</button>';
+  html += '<div class="row"><button class="primary" id="next">'+
+    (session.idx+1>=session.queue.length?"Finish":"Next")+'</button></div>';
+  slot.innerHTML = html;
+  var nb = slot.querySelector("#next");
+  nb.onclick = advance;
+  if(showTeach){
+    slot.querySelector("#teach").onclick = function(){
+      this.outerHTML = '<div class="why" style="margin-top:6px">'+esc(summary)+'</div>';
+    };
+  }
+  setTimeout(function(){ document.addEventListener("keydown", enterAdvance); }, 0);
+}
+function enterAdvance(e){
+  if(e.key==="Enter"){ e.preventDefault(); advance(); }
+}
+function advance(){
+  document.removeEventListener("keydown", enterAdvance);
+  session.idx += 1;
+  nextQuestion();
+}
+
+function renderSummary(){
+  var res = session.results;
+  var exact = res.filter(function(r){return r.grade==="exact";}).length;
+  var close = res.filter(function(r){return r.grade==="close";}).length;
+  var wrong = res.filter(function(r){return r.grade==="wrong";}).length;
+  var n = res.length || 1;
+  var missed = res.filter(function(r){return r.grade==="wrong";}).map(function(r){return r.u;});
+
+  function barRow(lbl, val, color){
+    return '<div class="bar"><span style="width:54px">'+lbl+'</span>'+
+      '<span class="track"><span class="fill" style="width:'+Math.round(val/n*100)+'%;background:'+color+'"></span></span>'+
+      '<span style="width:28px;text-align:right">'+val+'</span></div>';
+  }
+  var missList = missed.length
+    ? '<div class="miss">Missed: '+missed.map(function(u){return esc(u.card.name);}).join(", ")+'</div>'
+    : '<div class="miss">Clean round \u2014 nothing missed.</div>';
+
+  var c = el('<div class="card summary center">'+
+    '<div class="eyebrow"><span class="topic">'+(session.review?"Review complete":"Round complete")+'</span><span></span></div>'+
+    '<div class="big">'+exact+'/'+res.length+'</div>'+
+    '<div class="small">exact \u00b7 '+close+' close \u00b7 '+wrong+' missed</div>'+
+    '<div class="bars" style="text-align:left;max-width:340px;margin:14px auto 0">'+
+      barRow("exact", exact, "var(--ok)")+
+      barRow("close", close, "var(--close)")+
+      barRow("missed", wrong, "var(--bad)")+
+    '</div>'+missList+
+    '<div class="row" style="justify-content:center;margin-top:16px">'+
+      (missed.length?'<button class="primary" id="reviewBtn">Re-drill '+missed.length+' missed</button>':'')+
+      '<button id="homeBtn">Done</button></div></div>');
+
+  if(missed.length){
+    c.querySelector("#reviewBtn").onclick = function(){ startRound(missed); };
+  }
+  c.querySelector("#homeBtn").onclick = function(){ session=null; render(); };
+  app.innerHTML=""; app.appendChild(el(header())); app.appendChild(c);
+}
+
+/* ============================== BOOT ============================== */
+render();
+
+/* expose for runtime probe / debugging */
+window.__pd = { DECK_DATA:DECK_DATA, askableUnits:askableUnits, buildQueue:buildQueue,
+  gradeText:gradeText, gradeOutput:gradeOutput, gradeBigO:gradeBigO, weightFor:weightFor, unitsForCardMode:unitsForCardMode };
+</script>
+</body>
+</html>
