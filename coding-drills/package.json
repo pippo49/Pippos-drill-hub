@@ -1,0 +1,14 @@
+{
+  "name": "coding-drills",
+  "private": true,
+  "description": "pyDrill / bashDrill / cppDrill - single-file PWA trainers",
+  "scripts": {
+    "validate": "node tools/validate.js python-drill.html && node tools/validate.js bash-drill.html && node tools/validate.js cpp-drill.html",
+    "validate:py": "node tools/validate.js python-drill.html",
+    "validate:bash": "node tools/validate.js bash-drill.html",
+    "validate:cpp": "node tools/validate.js cpp-drill.html"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

@@ -2048,14 +2048,67 @@ function weightFor(qid){
   return Math.max(0.2, w);
 }
 function recordResult(qid, grade){
-  var p = progress[qid] || {seen:0, correct:0, streak:0};
+  var p = progress[qid] || {seen:0, correct:0, wrong:0, streak:0};
   p.seen += 1;
   if(grade==="exact"){ p.correct += 1; p.streak = (p.streak||0)+1; }
   else if(grade==="close"){ p.correct += 1; }          // near-miss: counts, holds streak
-  else { p.streak = 0; }
+  else { p.wrong = (p.wrong||0) + 1; p.streak = 0; }
   p.last = grade;
   progress[qid] = p;
+  var h = progress.__history || [];
+  h.push({q:qid, g:grade, t:Date.now()});
+  progress.__history = h.slice(-200);                  // rolling answer log
   saveProgress();
+}
+
+/* ============================== PROGRESS VIEW ============================== */
+function statsForUnits(units){
+  var attempted=0, seen=0, correct=0, wrong=0;
+  units.forEach(function(u){
+    var p = progress[u.qid];
+    if(p && p.seen){ attempted++; seen+=p.seen; correct+=p.correct||0; wrong+=p.wrong||0; }
+  });
+  return {attempted:attempted, total:units.length, seen:seen, correct:correct, wrong:wrong};
+}
+function allUnitsForTopic(topicId){
+  var out = [];
+  DECK_DATA.cards.forEach(function(card){
+    if(card.topic!==topicId) return;
+    MODE_LABELS.forEach(function(m){
+      unitsForCardMode(card, m[0]).forEach(function(u,i){
+        out.push({qid:qidFor(card,m[0],i)});
+      });
+    });
+  });
+  return out;
+}
+function renderProgressCard(){
+  var topics = DECK_DATA.topics.filter(function(t){
+    return DECK_DATA.cards.some(function(c){return c.topic===t.id;});
+  });
+  var allUnits = [];
+  topics.forEach(function(t){ allUnits = allUnits.concat(allUnitsForTopic(t.id)); });
+  var g = statsForUnits(allUnits);
+  if(!g.seen){
+    return el('<div class="card"><div class="panelhead">Progress</div>'+
+      '<div class="small">No answers recorded yet \u2014 finish a round and per-topic mastery appears here.</div></div>');
+  }
+  var acc = Math.round(g.correct/g.seen*100);
+  var head = '<div class="small" style="margin-bottom:4px">'+g.attempted+'/'+g.total+
+    ' questions attempted \u00b7 '+g.seen+' answers \u00b7 '+acc+'% correct</div>';
+  var rows = topics.map(function(t){
+    var s = statsForUnits(allUnitsForTopic(t.id));
+    var cov = s.total ? s.attempted/s.total : 0;
+    var tacc = s.seen ? s.correct/s.seen : 0;
+    var mastery = Math.round(cov*tacc*100);          // 100% = all attempted, all correct
+    var detail = s.seen ? (s.attempted+'/'+s.total+' \u00b7 '+Math.round(tacc*100)+'%') : '\u2014';
+    return '<div class="bar"><span style="width:118px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(t.label)+'">'+esc(t.label)+'</span>'+
+      '<span class="track"><span class="fill" style="width:'+mastery+'%"></span></span>'+
+      '<span style="width:92px;text-align:right">'+detail+'</span></div>';
+  }).join("");
+  return el('<div class="card"><div class="panelhead">Progress</div>'+head+
+    '<div class="bars" style="margin-top:8px">'+rows+'</div>'+
+    '<div class="small" style="margin-top:8px">Bar = mastery (coverage \u00d7 accuracy). Right column: attempted \u00b7 accuracy.</div></div>');
 }
 
 /* weighted ordering: higher weight tends earlier, with variety */
@@ -2202,7 +2255,7 @@ function renderHome(){
     '</div>');
   startCard.querySelector("#startBtn").onclick = function(){ startRound(); };
 
-  app.appendChild(c1); app.appendChild(c2); app.appendChild(startCard);
+  app.appendChild(c1); app.appendChild(c2); app.appendChild(renderProgressCard()); app.appendChild(startCard);
 }
 
 function startRound(reviewUnits){
