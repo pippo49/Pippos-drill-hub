@@ -1,0 +1,13 @@
+{
+  "name": "PyDrill",
+  "short_name": "PyDrill",
+  "start_url": "./python-drill.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b1d27",
+  "theme_color": "#1b1d27",
+  "icons": [
+    { "src": "./icons/python-drill-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/python-drill-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

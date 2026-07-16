@@ -7,6 +7,15 @@ Apps in this repo:
 - `spanish_trainer.html` + `vocab_es.json` — Spanish→English. Details: `HANDOFF_ES.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
 
+## Offline support (PWA)
+
+Each app has a matching `<name>-sw.js` service worker + `<name>-manifest.json` manifest + `icons/<name>-icon-{192,512}.png`, registered from a snippet inside the app's existing single `<script>` block (registration must stay inside that block, not a second `<script>` tag — `scripts/validate.py` extracts JS from the first `<script>` to the last `</script>`, and a second tag breaks the extraction).
+
+- Registration uses an explicit narrow `scope` equal to the page's own filename (e.g. `{ scope: './spanish_trainer.html' }`) so each app's service worker only ever controls itself, even though both trainers' files live in the same directory.
+- Strategy is network-first with cache fallback: every fetch tries the network first (and caches a fresh copy on success), falling back to the cache — and finally to the precached app page — only when the network fails (offline).
+- `CACHE_NAME` is a manually-versioned string (e.g. `spanish-trainer-v1`); bump it whenever you want to force-purge old cached assets on next activation. Since the strategy is network-first, this is mostly a safety net — online users always get the latest file regardless.
+- Service workers require serving over HTTP(S), not `file://` — test with a local server (e.g. `python3 -m http.server`), not by opening the HTML file directly.
+
 `learning_tool_pattern.md` describes the engine architecture (drill modes, graded answering, SRS weighting, review rounds, cloze UX) and my working preferences. Read it before making changes.
 
 ## Commands

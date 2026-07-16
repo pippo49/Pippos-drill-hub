@@ -1,0 +1,13 @@
+{
+  "name": "cppDrill",
+  "short_name": "cppDrill",
+  "start_url": "./cpp-drill.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b1d27",
+  "theme_color": "#1b1d27",
+  "icons": [
+    { "src": "./icons/cpp-drill-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/cpp-drill-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

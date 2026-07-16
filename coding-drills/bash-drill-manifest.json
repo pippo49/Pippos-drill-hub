@@ -1,0 +1,13 @@
+{
+  "name": "bashDrill",
+  "short_name": "bashDrill",
+  "start_url": "./bash-drill.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b1d27",
+  "theme_color": "#1b1d27",
+  "icons": [
+    { "src": "./icons/bash-drill-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/bash-drill-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

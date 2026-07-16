@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1d27">
+<meta name="apple-mobile-web-app-title" content="PyDrill">
+<link rel="manifest" href="./python-drill-manifest.json">
+<link rel="apple-touch-icon" href="./icons/python-drill-icon-192.png">
 <title>PyDrill</title>
 <style>
   :root{
@@ -5527,6 +5530,13 @@ render();
 /* expose for runtime probe / debugging */
 window.__pd = { DECK_DATA:DECK_DATA, askableUnits:askableUnits, buildQueue:buildQueue,
   gradeText:gradeText, gradeOutput:gradeOutput, gradeBigO:gradeBigO, weightFor:weightFor, unitsForCardMode:unitsForCardMode };
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./python-drill-sw.js', { scope: './python-drill.html' }).catch(function () {});
+  });
+}
 </script>
 </body>
 </html>

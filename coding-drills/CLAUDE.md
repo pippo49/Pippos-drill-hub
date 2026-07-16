@@ -9,6 +9,17 @@ lead with results, keep responses concise, batch-and-validate before delivering.
 - `bash-drill.html`   — bashDrill, PROG_KEY `bashdrill_progress_v1`
 - `cpp-drill.html`    — cppDrill, PROG_KEY `cppdrill_progress_v1`
 - `tools/validate.js` — jsdom full-flow probe (see Validation)
+- `<name>-sw.js` + `<name>-manifest.json` + `icons/<name>-icon-{192,512}.png` — offline support (PWA), one set per app (see below)
+
+## Offline support (PWA)
+
+Each app registers its own service worker via a snippet appended inside its existing single `<script>` block (jsdom's `runScripts: 'dangerously'` handles multiple `<script>` tags fine, unlike the Python trainers' validator, but keeping registration in the same block matches that pattern for consistency).
+
+- Registration scope is the page's own filename (e.g. `{ scope: './python-drill.html' }`) so each app's worker only controls itself, despite all three living in the same directory.
+- Strategy: network-first with cache fallback — every fetch tries the network first and caches the response, falling back to cache (then the precached app page) only when offline.
+- `CACHE_NAME` (e.g. `python-drill-v1`) is manually versioned; bump it to force-purge stale cached assets on next activation.
+- jsdom has no Service Worker API, so `'serviceWorker' in navigator` is false under `tools/validate.js` — the registration code never runs during validation, no stub needed.
+- Service workers need HTTP(S), not `file://` — test with a local server, not by opening the HTML directly.
 
 ## HARD RULES
 1. NEVER rename or copy any app to `index.html` — a basename collision once
