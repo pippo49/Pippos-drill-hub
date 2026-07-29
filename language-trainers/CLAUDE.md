@@ -90,6 +90,14 @@ Repeat avoidance is two-layered, in `buildPool` (and, for Spanish only, mirrored
 1. **Hard floor** — `NO_REPEAT_WINDOW` (8): a word can't resurface within the last 8 questions *of its own pool*, as long as the pool is big enough to still leave a choice (`Math.min(recentIds.length, pool.length - 1, NO_REPEAT_WINDOW)`). This is the part that actually matters for small pools (a single lesson, or one part-of-speech filter) — a soft multiplier alone doesn't reliably prevent short gaps once you check it against a synthetic gap simulation, because the *average* revisit gap for a fixed pool size trends toward the pool size regardless of weighting shape; only a hard exclusion moves the *minimum* gap.
 2. **Soft recency decay** on top, for pools bigger than the hard window: `w *= recency / (recency + 12)` over a `recentIds` lookback capped at 40 (was `+6` / cap 20 before this was widened).
 
+**Punctuation is stripped, apostrophes are not.** `normalize` removes
+`. , ! ? ; : ¡ ¿ … « » – — “ ”` so an answer never depends on typing punctuation.
+The Spanish opening marks matter: they were originally missing while the closing
+ones were stripped, so `hola` graded only "typo" against `¡hola!` (half credit)
+across the six greeting phrases, 39 cloze sentences and 6 special-bank items that
+carry them. Apostrophes are deliberately left in — Italian `l'` and `un'` are word
+forms, and `l'` is itself an answer in the Noun forms drill.
+
 **Mode selection must try every enabled mode, not a fixed number of random draws.**
 `pickQuestion` shuffles the enabled modes and walks them, because many modes cannot
 serve a given selection at all — a `phrase` entry has no conjugation, declension,

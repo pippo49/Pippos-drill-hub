@@ -275,7 +275,10 @@ const byId = {};
 VOCAB_DATA.entries.forEach(e => { byId[e.id] = e; });
 
 // === HELPERS ===
-const normalize = (s) => (s || "").trim().toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ");
+// Punctuation is never part of an answer: Spanish opening ¡ ¿ are stripped
+// alongside the closing marks, so "hola" grades exact against "¡hola!".
+// Apostrophes are deliberately NOT stripped — Italian l' / un' are word forms.
+const normalize = (s) => (s || "").trim().toLowerCase().replace(/[.,!?;:¡¿…«»–—“”]/g, "").replace(/\s+/g, " ");
 
 const DIACRITIC_MAP = {
   "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ź":"z","ż":"z",
