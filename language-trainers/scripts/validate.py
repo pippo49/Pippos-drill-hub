@@ -28,9 +28,18 @@ for(const mode of %s){
 }
 // data hygiene: no blank forms, cloze braces well-formed
 let blank=0,braces=0;
+// Paradigm groups are {key: form} in the Polish/Spanish decks but nested one
+// level deeper in Latin (conjugation = {tense: {person: form}}), so recurse.
+const countBlank = (o) => {
+  for(const k in o){
+    const v=o[k];
+    if(v && typeof v === 'object') countBlank(v);
+    else if(!v) blank++;
+  }
+};
 for(const e of VOCAB_DATA.entries){
-  for(const f of ['noun_decl','conjugation','declension']) if(e[f]) for(const k in e[f]) if(!e[f][k]) blank++;
-  if(e.cloze) for(const s of e.cloze){const t=s.pl||s.es||''; if((t.match(/\\{/g)||[]).length!==1) braces++;}
+  for(const f of ['noun_decl','conjugation','declension']) if(e[f]) countBlank(e[f]);
+  if(e.cloze) for(const s of e.cloze){const t=s.pl||s.es||s.la||''; if((t.match(/\\{/g)||[]).length!==1) braces++;}
 }
 console.log('blank forms:',blank,'| cloze brace errors:',braces);
 if(bad||blank||braces){console.log('VALIDATION FAILED');process.exit(1);}
