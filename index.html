@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Drill Hub">
+<meta name="theme-color" content="#f8f3e8">
+<link rel="manifest" href="./hub-manifest.json">
+<link rel="apple-touch-icon" href="./icons/hub-icon-192.png">
+<meta name="description" content="Vocabulary and coding drills — self-contained trainers that work offline.">
+<title>Pippo's Drill Hub</title>
+<style>
+  :root {
+    --paper:#f8f3e8; --ink:#1a1a1a; --muted:#5a4a3a; --line:#d9cfba; --accent:#b43c28;
+  }
+  * { box-sizing:border-box; }
+  html { color-scheme:light only; background:var(--paper); -webkit-text-size-adjust:100%; }
+  html,body { margin:0; padding:0; }
+  body {
+    background:var(--paper); color:var(--ink);
+    font-family:"EB Garamond", Georgia, "Times New Roman", serif;
+    min-height:100vh; padding:32px 20px calc(40px + env(safe-area-inset-bottom));
+    line-height:1.5;
+  }
+  .wrap { max-width:720px; margin:0 auto; }
+  header { border-bottom:1px solid var(--ink); padding-bottom:16px; margin-bottom:8px; }
+  h1 { margin:0; font-size:2.4rem; font-weight:500; font-style:italic; letter-spacing:-0.01em; }
+  h1 .dot { color:var(--accent); font-style:normal; }
+  .tagline { margin-top:10px; font-size:0.95rem; color:var(--muted); font-style:italic; }
+  h2 {
+    font-size:0.78rem; text-transform:uppercase; letter-spacing:0.14em;
+    color:var(--muted); font-weight:600; font-family:system-ui,-apple-system,sans-serif;
+    margin:32px 0 12px;
+  }
+  .grid { display:grid; gap:10px; }
+  .card {
+    display:flex; align-items:center; gap:14px;
+    padding:14px 16px; border:1px solid var(--line); border-radius:10px;
+    background:#fffdf7; text-decoration:none; color:inherit;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .card:hover, .card:focus-visible { border-color:var(--ink); transform:translateY(-1px); outline:none; }
+  .card:active { transform:translateY(0); }
+  .badge {
+    flex:0 0 46px; height:46px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:system-ui,-apple-system,sans-serif; font-weight:700;
+    font-size:0.95rem; letter-spacing:0.02em;
+  }
+  .body { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .title { font-size:1.25rem; font-weight:500; }
+  .sub { font-size:0.9rem; color:var(--muted); font-style:italic; }
+  .stats { display:flex; flex-wrap:wrap; gap:6px; margin-top:5px; }
+  .stats span {
+    font-family:system-ui,-apple-system,sans-serif; font-size:0.7rem;
+    color:var(--muted); border:1px solid var(--line); border-radius:99px;
+    padding:2px 8px; white-space:nowrap;
+  }
+  .go { flex:0 0 auto; color:var(--muted); font-size:1.2rem; }
+  footer {
+    margin-top:36px; padding-top:16px; border-top:1px solid var(--line);
+    font-size:0.85rem; color:var(--muted); font-style:italic;
+  }
+  footer p { margin:0 0 8px; }
+  @media (max-width:400px) {
+    body { padding:24px 14px; }
+    h1 { font-size:2rem; }
+    .badge { flex-basis:40px; height:40px; font-size:0.85rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Drill Hub<span class="dot">·</span></h1>
+    <div class="tagline">5,546 vocabulary entries and 645 coding cards — all offline-capable.</div>
+  </header>
+
+  <h2>Language trainers</h2>
+  <div class="grid">
+      <a class="card" href="language-trainers/polish_trainer.html">
+        <span class="badge" style="background:#22304a;color:#ffffff">PL</span>
+        <span class="body">
+          <span class="title">Polish</span>
+          <span class="sub">polski → deutsch</span>
+          <span class="stats"><span>2,234 words</span><span>9 drills</span><span>18 lessons</span></span>
+        </span>
+        <span class="go" aria-hidden="true">→</span>
+      </a>
+      <a class="card" href="language-trainers/spanish_trainer.html">
+        <span class="badge" style="background:#7a2331;color:#ffffff">ES</span>
+        <span class="body">
+          <span class="title">Spanish</span>
+          <span class="sub">español → english</span>
+          <span class="stats"><span>1,126 words</span><span>11 drills</span><span>15 lessons</span></span>
+        </span>
+        <span class="go" aria-hidden="true">→</span>
+      </a>
+      <a class="card" href="language-trainers/italian_trainer.html">
+        <span class="badge" style="background:#0e5c3a;color:#f4f1e4">IT</span>
+        <span class="body">
+          <span class="title">Italian</span>
+          <span class="sub">italiano → english</span>
+          <span class="stats"><span>1,186 words</span><span>11 drills</span><span>16 lessons</span></span>
+        </span>
+        <span class="go" aria-hidden="true">→</span>
+      </a>
+      <a class="card" href="language-trainers/latin_trainer.html">
+        <span class="badge" style="background:#5c1f2e;color:#f0d9a8">LA</span>
+        <span class="body">
+          <span class="title">Latin</span>
+          <span class="sub">latina → english</span>
+          <span class="stats"><span>1,000 words</span><span>10 drills</span><span>15 lessons</span></span>
+        </span>
+        <span class="go" aria-hidden="true">→</span>
+      </a>
+  </div>
+
+  <h2>Coding drills</h2>
+  <div class="grid">
+      <a class="card" href="coding-drills/python-drill.html">
+        <span class="badge" style="background:#1b1d27;color:#ffd43b">PY</span>
+        <span class="body">
+          <span class="title">pyDrill</span>
+          <span class="sub">Python</span>
+          <span class="stats"><span>329 cards</span><span>12 topics</span></span>
+        </span>
+        <span class="go" aria-hidden="true">→</span>
+      </a>
+      <a class="card" href="coding-drills/bash-drill.html">
+        <span class="badge" style="background:#0e1420;color:#37e08a">$_</span>
+        <span class="body">
+          <span class="title">bashDrill</span>
+          <span class="sub">Bash / CLI</span>
+          <span class="stats"><span>192 cards</span><span>14 topics</span></span>
+        </span>
+        <span class="go" aria-hidden="true">→</span>
+      </a>
+      <a class="card" href="coding-drills/cpp-drill.html">
+        <span class="badge" style="background:#1b1d27;color:#5c9fe0">C++</span>
+        <span class="body">
+          <span class="title">cppDrill</span>
+          <span class="sub">C++17</span>
+          <span class="stats"><span>124 cards</span><span>11 topics</span></span>
+        </span>
+        <span class="go" aria-hidden="true">→</span>
+      </a>
+  </div>
+
+  <footer>
+    <p>Each app is a single self-contained page. Open one while online and it keeps
+       working offline; add it to your home screen for its own icon.</p>
+    <p>Progress is stored per app in this browser — use each app's Export button to back it up.</p>
+  </footer>
+
+</div>
+</body>
+</html>
