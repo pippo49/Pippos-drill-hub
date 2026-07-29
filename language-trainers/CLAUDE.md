@@ -72,6 +72,15 @@ Repeat avoidance is two-layered, in `buildPool` (and, for Spanish only, mirrored
 1. **Hard floor** — `NO_REPEAT_WINDOW` (8): a word can't resurface within the last 8 questions *of its own pool*, as long as the pool is big enough to still leave a choice (`Math.min(recentIds.length, pool.length - 1, NO_REPEAT_WINDOW)`). This is the part that actually matters for small pools (a single lesson, or one part-of-speech filter) — a soft multiplier alone doesn't reliably prevent short gaps once you check it against a synthetic gap simulation, because the *average* revisit gap for a fixed pool size trends toward the pool size regardless of weighting shape; only a hard exclusion moves the *minimum* gap.
 2. **Soft recency decay** on top, for pools bigger than the hard window: `w *= recency / (recency + 12)` over a `recentIds` lookback capped at 40 (was `+6` / cap 20 before this was widened).
 
+**Mode selection must try every enabled mode, not a fixed number of random draws.**
+`pickQuestion` shuffles the enabled modes and walks them, because many modes cannot
+serve a given selection at all — a `phrase` entry has no conjugation, declension,
+cloze or antonyms, so only 3 of the 11 Spanish modes can produce a question for it.
+The old "8 random draws" version therefore reported "No words match the selected
+drill types, lessons, and word forms" on ~9% of questions whenever a narrow
+Word-forms filter was active. The empty state now appears only when *no* enabled
+mode can serve the selection, which is a real dead end worth reporting.
+
 `recentIds` is the single shared, global recency log across every mode and both special banks — pushed once per successful `pickQuestion()`, id namespaces never collide (`es####` vocab ids vs `se###`/`pp###` bank ids), so mixing modes doesn't defeat the floor.
 
 `learning_tool_pattern.md` describes the engine architecture (drill modes, graded answering, SRS weighting, review rounds, cloze UX) and my working preferences. Read it before making changes.

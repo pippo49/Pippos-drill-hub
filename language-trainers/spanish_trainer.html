@@ -991,9 +991,14 @@ function pickQuestion(focusInput) {
     showSelectionBreak();
     return;
   }
-  for (let i = 0; i < 8; i++) {
-    const mode = modes[Math.floor(Math.random() * modes.length)];
-    const q = generateQuestion(mode);
+  // Try every enabled mode, in random order. Some modes cannot serve some
+  // selections at all (a phrase has no conjugation, cloze or antonyms), so a
+  // fixed number of random draws could miss the few workable modes and wrongly
+  // report that nothing matches — with e.g. only "Phrases" selected, 8 draws
+  // over 11 modes failed on ~9% of questions.
+  const candidateModes = shuffle(modes);
+  for (let i = 0; i < candidateModes.length; i++) {
+    const q = generateQuestion(candidateModes[i]);
     if (q) {
       currentQ = q; feedback = null;
       recentIds.push(q.entryId);
