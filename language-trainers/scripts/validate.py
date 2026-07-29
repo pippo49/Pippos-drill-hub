@@ -39,7 +39,13 @@ const countBlank = (o) => {
 };
 for(const e of VOCAB_DATA.entries){
   for(const f of ['noun_decl','conjugation','declension']) if(e[f]) countBlank(e[f]);
-  if(e.cloze) for(const s of e.cloze){const t=s.pl||s.es||s.la||''; if((t.match(/\\{/g)||[]).length!==1) braces++;}
+  // The target-language key differs per deck (pl/es/la/it/...); it is simply
+  // whichever key is not the English gloss, so don't hardcode the list.
+  if(e.cloze) for(const s of e.cloze){
+    const k=Object.keys(s).find(k=>k!=='en');
+    const t=(k&&s[k])||'';
+    if((t.match(/\\{/g)||[]).length!==1) braces++;
+  }
 }
 console.log('blank forms:',blank,'| cloze brace errors:',braces);
 if(bad||blank||braces){console.log('VALIDATION FAILED');process.exit(1);}

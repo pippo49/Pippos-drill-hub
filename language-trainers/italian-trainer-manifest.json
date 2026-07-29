@@ -1,0 +1,13 @@
+{
+  "name": "Vocabolario — Italian/English Trainer",
+  "short_name": "Italian Trainer",
+  "start_url": "./italian_trainer.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f3e8",
+  "theme_color": "#f8f3e8",
+  "icons": [
+    { "src": "./icons/italian-trainer-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/italian-trainer-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

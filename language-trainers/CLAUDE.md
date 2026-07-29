@@ -6,7 +6,25 @@ Apps in this repo:
 - `polish_trainer.html` + `vocab.json` — Polish→German (reference language German). Details: `HANDOFF.md`
 - `spanish_trainer.html` + `vocab_es.json` — Spanish→English. Details: `HANDOFF_ES.md`
 - `latin_trainer.html` + `vocab_la.json` — Latin→English, school years 1–2. Details: `HANDOFF_LA.md`
+- `italian_trainer.html` + `vocab_it.json` — Italian→English, A1–A2. Details: `HANDOFF_IT.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
+
+## Generated decks (Latin, Italian)
+
+`vocab_la.json` and `vocab_it.json` are **generated, not hand-edited** — the curated
+word lists live in `scripts/build_<lang>_vocab.py` and the paradigms come from
+`scripts/<lang>_morph.py`. The Polish and Spanish decks remain hand-maintained JSON.
+Both generators cross-check every expansion against whatever the source authored,
+so a wrong plural, genitive or principal part fails the build instead of shipping;
+this caught real errors in both decks (`miscēō`→`misceō`, `mūs` mis-flagged as a
+non-i-stem, a masculine `-ga` plural rule that produced `collegi` for `colleghi`).
+
+**Italian-specific:** `-co`/`-go` plurals are lexical (`amico`→`amici` but
+`fuoco`→`fuochi`) and come from curated tables; the generator *raises* for any such
+word not in them rather than guessing. Italian's `essere`/`stare` split is **not**
+Spanish's `ser`/`estar` — `essere` covers location and temporary states
+(`sono a Roma`, `sono stanco`), with `stare` reserved for health, the progressive,
+`stare per`, and fixed expressions. See `HANDOFF_IT.md` before touching that bank.
 
 ## Latin: generated data, and how it differs from the other decks
 
