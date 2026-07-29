@@ -5,7 +5,53 @@ Self-contained single-file HTML vocabulary/skill trainers (PWA-style, used on iP
 Apps in this repo:
 - `polish_trainer.html` + `vocab.json` — Polish→German (reference language German). Details: `HANDOFF.md`
 - `spanish_trainer.html` + `vocab_es.json` — Spanish→English. Details: `HANDOFF_ES.md`
+- `latin_trainer.html` + `vocab_la.json` — Latin→English, school years 1–2. Details: `HANDOFF_LA.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
+
+## Latin: generated data, and how it differs from the other decks
+
+`vocab_la.json` is **generated, not hand-edited** — edit the curated word lists in
+`scripts/build_latin_vocab.py` and re-run it, then rebuild + validate:
+```
+python3 scripts/latin_morph.py          # paradigm self-check
+python3 scripts/build_latin_vocab.py    # regenerates vocab_la.json
+python3 scripts/rebuild.py latin_trainer.html vocab_la.json
+python3 scripts/validate.py latin_trainer.html
+```
+`scripts/latin_morph.py` expands the compact dictionary forms into full paradigms —
+nouns off the genitive singular, verbs off their principal parts — with explicit
+irregular tables. Every expansion is assert-guarded and cross-checked against the
+authored form, so a wrong genitive or a mistyped principal part fails the build
+rather than shipping a bad paradigm (this caught a real `miscēō`→`misceō` typo).
+
+Engine differences vs the Spanish/Polish trainers:
+- **`conjugation` is two-level**: `{tense: {person: form}}`, six indicative active
+  tenses. The conjugate drill picks a tense *and* a person; `buildConjSection`
+  renders every tense. The other decks stay one-level — do not "unify" them.
+- **`principal_parts`** is a drill mode of its own. `normalize()` strips commas, so
+  comma- and space-separated answers grade identically.
+- **`noun_decl` carries all five cases in both numbers**; `CASE_ORDER` drives the
+  reveal table. Nominative singular is the headword and is not stored.
+- **Macrons** are display-only: they are in `DIACRITIC_MAP` *and* in the
+  `stripDiacritics` character class, so typing plain vowels scores full credit.
+- **`FILLER` is `{to, a, an, the}`, not the Spanish reflexive list.** `nōs`, `vōs`,
+  `mē`, `tē`, `sē` and `ōs` are real Latin headwords; stripping them emptied the
+  answer and graded it wrong. Stripping is also guarded so it can never reduce an
+  answer to nothing.
+
+Known generator constraints (all fail loudly rather than silently):
+- **Deponent verbs are not supported** (`sequor`, `loquor`, `cōnor`, …) — they have
+  no active forms, and the generator would produce wrong output. None are in the
+  deck; adding them needs passive-form machinery first.
+- One-termination 3rd-declension adjectives are assumed to be i-stems
+  (`ingēns`→`ingentia`). `vetus`, `pauper` and `dīves` are consonant stems whose
+  neuter plural is `-a`; `CONSONANT_STEM_ADJECTIVES` rejects them with an
+  explanation rather than generating `veteria`.
+- Compounds of the irregular verbs are listed explicitly in `VERB_COMPOUNDS`, never
+  matched by suffix — a rule like `endswith("eō")` would capture every
+  2nd-conjugation verb (`moneō`, `videō`, `habeō`).
+- Plural-only nouns (`castra`, `arma`, `thermae`) pass their genitive **plural** and
+  set `plural_only=True`.
 
 ## Offline support (PWA)
 

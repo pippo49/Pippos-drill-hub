@@ -221,6 +221,31 @@ PERFECT_OVERRIDES = {
     "eō": {"perfect": ["iī", "īstī", "iit", "iimus", "īstis", "iērunt"]},
 }
 
+# Prefixed compounds of the irregular verbs: {compound 1sg: (prefix, base 1sg)}.
+# Listed explicitly rather than matched by suffix, because a rule like
+# "endswith('eō')" would wrongly capture every 2nd-conjugation verb (moneō,
+# videō, habeō...). Expanded into the tables above at import time.
+VERB_COMPOUNDS = {
+    "abeō": ("ab", "eō"), "adeō": ("ad", "eō"), "exeō": ("ex", "eō"),
+    "ineō": ("in", "eō"), "redeō": ("red", "eō"), "pereō": ("per", "eō"),
+    "trānseō": ("trāns", "eō"),
+    "absum": ("ab", "sum"), "adsum": ("ad", "sum"), "dēsum": ("dē", "sum"),
+    "praesum": ("prae", "sum"), "īnsum": ("īn", "sum"),
+    "afferō": ("af", "ferō"), "auferō": ("au", "ferō"), "cōnferō": ("cōn", "ferō"),
+    "offerō": ("of", "ferō"), "referō": ("re", "ferō"), "īnferō": ("īn", "ferō"),
+}
+
+for _cmp, (_pre, _base) in VERB_COMPOUNDS.items():
+    IRREGULAR_VERBS[_cmp] = {
+        tense: [_pre + f for f in forms]
+        for tense, forms in IRREGULAR_VERBS[_base].items()
+    }
+    if _base in PERFECT_OVERRIDES:
+        PERFECT_OVERRIDES[_cmp] = {
+            tense: [_pre + f for f in forms]
+            for tense, forms in PERFECT_OVERRIDES[_base].items()
+        }
+
 
 def conjugate_verb(pp, conj):
     """pp = principal parts list; conj in {1,2,3,'3io',4}. Returns {tense: {person: form}}."""
@@ -253,6 +278,11 @@ def conjugate_verb(pp, conj):
 
 # ------------------------------------------------------------ ADJECTIVES
 
+# One-termination adjectives that decline as consonant stems rather than
+# i-stems, so the regular '3-1' rule would produce a wrong neuter plural.
+CONSONANT_STEM_ADJECTIVES = {"vetus", "pauper", "dīves"}
+
+
 def decline_adjective(nom, adj_type, base=None):
     """Nominative forms across genders and numbers.
 
@@ -276,6 +306,12 @@ def decline_adjective(nom, adj_type, base=None):
                 "m_pl_nom": b + "ēs", "f_pl_nom": b + "ēs", "n_pl_nom": b + "ia"}
     if adj_type == "3-1":
         assert base, f"{nom}: '3-1' adjective needs an explicit base"
+        # Most one-termination adjectives are i-stems (ingēns -> ingentia), but
+        # vetus, pauper and dīves are consonant stems whose neuter plural is
+        # -a, not -ia. They need hand-written forms, not this rule.
+        assert nom not in CONSONANT_STEM_ADJECTIVES, (
+            f"{nom} is a consonant-stem adjective: neuter pl is {base}a, not {base}ia. "
+            "Author its forms explicitly instead of using type '3-1'.")
         return {"f_sg_nom": nom, "n_sg_nom": nom,
                 "m_pl_nom": base + "ēs", "f_pl_nom": base + "ēs", "n_pl_nom": base + "ia"}
     if adj_type == "3-3":
@@ -312,6 +348,14 @@ if __name__ == "__main__":
     assert conjugate_verb(["audiō", "audīre", "audīvī", "audītum"], 4)["imperfect"]["s1"] == "audiēbam"
     assert conjugate_verb(["sum", "esse", "fuī"], 1)["present"]["s3"] == "est"
     assert conjugate_verb(["sum", "esse", "fuī"], 1)["pluperfect"]["s1"] == "fueram"
+    # compounds inherit the irregular pattern, prefix and all
+    assert conjugate_verb(["abeō", "abīre", "abiī", "abitum"], 1)["present"]["p3"] == "abeunt"
+    assert conjugate_verb(["abeō", "abīre", "abiī", "abitum"], 1)["perfect"]["s2"] == "abīstī"
+    assert conjugate_verb(["adsum", "adesse", "adfuī"], 1)["present"]["s3"] == "adest"
+    assert conjugate_verb(["absum", "abesse", "āfuī"], 1)["present"]["p1"] == "absumus"
+    assert conjugate_verb(["referō", "referre", "rettulī", "relātum"], 1)["present"]["s3"] == "refert"
+    # a 2nd-conjugation verb must NOT be mistaken for an eō-compound
+    assert conjugate_verb(["videō", "vidēre", "vīdī", "vīsum"], 2)["present"]["p3"] == "vident"
 
     assert decline_adjective("bonus", "us")["n_pl_nom"] == "bona"
     assert decline_adjective("pulcher", "er", base="pulchr")["f_sg_nom"] == "pulchra"
