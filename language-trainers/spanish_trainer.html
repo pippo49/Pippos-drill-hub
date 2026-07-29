@@ -218,6 +218,11 @@
     <div class="modes" id="lessons"></div>
   </section>
 
+  <section>
+    <div class="section-label">Word forms</div>
+    <div class="modes" id="pos-filter"></div>
+  </section>
+
   <div id="card-area">
     <div class="empty">Loading…</div>
   </div>
@@ -411,6 +416,10 @@ const weightFor = (stats, id) => {
   return base / (1 + (s.streak || 0) * 1.5);  // each correct streak fades it faster
 };
 
+// Hard floor on repeats: a word can't resurface within this many questions
+// (of its own drill pool), as long as enough alternatives exist to enforce it.
+const NO_REPEAT_WINDOW = 8;
+
 const weightedPick = (pool, weights) => {
   const total = weights.reduce((a, b) => a + b, 0);
   let r = Math.random() * total;
@@ -463,6 +472,33 @@ let enabledLessons = {};
     enabledLessons[l] = (saved && (l in saved)) ? !!saved[l] : true;
   });
 })();
+// Parts of speech present in the data, most frequent first.
+const ALL_POS = (function() {
+  const counts = {};
+  VOCAB_DATA.entries.forEach(function(e){ if (e.pos) counts[e.pos] = (counts[e.pos] || 0) + 1; });
+  return Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; });
+})();
+const POS_LABELS = { noun:"Nouns", verb:"Verbs", adjective:"Adjectives", adverb:"Adverbs",
+  pronoun:"Pronouns", preposition:"Prepositions", number:"Numbers", phrase:"Phrases",
+  conjunction:"Conjunctions", particle:"Particles", other:"Other" };
+function posLabel(p) { return POS_LABELS[p] || (p.charAt(0).toUpperCase() + p.slice(1)); }
+const POS_KEY = "spanish_trainer_pos";
+function loadPos() {
+  if (!LS_AVAILABLE) return null;
+  try { const r = window.localStorage.getItem(POS_KEY); return r ? JSON.parse(r) : null; }
+  catch (e) { return null; }
+}
+function savePos() {
+  if (!LS_AVAILABLE) return;
+  try { window.localStorage.setItem(POS_KEY, JSON.stringify(enabledPos)); } catch (e) {}
+}
+let enabledPos = {};
+(function() {
+  const saved = loadPos();
+  ALL_POS.forEach(function(p) {
+    enabledPos[p] = (saved && (p in saved)) ? !!saved[p] : true;
+  });
+})();
 let currentQ = null;
 let feedback = null; // {grade, target, revealed}
 let recentIds = []; // last asked entry ids — excluded from selection to avoid repeats
@@ -500,13 +536,24 @@ function generateQuestion(mode) {
   let pool = [], weights = [];
 
   const buildPool = (filter) => {
-    pool = entries.filter(function(e){ return filter(e) && enabledLessons[e.lesson]; });
+    pool = entries.filter(function(e){ return filter(e) && enabledLessons[e.lesson] && enabledPos[e.pos]; });
     if (pool.length === 0) { weights = []; return; }
     // Never ask the same word twice in a row, as long as there's an alternative
     if (pool.length > 1) {
       const last = recentIds[recentIds.length - 1];
       const trimmed = pool.filter(function(e){ return e.id !== last; });
       if (trimmed.length > 0) pool = trimmed;
+    }
+    // Hard floor: also exclude anything asked in the last NO_REPEAT_WINDOW turns,
+    // as long as the current selection is big enough to still leave a choice.
+    if (pool.length > 1 && recentIds.length > 0) {
+      const noRepeatWindow = Math.min(recentIds.length, pool.length - 1, NO_REPEAT_WINDOW);
+      if (noRepeatWindow > 0) {
+        const banned = {};
+        recentIds.slice(-noRepeatWindow).forEach(function(id){ banned[id] = true; });
+        const fresh = pool.filter(function(e){ return !banned[e.id]; });
+        if (fresh.length > 0) pool = fresh;
+      }
     }
     weights = pool.map(function(e) {
       var w = weightFor(progress.stats, e.id);
@@ -517,7 +564,7 @@ function generateQuestion(mode) {
       var idx = recentIds.lastIndexOf(e.id);
       if (idx >= 0) {
         var recency = recentIds.length - idx; // 1 = most recently asked
-        w *= recency / (recency + 6);          // ~0.14 most-recent … →1 as it ages out
+        w *= recency / (recency + 12);         // ~0.08 most-recent … →1 as it ages out
       }
       return w;
     });
@@ -597,6 +644,16 @@ function generateQuestion(mode) {
       const last = recentIds[recentIds.length - 1];
       const trimmed = bank.filter(function(x){ return x.id !== last; });
       if (trimmed.length > 0) items = trimmed;
+    }
+    // Same hard no-repeat floor as the vocab pools, scoped to this bank's own ids.
+    if (items.length > 1 && recentIds.length > 0) {
+      const noRepeatWindow = Math.min(recentIds.length, items.length - 1, NO_REPEAT_WINDOW);
+      if (noRepeatWindow > 0) {
+        const banned = {};
+        recentIds.slice(-noRepeatWindow).forEach(function(id){ banned[id] = true; });
+        const fresh = items.filter(function(x){ return !banned[x.id]; });
+        if (fresh.length > 0) items = fresh;
+      }
     }
     const item = items[Math.floor(Math.random() * items.length)];
     const m = item.es.match(/\{([^}]*)\}/);
@@ -833,6 +890,45 @@ function renderLessons() {
   breakShown = false;
 }
 
+function setAllPos(v) {
+  ALL_POS.forEach(function(p){ enabledPos[p] = v; });
+  savePos();
+  renderPosFilter();
+  pickQuestion();
+}
+function renderPosFilter() {
+  const container = document.getElementById("pos-filter");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.type = "button"; allBtn.className = "btn-ghost"; allBtn.textContent = "All";
+  allBtn.addEventListener("click", function(){ setAllPos(true); });
+  container.appendChild(allBtn);
+
+  const noneBtn = document.createElement("button");
+  noneBtn.type = "button"; noneBtn.className = "btn-ghost"; noneBtn.textContent = "None";
+  noneBtn.addEventListener("click", function(){ setAllPos(false); });
+  container.appendChild(noneBtn);
+
+  ALL_POS.forEach(function(p) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-btn" + (enabledPos[p] ? " active" : "");
+    btn.textContent = posLabel(p);
+    btn.addEventListener("click", function() {
+      enabledPos[p] = !enabledPos[p];
+      savePos();
+      renderPosFilter();
+      const e = currentQ ? byId[currentQ.entryId] : null;
+      if (!currentQ || (e && !enabledPos[e.pos])) pickQuestion();
+    });
+    container.appendChild(btn);
+  });
+  renderSelectionCount();
+  breakShown = false;
+}
+
 function selectionCanAsk(e) {
   if ((enabledModes.es_en || enabledModes.en_es || enabledModes.multiple_choice) && e.es && e.en) return true;
   if (enabledModes.conjugate && e.pos === "verb" && e.conjugation) return true;
@@ -847,11 +943,13 @@ function renderSelectionCount() {
   const el = document.getElementById("selection-count");
   if (!el) return;
   const anyLesson = ALL_LESSONS.some(function(l){ return enabledLessons[l]; });
+  const anyPos = ALL_POS.some(function(p){ return enabledPos[p]; });
   const anyMode = Object.keys(enabledModes).some(function(m){ return enabledModes[m]; });
   if (!anyLesson) { el.textContent = "no lessons selected"; return; }
+  if (!anyPos) { el.textContent = "no word forms selected"; return; }
   if (!anyMode) { el.textContent = "no drill types selected"; return; }
   const n = VOCAB_DATA.entries.filter(function(e){
-    return enabledLessons[e.lesson] && selectionCanAsk(e);
+    return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
   }).length;
   el.textContent = n + (n === 1 ? " word" : " words") + " in selection";
 }
@@ -888,7 +986,7 @@ function pickQuestion(focusInput) {
     if (q) {
       currentQ = q; feedback = null;
       recentIds.push(q.entryId);
-      if (recentIds.length > 20) recentIds.shift();
+      if (recentIds.length > 40) recentIds.shift();
       renderCard(focusInput);
       return;
     }
@@ -899,7 +997,7 @@ function pickQuestion(focusInput) {
 
 function selectionExhausted() {
   const selIds = VOCAB_DATA.entries
-    .filter(function(e){ return enabledLessons[e.lesson] && selectionCanAsk(e); })
+    .filter(function(e){ return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e); })
     .map(function(e){ return e.id; });
   if (selIds.length === 0) return false;
   for (let i = 0; i < selIds.length; i++) {
@@ -1289,9 +1387,11 @@ function renderCard(focusInput) {
     empty.className = "empty";
     const anyMode = Object.keys(enabledModes).some(function(m){ return enabledModes[m]; });
     const anyLesson = ALL_LESSONS.some(function(l){ return enabledLessons[l]; });
+    const anyPos = ALL_POS.some(function(p){ return enabledPos[p]; });
     empty.textContent = !anyLesson ? "Select at least one lesson to begin."
+      : !anyPos ? "Select at least one word form to begin."
       : !anyMode ? "Select at least one drill type to begin."
-      : "No words match the selected drill types and lessons.";
+      : "No words match the selected drill types, lessons, and word forms.";
     area.appendChild(empty);
     return;
   }
@@ -1536,6 +1636,7 @@ try {
   renderStats();
   renderModes();
   renderLessons();
+  renderPosFilter();
   pickQuestion();
   // If pickQuestion didn't replace "Loading…", surface that as a diagnostic
   setTimeout(function() {
@@ -1547,7 +1648,8 @@ try {
       msg.innerHTML = "Trainer initialised, but no question was generated.<br>" +
         "Storage available: " + LS_AVAILABLE + "<br>" +
         "Vocab entries: " + (VOCAB_DATA && VOCAB_DATA.entries ? VOCAB_DATA.entries.length : "MISSING") + "<br>" +
-        "Modes enabled: " + Object.keys(enabledModes).filter(function(m) { return enabledModes[m]; }).join(", ");
+        "Modes enabled: " + Object.keys(enabledModes).filter(function(m) { return enabledModes[m]; }).join(", ") + "<br>" +
+        "Word forms enabled: " + ALL_POS.filter(function(p) { return enabledPos[p]; }).join(", ");
       area.appendChild(msg);
     }
   }, 500);
