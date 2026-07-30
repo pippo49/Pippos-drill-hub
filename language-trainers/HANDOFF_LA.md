@@ -30,10 +30,28 @@ Macrons are authored in the source words and carried through the endings. They a
 
 `build_latin_vocab.py` additionally enforces: id uniqueness, `(la, pos)` uniqueness, antonym/synonym link targets exist, single-brace cloze, no blank forms, 6 persons per tense.
 
+## Answer acceptance (en → la)
+
+The accepted set is deliberately wider than what is displayed:
+- **Any entry sharing an English alternative** — "old" takes both `antīquus` and `vetus`.
+- **Verb infinitives.** A gloss like "to run" invites `currere`, but the deck stores the
+  dictionary headword `currō`; `principal_parts[1]` is accepted too. Do not "fix" this by
+  changing the headword — 1sg is correct dictionary practice.
+- **`ALSO_ACCEPT`** in the build script, for per-entry extras. Currently `multus` also
+  accepts the plural `multī`, since its gloss "much, many" covers both numbers.
+
+`rawTarget` still shows only the headwords, so the reveal stays readable.
+
+Macrons never affect grading, and the feedback deliberately does **not** say "mind the
+diacritics" (as the other decks do): here they are a teaching aid, not orthography.
+
 ## Known constraints (deliberate — each fails loudly)
 
 1. **No deponent verbs** (`sequor`, `loquor`, `cōnor`, `patior`, `ūtor`…). They have no active forms and the generator would emit nonsense. Common in year 2 — adding them needs passive-form machinery first, and is the single biggest gap.
-2. One-termination 3rd-decl adjectives are assumed i-stem (`ingēns`→`ingentia`); `vetus`, `pauper`, `dīves` are consonant stems (`vetera`) and are rejected by `CONSONANT_STEM_ADJECTIVES`.
+2. One-termination 3rd-decl adjectives come in two flavours: i-stems use `3-1`
+   (`ingēns`→`ingentia`), consonant stems use `3-1-cons` (`vetus`→`vetera`,
+   `pauper`→`paupera`). `CONSONANT_STEM_ADJECTIVES` still rejects those words if
+   `3-1` is used by mistake, so the wrong neuter plural cannot slip through.
 3. Irregular-verb compounds are listed explicitly in `VERB_COMPOUNDS` — never suffix-matched, because `endswith("eō")` would capture `moneō`/`videō`/`habeō`.
 4. Adjective paradigms store **nominatives only** (5 gender/number forms). Cloze answers in oblique cases (`in altō monte`) will therefore show up in the flag-only cross-check as "outside stored paradigms" — that is expected, verify by eye rather than auto-fixing.
 

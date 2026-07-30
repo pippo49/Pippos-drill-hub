@@ -902,6 +902,8 @@ ADJECTIVES = [
     ("libēns", "3-1", "libent", "willing, glad", "15"),
     ("recēns", "3-1", "recent", "recent, fresh", "15"),
     ("simplex", "3-1", "simplic", "simple, straightforward", "15"),
+    ("vetus", "3-1-cons", "veter", "old, ancient, former", "15"),
+    ("pauper", "3-1-cons", "pauper", "poor", "15"),
     ("falsus", "us", None, "false, deceptive", "15"),
     ("prīvātus", "us", None, "private, personal", "15"),
     ("mortuus", "us", None, "dead", "15"),
@@ -1225,6 +1227,15 @@ CLOZE = {
 }
 
 # ---------------------------------------------------------------------------
+# Extra accepted answers for the en -> la direction, where the English gloss
+# legitimately admits a form other than the dictionary headword.
+ALSO_ACCEPT = {
+    # "much, many": multus is the singular ("much"); the plural multī is what
+    # "many" actually translates to, so accept it as well.
+    "multus": ["multī"],
+}
+
+# ---------------------------------------------------------------------------
 # Antonym / synonym pairs, by headword.
 # ---------------------------------------------------------------------------
 ANTONYMS = [
@@ -1306,6 +1317,11 @@ def build():
         head = DEDUPE_SUFFIX.get(la, la)
         e = {"la": head, "en": en, "pos": pos, "id": nid(), "lesson": lesson}
         add(e, la)
+
+    for head, extra in ALSO_ACCEPT.items():
+        e = by_head.get(head)
+        assert e is not None, f"ALSO_ACCEPT references unknown headword {head!r}"
+        e["also_accept"] = extra
 
     # Cloze
     attached = 0

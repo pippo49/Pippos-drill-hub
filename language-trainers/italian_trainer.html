@@ -1192,6 +1192,12 @@ function submit() {
 
 function reveal() {
   if (!currentQ || feedback) return;
+  // Never discard work: "Show answer" sits right under "Check" and is easy to
+  // hit by mistake on a phone. If something is already typed, grade it instead
+  // of force-recording a wrong — typing the correct answer and then tapping
+  // "Show answer" must not mark it wrong. Either way the answer is revealed.
+  const el = document.getElementById("answer-input");
+  if (el && el.value && el.value.trim()) { submit(); return; }
   feedback = { grade: "wrong", target: currentQ.rawTarget, revealed: true };
   recordAnswer("wrong");
   renderStats();

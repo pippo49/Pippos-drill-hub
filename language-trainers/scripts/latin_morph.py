@@ -306,14 +306,19 @@ def decline_adjective(nom, adj_type, base=None):
                 "m_pl_nom": b + "ēs", "f_pl_nom": b + "ēs", "n_pl_nom": b + "ia"}
     if adj_type == "3-1":
         assert base, f"{nom}: '3-1' adjective needs an explicit base"
-        # Most one-termination adjectives are i-stems (ingēns -> ingentia), but
-        # vetus, pauper and dīves are consonant stems whose neuter plural is
-        # -a, not -ia. They need hand-written forms, not this rule.
+        # Most one-termination adjectives are i-stems (ingēns -> ingentia).
+        # vetus and pauper are consonant stems (vetera, paupera) and must use
+        # type '3-1-cons' instead; catching it here stops a silent wrong form.
         assert nom not in CONSONANT_STEM_ADJECTIVES, (
             f"{nom} is a consonant-stem adjective: neuter pl is {base}a, not {base}ia. "
-            "Author its forms explicitly instead of using type '3-1'.")
+            "Use adj_type '3-1-cons'.")
         return {"f_sg_nom": nom, "n_sg_nom": nom,
                 "m_pl_nom": base + "ēs", "f_pl_nom": base + "ēs", "n_pl_nom": base + "ia"}
+    if adj_type == "3-1-cons":
+        # One termination, consonant stem: neuter plural in -a (vetus -> vetera).
+        assert base, f"{nom}: '3-1-cons' adjective needs an explicit base"
+        return {"f_sg_nom": nom, "n_sg_nom": nom,
+                "m_pl_nom": base + "ēs", "f_pl_nom": base + "ēs", "n_pl_nom": base + "a"}
     if adj_type == "3-3":
         assert base, f"{nom}: '3-3' adjective needs an explicit base"
         return {"f_sg_nom": base + "is", "n_sg_nom": base + "e",
@@ -360,4 +365,12 @@ if __name__ == "__main__":
     assert decline_adjective("bonus", "us")["n_pl_nom"] == "bona"
     assert decline_adjective("pulcher", "er", base="pulchr")["f_sg_nom"] == "pulchra"
     assert decline_adjective("fortis", "3-2")["n_pl_nom"] == "fortia"
+    assert decline_adjective("ingēns", "3-1", base="ingent")["n_pl_nom"] == "ingentia"
+    # consonant stems take -a, and the i-stem rule must still refuse them
+    assert decline_adjective("vetus", "3-1-cons", base="veter")["n_pl_nom"] == "vetera"
+    assert decline_adjective("pauper", "3-1-cons", base="pauper")["n_pl_nom"] == "paupera"
+    try:
+        decline_adjective("vetus", "3-1", base="veter"); raise SystemExit("should have refused vetus")
+    except AssertionError:
+        pass
     print("latin_morph self-check: all paradigms OK")
