@@ -314,6 +314,13 @@ def decline_adjective(nom, adj_type, base=None):
             "Use adj_type '3-1-cons'.")
         return {"f_sg_nom": nom, "n_sg_nom": nom,
                 "m_pl_nom": base + "ēs", "f_pl_nom": base + "ēs", "n_pl_nom": base + "ia"}
+    if adj_type == "pl":
+        # A plural-only adjective entry (multī, -ae, -a = "many"). The headword
+        # is the masculine nominative plural, so — exactly as m_sg_nom is left
+        # out for a normal adjective — it is not stored; the drill asks the
+        # other genders.
+        assert base, f"{nom}: 'pl' adjective needs an explicit base"
+        return {"f_pl_nom": base + "ae", "n_pl_nom": base + "a"}
     if adj_type == "3-1-cons":
         # One termination, consonant stem: neuter plural in -a (vetus -> vetera).
         assert base, f"{nom}: '3-1-cons' adjective needs an explicit base"
@@ -369,6 +376,8 @@ if __name__ == "__main__":
     # consonant stems take -a, and the i-stem rule must still refuse them
     assert decline_adjective("vetus", "3-1-cons", base="veter")["n_pl_nom"] == "vetera"
     assert decline_adjective("pauper", "3-1-cons", base="pauper")["n_pl_nom"] == "paupera"
+    _pl = decline_adjective("multī", "pl", base="mult")
+    assert _pl == {"f_pl_nom": "multae", "n_pl_nom": "multa"}, _pl
     try:
         decline_adjective("vetus", "3-1", base="veter"); raise SystemExit("should have refused vetus")
     except AssertionError:

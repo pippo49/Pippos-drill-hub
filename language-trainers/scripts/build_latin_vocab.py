@@ -762,7 +762,8 @@ ADJECTIVES = [
     ("lātus", "us", None, "wide, broad", "15"),
     ("novus", "us", None, "new", "15"),
     ("antīquus", "us", None, "ancient, old", "15"),
-    ("multus", "us", None, "much, many", "15"),
+    ("multus", "us", None, "much, a lot of", "15"),
+    ("multī", "pl", "mult", "many", "15"),
     ("plēnus", "us", None, "full", "15"),
     ("clārus", "us", None, "clear, famous", "15"),
     ("cārus", "us", None, "dear, precious", "15"),
@@ -1214,8 +1215,11 @@ CLOZE = {
                ("Post {longum} tempus rediit.", "He returned after a long time.")],
     "novus": [("{Nova} lēx scrīpta est.", "A new law was written."),
               ("{Novum} templum aedificāvērunt.", "They built a new temple.")],
-    "multus": [("{Multī} hominēs aderant.", "Many people were present."),
-               ("{Multa} vīdimus.", "We saw many things.")],
+    # both of these use the plural sense, so they belong to multī, not multus
+    "multī": [("{Multī} hominēs aderant.", "Many people were present."),
+              ("{Multa} vīdimus.", "We saw many things.")],
+    "multus": [("{Multum} vīnum bibimus.", "We drink much wine."),
+               ("{Multa} pecūnia in arcā est.", "There is much money in the chest.")],
     "altus": [("Mūrus {altus} est.", "The wall is high."),
               ("In {altō} monte stat.", "It stands on a high mountain.")],
     "trīstis": [("Puella {trīstis} est.", "The girl is sad."),
@@ -1229,11 +1233,9 @@ CLOZE = {
 # ---------------------------------------------------------------------------
 # Extra accepted answers for the en -> la direction, where the English gloss
 # legitimately admits a form other than the dictionary headword.
-ALSO_ACCEPT = {
-    # "much, many": multus is the singular ("much"); the plural multī is what
-    # "many" actually translates to, so accept it as well.
-    "multus": ["multī"],
-}
+# (Empty for now: "much"/"many" used to live here, but multus and multī are
+# separate entries, which is a better fix than widening one entry's answers.)
+ALSO_ACCEPT = {}
 
 # ---------------------------------------------------------------------------
 # Antonym / synonym pairs, by headword.

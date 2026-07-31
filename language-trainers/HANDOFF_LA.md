@@ -17,7 +17,7 @@ Hand-edits to `vocab_la.json` are lost on the next build.
 
 - **Nouns**: `(nominative, genitive, gender, declension, i-stem?, English, lesson)` — the genitive gives the stem and identifies the declension, exactly as a course teaches it. Plural-only nouns go in `PLURAL_ONLY_NOUNS` and pass their genitive **plural**.
 - **Verbs**: `(principal parts, conjugation, English, lesson)`, conjugation in `{1, 2, 3, "3io", 4}`.
-- **Adjectives**: `(nominative, type, base-or-None, English, lesson)`, type in `{"us", "er", "3-2", "3-1", "3-3"}`. `er`/`3-1`/`3-3` need an explicit base (`pulcher`→`pulchr`, `ingēns`→`ingent`).
+- **Adjectives**: `(nominative, type, base-or-None, English, lesson)`, type in `{"us", "er", "3-2", "3-1", "3-1-cons", "3-3", "pl"}`. All but `us`/`3-2` need an explicit base (`pulcher`→`pulchr`, `ingēns`→`ingent`). `pl` is a plural-only entry (`multī, -ae, -a` = "many"): the headword is the masculine nominative plural and, like `m_sg_nom` for a normal adjective, is not stored.
 - **Everything else**: `(Latin, English, pos, lesson)`.
 - **Cloze**: `CLOZE[headword] = [(sentence with {target}, English), ...]`, target wrapped in `{...}`, answer = the in-sentence inflected form.
 - **`ANTONYMS` / `SYNONYMS`**: pairs of headwords, linked both directions automatically.
@@ -37,8 +37,9 @@ The accepted set is deliberately wider than what is displayed:
 - **Verb infinitives.** A gloss like "to run" invites `currere`, but the deck stores the
   dictionary headword `currō`; `principal_parts[1]` is accepted too. Do not "fix" this by
   changing the headword — 1sg is correct dictionary practice.
-- **`ALSO_ACCEPT`** in the build script, for per-entry extras. Currently `multus` also
-  accepts the plural `multī`, since its gloss "much, many" covers both numbers.
+- **`ALSO_ACCEPT`** in the build script, for per-entry extras. Currently empty — it held
+  the "much"/"many" case until `multus` and `multī` were split into separate entries,
+  which is the better fix when one gloss is really two words.
 
 `rawTarget` still shows only the headwords, so the reveal stays readable.
 

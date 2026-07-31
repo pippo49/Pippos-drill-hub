@@ -25682,7 +25682,7 @@
     }
    ],
    "antonyms": [
-    "la0715"
+    "la0716"
    ]
   },
   {
@@ -25727,7 +25727,7 @@
     "n_pl_nom": "lāta"
    },
    "antonyms": [
-    "la0728"
+    "la0729"
    ]
   },
   {
@@ -25780,7 +25780,7 @@
   },
   {
    "la": "multus",
-   "en": "much, many",
+   "en": "much, a lot of",
    "pos": "adjective",
    "id": "la0685",
    "lesson": "15",
@@ -25793,9 +25793,29 @@
     "f_pl_nom": "multae",
     "n_pl_nom": "multa"
    },
-   "also_accept": [
-    "multī"
-   ],
+   "cloze": [
+    {
+     "la": "{Multum} vīnum bibimus.",
+     "en": "We drink much wine."
+    },
+    {
+     "la": "{Multa} pecūnia in arcā est.",
+     "en": "There is much money in the chest."
+    }
+   ]
+  },
+  {
+   "la": "multī",
+   "en": "many",
+   "pos": "adjective",
+   "id": "la0686",
+   "lesson": "15",
+   "adj_type": "pl",
+   "declension_forms": "pl",
+   "declension": {
+    "f_pl_nom": "multae",
+    "n_pl_nom": "multa"
+   },
    "cloze": [
     {
      "la": "{Multī} hominēs aderant.",
@@ -25811,7 +25831,7 @@
    "la": "plēnus",
    "en": "full",
    "pos": "adjective",
-   "id": "la0686",
+   "id": "la0687",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25823,14 +25843,14 @@
     "n_pl_nom": "plēna"
    },
    "antonyms": [
-    "la0760"
+    "la0761"
    ]
   },
   {
    "la": "clārus",
    "en": "clear, famous",
    "pos": "adjective",
-   "id": "la0687",
+   "id": "la0688",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25846,7 +25866,7 @@
    "la": "cārus",
    "en": "dear, precious",
    "pos": "adjective",
-   "id": "la0688",
+   "id": "la0689",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25862,7 +25882,7 @@
    "la": "dūrus",
    "en": "hard, harsh",
    "pos": "adjective",
-   "id": "la0689",
+   "id": "la0690",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25878,7 +25898,7 @@
    "la": "laetus",
    "en": "happy, glad",
    "pos": "adjective",
-   "id": "la0690",
+   "id": "la0691",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25890,14 +25910,14 @@
     "n_pl_nom": "laeta"
    },
    "antonyms": [
-    "la0714"
+    "la0715"
    ]
   },
   {
    "la": "īrātus",
    "en": "angry",
    "pos": "adjective",
-   "id": "la0691",
+   "id": "la0692",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25913,7 +25933,7 @@
    "la": "validus",
    "en": "strong",
    "pos": "adjective",
-   "id": "la0692",
+   "id": "la0693",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25929,7 +25949,7 @@
    "la": "beātus",
    "en": "blessed, happy",
    "pos": "adjective",
-   "id": "la0693",
+   "id": "la0694",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25945,7 +25965,7 @@
    "la": "certus",
    "en": "certain, sure",
    "pos": "adjective",
-   "id": "la0694",
+   "id": "la0695",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25961,7 +25981,7 @@
    "la": "dignus",
    "en": "worthy",
    "pos": "adjective",
-   "id": "la0695",
+   "id": "la0696",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25977,7 +25997,7 @@
    "la": "prīmus",
    "en": "first",
    "pos": "adjective",
-   "id": "la0696",
+   "id": "la0697",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -25989,14 +26009,14 @@
     "n_pl_nom": "prīma"
    },
    "antonyms": [
-    "la0759"
+    "la0760"
    ]
   },
   {
    "la": "sōlus",
    "en": "alone, only",
    "pos": "adjective",
-   "id": "la0697",
+   "id": "la0698",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26012,7 +26032,7 @@
    "la": "tōtus",
    "en": "whole, entire",
    "pos": "adjective",
-   "id": "la0698",
+   "id": "la0699",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26028,7 +26048,7 @@
    "la": "meus",
    "en": "my",
    "pos": "adjective",
-   "id": "la0699",
+   "id": "la0700",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26044,7 +26064,7 @@
    "la": "tuus",
    "en": "your (sg.)",
    "pos": "adjective",
-   "id": "la0700",
+   "id": "la0701",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26060,7 +26080,7 @@
    "la": "noster",
    "en": "our",
    "pos": "adjective",
-   "id": "la0701",
+   "id": "la0702",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -26076,7 +26096,7 @@
    "la": "vester",
    "en": "your (pl.)",
    "pos": "adjective",
-   "id": "la0702",
+   "id": "la0703",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -26092,7 +26112,7 @@
    "la": "miser",
    "en": "wretched, unhappy",
    "pos": "adjective",
-   "id": "la0703",
+   "id": "la0704",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -26108,7 +26128,7 @@
    "la": "pulcher",
    "en": "beautiful, handsome",
    "pos": "adjective",
-   "id": "la0704",
+   "id": "la0705",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -26124,7 +26144,7 @@
    "la": "aeger",
    "en": "sick, ill",
    "pos": "adjective",
-   "id": "la0705",
+   "id": "la0706",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -26140,7 +26160,7 @@
    "la": "sacer",
    "en": "sacred",
    "pos": "adjective",
-   "id": "la0706",
+   "id": "la0707",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -26156,7 +26176,7 @@
    "la": "līber",
    "en": "free",
    "pos": "adjective",
-   "id": "la0707",
+   "id": "la0708",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -26172,7 +26192,7 @@
    "la": "fortis",
    "en": "brave, strong",
    "pos": "adjective",
-   "id": "la0708",
+   "id": "la0709",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26198,7 +26218,7 @@
    "la": "omnis",
    "en": "all, every",
    "pos": "adjective",
-   "id": "la0709",
+   "id": "la0710",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26224,7 +26244,7 @@
    "la": "gravis",
    "en": "heavy, serious",
    "pos": "adjective",
-   "id": "la0710",
+   "id": "la0711",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26250,7 +26270,7 @@
    "la": "facilis",
    "en": "easy",
    "pos": "adjective",
-   "id": "la0711",
+   "id": "la0712",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26272,14 +26292,14 @@
     }
    ],
    "antonyms": [
-    "la0712"
+    "la0713"
    ]
   },
   {
    "la": "difficilis",
    "en": "difficult",
    "pos": "adjective",
-   "id": "la0712",
+   "id": "la0713",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26291,14 +26311,14 @@
     "n_pl_nom": "difficilia"
    },
    "antonyms": [
-    "la0711"
+    "la0712"
    ]
   },
   {
    "la": "similis",
    "en": "similar, like",
    "pos": "adjective",
-   "id": "la0713",
+   "id": "la0714",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26314,7 +26334,7 @@
    "la": "trīstis",
    "en": "sad",
    "pos": "adjective",
-   "id": "la0714",
+   "id": "la0715",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26336,14 +26356,14 @@
     }
    ],
    "antonyms": [
-    "la0690"
+    "la0691"
    ]
   },
   {
    "la": "brevis",
    "en": "short, brief",
    "pos": "adjective",
-   "id": "la0715",
+   "id": "la0716",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26362,7 +26382,7 @@
    "la": "nōbilis",
    "en": "noble, well-known",
    "pos": "adjective",
-   "id": "la0716",
+   "id": "la0717",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26378,7 +26398,7 @@
    "la": "crūdēlis",
    "en": "cruel",
    "pos": "adjective",
-   "id": "la0717",
+   "id": "la0718",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26394,7 +26414,7 @@
    "la": "dulcis",
    "en": "sweet",
    "pos": "adjective",
-   "id": "la0718",
+   "id": "la0719",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26410,7 +26430,7 @@
    "la": "fidēlis",
    "en": "faithful",
    "pos": "adjective",
-   "id": "la0719",
+   "id": "la0720",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26426,7 +26446,7 @@
    "la": "ūtilis",
    "en": "useful",
    "pos": "adjective",
-   "id": "la0720",
+   "id": "la0721",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -26442,7 +26462,7 @@
    "la": "ingēns",
    "en": "huge, enormous",
    "pos": "adjective",
-   "id": "la0721",
+   "id": "la0722",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -26468,7 +26488,7 @@
    "la": "audāx",
    "en": "bold, daring",
    "pos": "adjective",
-   "id": "la0722",
+   "id": "la0723",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -26484,7 +26504,7 @@
    "la": "fēlīx",
    "en": "lucky, fortunate",
    "pos": "adjective",
-   "id": "la0723",
+   "id": "la0724",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -26500,7 +26520,7 @@
    "la": "sapiēns",
    "en": "wise",
    "pos": "adjective",
-   "id": "la0724",
+   "id": "la0725",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -26512,14 +26532,14 @@
     "n_pl_nom": "sapientia"
    },
    "antonyms": [
-    "la0754"
+    "la0755"
    ]
   },
   {
    "la": "potēns",
    "en": "powerful",
    "pos": "adjective",
-   "id": "la0725",
+   "id": "la0726",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -26535,7 +26555,7 @@
    "la": "ācer",
    "en": "keen, fierce, sharp",
    "pos": "adjective",
-   "id": "la0726",
+   "id": "la0727",
    "lesson": "15",
    "adj_type": "3-3",
    "declension_forms": "3-3",
@@ -26551,7 +26571,7 @@
    "la": "celer",
    "en": "swift, quick",
    "pos": "adjective",
-   "id": "la0727",
+   "id": "la0728",
    "lesson": "15",
    "adj_type": "3-3",
    "declension_forms": "3-3",
@@ -26567,7 +26587,7 @@
    "la": "angustus",
    "en": "narrow",
    "pos": "adjective",
-   "id": "la0728",
+   "id": "la0729",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26586,7 +26606,7 @@
    "la": "apertus",
    "en": "open",
    "pos": "adjective",
-   "id": "la0729",
+   "id": "la0730",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26602,7 +26622,7 @@
    "la": "avārus",
    "en": "greedy",
    "pos": "adjective",
-   "id": "la0730",
+   "id": "la0731",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26618,7 +26638,7 @@
    "la": "benignus",
    "en": "kind",
    "pos": "adjective",
-   "id": "la0731",
+   "id": "la0732",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26630,14 +26650,14 @@
     "n_pl_nom": "benigna"
    },
    "antonyms": [
-    "la0751"
+    "la0752"
    ]
   },
   {
    "la": "caecus",
    "en": "blind",
    "pos": "adjective",
-   "id": "la0732",
+   "id": "la0733",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26653,7 +26673,7 @@
    "la": "callidus",
    "en": "clever, cunning",
    "pos": "adjective",
-   "id": "la0733",
+   "id": "la0734",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26669,7 +26689,7 @@
    "la": "candidus",
    "en": "white, bright",
    "pos": "adjective",
-   "id": "la0734",
+   "id": "la0735",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26681,14 +26701,14 @@
     "n_pl_nom": "candida"
    },
    "antonyms": [
-    "la0765"
+    "la0766"
    ]
   },
   {
    "la": "calidus",
    "en": "warm, hot",
    "pos": "adjective",
-   "id": "la0735",
+   "id": "la0736",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26700,14 +26720,14 @@
     "n_pl_nom": "calida"
    },
    "antonyms": [
-    "la0739"
+    "la0740"
    ]
   },
   {
    "la": "cupidus",
    "en": "eager, desirous",
    "pos": "adjective",
-   "id": "la0736",
+   "id": "la0737",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26723,7 +26743,7 @@
    "la": "doctus",
    "en": "learned, skilled",
    "pos": "adjective",
-   "id": "la0737",
+   "id": "la0738",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26739,7 +26759,7 @@
    "la": "fessus",
    "en": "tired",
    "pos": "adjective",
-   "id": "la0738",
+   "id": "la0739",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26755,7 +26775,7 @@
    "la": "frīgidus",
    "en": "cold",
    "pos": "adjective",
-   "id": "la0739",
+   "id": "la0740",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26767,14 +26787,14 @@
     "n_pl_nom": "frīgida"
    },
    "antonyms": [
-    "la0735"
+    "la0736"
    ]
   },
   {
    "la": "idōneus",
    "en": "suitable",
    "pos": "adjective",
-   "id": "la0740",
+   "id": "la0741",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26790,7 +26810,7 @@
    "la": "iūstus",
    "en": "just, fair",
    "pos": "adjective",
-   "id": "la0741",
+   "id": "la0742",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26802,14 +26822,14 @@
     "n_pl_nom": "iūsta"
    },
    "antonyms": [
-    "la0786"
+    "la0787"
    ]
   },
   {
    "la": "lentus",
    "en": "slow",
    "pos": "adjective",
-   "id": "la0742",
+   "id": "la0743",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26825,7 +26845,7 @@
    "la": "maestus",
    "en": "sad, gloomy",
    "pos": "adjective",
-   "id": "la0743",
+   "id": "la0744",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26841,7 +26861,7 @@
    "la": "necessārius",
    "en": "necessary",
    "pos": "adjective",
-   "id": "la0744",
+   "id": "la0745",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26857,7 +26877,7 @@
    "la": "nūllus",
    "en": "no, none",
    "pos": "adjective",
-   "id": "la0745",
+   "id": "la0746",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26873,7 +26893,7 @@
    "la": "obscūrus",
    "en": "dark, obscure",
    "pos": "adjective",
-   "id": "la0746",
+   "id": "la0747",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26889,7 +26909,7 @@
    "la": "perpetuus",
    "en": "continuous, perpetual",
    "pos": "adjective",
-   "id": "la0747",
+   "id": "la0748",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26905,7 +26925,7 @@
    "la": "pūblicus",
    "en": "public",
    "pos": "adjective",
-   "id": "la0748",
+   "id": "la0749",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26917,14 +26937,14 @@
     "n_pl_nom": "pūblica"
    },
    "antonyms": [
-    "la0824"
+    "la0825"
    ]
   },
   {
    "la": "reliquus",
    "en": "remaining, the rest of",
    "pos": "adjective",
-   "id": "la0749",
+   "id": "la0750",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26940,7 +26960,7 @@
    "la": "rūsticus",
    "en": "rural, country",
    "pos": "adjective",
-   "id": "la0750",
+   "id": "la0751",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26956,7 +26976,7 @@
    "la": "saevus",
    "en": "savage, fierce",
    "pos": "adjective",
-   "id": "la0751",
+   "id": "la0752",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26968,14 +26988,14 @@
     "n_pl_nom": "saeva"
    },
    "antonyms": [
-    "la0731"
+    "la0732"
    ]
   },
   {
    "la": "secundus",
    "en": "second, favourable",
    "pos": "adjective",
-   "id": "la0752",
+   "id": "la0753",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -26991,7 +27011,7 @@
    "la": "sevērus",
    "en": "stern, severe",
    "pos": "adjective",
-   "id": "la0753",
+   "id": "la0754",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27007,7 +27027,7 @@
    "la": "stultus",
    "en": "foolish, stupid",
    "pos": "adjective",
-   "id": "la0754",
+   "id": "la0755",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27019,14 +27039,14 @@
     "n_pl_nom": "stulta"
    },
    "antonyms": [
-    "la0724"
+    "la0725"
    ]
   },
   {
    "la": "superbus",
    "en": "proud, arrogant",
    "pos": "adjective",
-   "id": "la0755",
+   "id": "la0756",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27038,14 +27058,14 @@
     "n_pl_nom": "superba"
    },
    "antonyms": [
-    "la0826"
+    "la0827"
    ]
   },
   {
    "la": "summus",
    "en": "highest, greatest",
    "pos": "adjective",
-   "id": "la0756",
+   "id": "la0757",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27057,14 +27077,14 @@
     "n_pl_nom": "summa"
    },
    "antonyms": [
-    "la0767"
+    "la0768"
    ]
   },
   {
    "la": "tacitus",
    "en": "silent",
    "pos": "adjective",
-   "id": "la0757",
+   "id": "la0758",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27080,7 +27100,7 @@
    "la": "tardus",
    "en": "slow, late",
    "pos": "adjective",
-   "id": "la0758",
+   "id": "la0759",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27096,7 +27116,7 @@
    "la": "ultimus",
    "en": "last, furthest",
    "pos": "adjective",
-   "id": "la0759",
+   "id": "la0760",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27108,14 +27128,14 @@
     "n_pl_nom": "ultima"
    },
    "antonyms": [
-    "la0696"
+    "la0697"
    ]
   },
   {
    "la": "vacuus",
    "en": "empty",
    "pos": "adjective",
-   "id": "la0760",
+   "id": "la0761",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27127,14 +27147,14 @@
     "n_pl_nom": "vacua"
    },
    "antonyms": [
-    "la0686"
+    "la0687"
    ]
   },
   {
    "la": "vērus",
    "en": "true",
    "pos": "adjective",
-   "id": "la0761",
+   "id": "la0762",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27146,14 +27166,14 @@
     "n_pl_nom": "vēra"
    },
    "antonyms": [
-    "la0823"
+    "la0824"
    ]
   },
   {
    "la": "vīvus",
    "en": "alive, living",
    "pos": "adjective",
-   "id": "la0762",
+   "id": "la0763",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27165,14 +27185,14 @@
     "n_pl_nom": "vīva"
    },
    "antonyms": [
-    "la0825"
+    "la0826"
    ]
   },
   {
    "la": "asper",
    "en": "rough, harsh",
    "pos": "adjective",
-   "id": "la0763",
+   "id": "la0764",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -27188,7 +27208,7 @@
    "la": "dexter",
    "en": "right, right-hand",
    "pos": "adjective",
-   "id": "la0764",
+   "id": "la0765",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -27200,14 +27220,14 @@
     "n_pl_nom": "dextra"
    },
    "antonyms": [
-    "la0827"
+    "la0828"
    ]
   },
   {
    "la": "niger",
    "en": "black",
    "pos": "adjective",
-   "id": "la0765",
+   "id": "la0766",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -27219,14 +27239,14 @@
     "n_pl_nom": "nigra"
    },
    "antonyms": [
-    "la0734"
+    "la0735"
    ]
   },
   {
    "la": "commūnis",
    "en": "common, shared",
    "pos": "adjective",
-   "id": "la0766",
+   "id": "la0767",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27242,7 +27262,7 @@
    "la": "humilis",
    "en": "low, humble",
    "pos": "adjective",
-   "id": "la0767",
+   "id": "la0768",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27254,14 +27274,14 @@
     "n_pl_nom": "humilia"
    },
    "antonyms": [
-    "la0756"
+    "la0757"
    ]
   },
   {
    "la": "immortālis",
    "en": "immortal",
    "pos": "adjective",
-   "id": "la0768",
+   "id": "la0769",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27277,7 +27297,7 @@
    "la": "incolumis",
    "en": "safe, unharmed",
    "pos": "adjective",
-   "id": "la0769",
+   "id": "la0770",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27293,7 +27313,7 @@
    "la": "levis",
    "en": "light, slight",
    "pos": "adjective",
-   "id": "la0770",
+   "id": "la0771",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27309,7 +27329,7 @@
    "la": "mortālis",
    "en": "mortal",
    "pos": "adjective",
-   "id": "la0771",
+   "id": "la0772",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27325,7 +27345,7 @@
    "la": "prūdēns",
    "en": "wise, prudent",
    "pos": "adjective",
-   "id": "la0772",
+   "id": "la0773",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -27341,7 +27361,7 @@
    "la": "clēmēns",
    "en": "merciful, mild",
    "pos": "adjective",
-   "id": "la0773",
+   "id": "la0774",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -27357,7 +27377,7 @@
    "la": "ferōx",
    "en": "fierce, ferocious",
    "pos": "adjective",
-   "id": "la0774",
+   "id": "la0775",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -27373,7 +27393,7 @@
    "la": "aequus",
    "en": "level, fair, equal",
    "pos": "adjective",
-   "id": "la0775",
+   "id": "la0776",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27389,7 +27409,7 @@
    "la": "alienus",
    "en": "belonging to another, foreign",
    "pos": "adjective",
-   "id": "la0776",
+   "id": "la0777",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27405,7 +27425,7 @@
    "la": "amplus",
    "en": "large, spacious",
    "pos": "adjective",
-   "id": "la0777",
+   "id": "la0778",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27421,7 +27441,7 @@
    "la": "cēterus",
    "en": "the other, the rest",
    "pos": "adjective",
-   "id": "la0778",
+   "id": "la0779",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27437,7 +27457,7 @@
    "la": "dēnsus",
    "en": "thick, dense",
    "pos": "adjective",
-   "id": "la0779",
+   "id": "la0780",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27453,7 +27473,7 @@
    "la": "dīversus",
    "en": "different, opposite",
    "pos": "adjective",
-   "id": "la0780",
+   "id": "la0781",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27469,7 +27489,7 @@
    "la": "dubius",
    "en": "doubtful, uncertain",
    "pos": "adjective",
-   "id": "la0781",
+   "id": "la0782",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27485,7 +27505,7 @@
    "la": "firmus",
    "en": "strong, firm",
    "pos": "adjective",
-   "id": "la0782",
+   "id": "la0783",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27501,7 +27521,7 @@
    "la": "grātus",
    "en": "pleasing, grateful",
    "pos": "adjective",
-   "id": "la0783",
+   "id": "la0784",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27517,7 +27537,7 @@
    "la": "honestus",
    "en": "honourable",
    "pos": "adjective",
-   "id": "la0784",
+   "id": "la0785",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27533,7 +27553,7 @@
    "la": "hūmānus",
    "en": "human, humane",
    "pos": "adjective",
-   "id": "la0785",
+   "id": "la0786",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27549,7 +27569,7 @@
    "la": "iniquus",
    "en": "unfair, uneven",
    "pos": "adjective",
-   "id": "la0786",
+   "id": "la0787",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27561,14 +27581,14 @@
     "n_pl_nom": "iniqua"
    },
    "antonyms": [
-    "la0741"
+    "la0742"
    ]
   },
   {
    "la": "largus",
    "en": "generous, abundant",
    "pos": "adjective",
-   "id": "la0787",
+   "id": "la0788",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27584,7 +27604,7 @@
    "la": "medius",
    "en": "middle, the middle of",
    "pos": "adjective",
-   "id": "la0788",
+   "id": "la0789",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27600,7 +27620,7 @@
    "la": "mīrus",
    "en": "wonderful, strange",
    "pos": "adjective",
-   "id": "la0789",
+   "id": "la0790",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27616,7 +27636,7 @@
    "la": "molestus",
    "en": "troublesome, annoying",
    "pos": "adjective",
-   "id": "la0790",
+   "id": "la0791",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27632,7 +27652,7 @@
    "la": "nōtus",
    "en": "known, familiar",
    "pos": "adjective",
-   "id": "la0791",
+   "id": "la0792",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27648,7 +27668,7 @@
    "la": "proximus",
    "en": "nearest, next",
    "pos": "adjective",
-   "id": "la0792",
+   "id": "la0793",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27664,7 +27684,7 @@
    "la": "pūrus",
    "en": "clean, pure",
    "pos": "adjective",
-   "id": "la0793",
+   "id": "la0794",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27680,7 +27700,7 @@
    "la": "rārus",
    "en": "rare, scattered",
    "pos": "adjective",
-   "id": "la0794",
+   "id": "la0795",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27696,7 +27716,7 @@
    "la": "rēctus",
    "en": "straight, right, correct",
    "pos": "adjective",
-   "id": "la0795",
+   "id": "la0796",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27712,7 +27732,7 @@
    "la": "sānus",
    "en": "healthy, sane",
    "pos": "adjective",
-   "id": "la0796",
+   "id": "la0797",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27728,7 +27748,7 @@
    "la": "siccus",
    "en": "dry",
    "pos": "adjective",
-   "id": "la0797",
+   "id": "la0798",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27744,7 +27764,7 @@
    "la": "sōllicitus",
    "en": "anxious, worried",
    "pos": "adjective",
-   "id": "la0798",
+   "id": "la0799",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27760,7 +27780,7 @@
    "la": "tūtus",
    "en": "safe",
    "pos": "adjective",
-   "id": "la0799",
+   "id": "la0800",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27776,7 +27796,7 @@
    "la": "ūniversus",
    "en": "whole, entire",
    "pos": "adjective",
-   "id": "la0800",
+   "id": "la0801",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -27792,7 +27812,7 @@
    "la": "integer",
    "en": "whole, untouched, honest",
    "pos": "adjective",
-   "id": "la0801",
+   "id": "la0802",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -27808,7 +27828,7 @@
    "la": "crēber",
    "en": "frequent, crowded",
    "pos": "adjective",
-   "id": "la0802",
+   "id": "la0803",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -27824,7 +27844,7 @@
    "la": "tener",
    "en": "tender, soft, young",
    "pos": "adjective",
-   "id": "la0803",
+   "id": "la0804",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -27840,7 +27860,7 @@
    "la": "agrestis",
    "en": "rural, wild",
    "pos": "adjective",
-   "id": "la0804",
+   "id": "la0805",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27856,7 +27876,7 @@
    "la": "familiāris",
    "en": "familiar, of the household",
    "pos": "adjective",
-   "id": "la0805",
+   "id": "la0806",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27872,7 +27892,7 @@
    "la": "illūstris",
    "en": "distinguished, bright",
    "pos": "adjective",
-   "id": "la0806",
+   "id": "la0807",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27888,7 +27908,7 @@
    "la": "inānis",
    "en": "empty, useless",
    "pos": "adjective",
-   "id": "la0807",
+   "id": "la0808",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27904,7 +27924,7 @@
    "la": "mollis",
    "en": "soft, gentle",
    "pos": "adjective",
-   "id": "la0808",
+   "id": "la0809",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27920,7 +27940,7 @@
    "la": "nāvālis",
    "en": "naval",
    "pos": "adjective",
-   "id": "la0809",
+   "id": "la0810",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27936,7 +27956,7 @@
    "la": "salūbris",
    "en": "healthy, wholesome",
    "pos": "adjective",
-   "id": "la0810",
+   "id": "la0811",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27952,7 +27972,7 @@
    "la": "singulāris",
    "en": "single, remarkable",
    "pos": "adjective",
-   "id": "la0811",
+   "id": "la0812",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27968,7 +27988,7 @@
    "la": "suāvis",
    "en": "sweet, pleasant",
    "pos": "adjective",
-   "id": "la0812",
+   "id": "la0813",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -27984,7 +28004,7 @@
    "la": "turpis",
    "en": "shameful, ugly",
    "pos": "adjective",
-   "id": "la0813",
+   "id": "la0814",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -28000,7 +28020,7 @@
    "la": "vīlis",
    "en": "cheap, worthless",
    "pos": "adjective",
-   "id": "la0814",
+   "id": "la0815",
    "lesson": "15",
    "adj_type": "3-2",
    "declension_forms": "3-2",
@@ -28016,7 +28036,7 @@
    "la": "absēns",
    "en": "absent",
    "pos": "adjective",
-   "id": "la0815",
+   "id": "la0816",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -28032,7 +28052,7 @@
    "la": "dīligēns",
    "en": "careful, diligent",
    "pos": "adjective",
-   "id": "la0816",
+   "id": "la0817",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -28048,7 +28068,7 @@
    "la": "ēlegāns",
    "en": "elegant, tasteful",
    "pos": "adjective",
-   "id": "la0817",
+   "id": "la0818",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -28064,7 +28084,7 @@
    "la": "libēns",
    "en": "willing, glad",
    "pos": "adjective",
-   "id": "la0818",
+   "id": "la0819",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -28080,7 +28100,7 @@
    "la": "recēns",
    "en": "recent, fresh",
    "pos": "adjective",
-   "id": "la0819",
+   "id": "la0820",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -28096,7 +28116,7 @@
    "la": "simplex",
    "en": "simple, straightforward",
    "pos": "adjective",
-   "id": "la0820",
+   "id": "la0821",
    "lesson": "15",
    "adj_type": "3-1",
    "declension_forms": "3-1",
@@ -28112,7 +28132,7 @@
    "la": "vetus",
    "en": "old, ancient, former",
    "pos": "adjective",
-   "id": "la0821",
+   "id": "la0822",
    "lesson": "15",
    "adj_type": "3-1-cons",
    "declension_forms": "3-1-cons",
@@ -28128,7 +28148,7 @@
    "la": "pauper",
    "en": "poor",
    "pos": "adjective",
-   "id": "la0822",
+   "id": "la0823",
    "lesson": "15",
    "adj_type": "3-1-cons",
    "declension_forms": "3-1-cons",
@@ -28144,7 +28164,7 @@
    "la": "falsus",
    "en": "false, deceptive",
    "pos": "adjective",
-   "id": "la0823",
+   "id": "la0824",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -28156,14 +28176,14 @@
     "n_pl_nom": "falsa"
    },
    "antonyms": [
-    "la0761"
+    "la0762"
    ]
   },
   {
    "la": "prīvātus",
    "en": "private, personal",
    "pos": "adjective",
-   "id": "la0824",
+   "id": "la0825",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -28175,14 +28195,14 @@
     "n_pl_nom": "prīvāta"
    },
    "antonyms": [
-    "la0748"
+    "la0749"
    ]
   },
   {
    "la": "mortuus",
    "en": "dead",
    "pos": "adjective",
-   "id": "la0825",
+   "id": "la0826",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -28194,14 +28214,14 @@
     "n_pl_nom": "mortua"
    },
    "antonyms": [
-    "la0762"
+    "la0763"
    ]
   },
   {
    "la": "modestus",
    "en": "modest, restrained",
    "pos": "adjective",
-   "id": "la0826",
+   "id": "la0827",
    "lesson": "15",
    "adj_type": "us",
    "declension_forms": "us",
@@ -28213,14 +28233,14 @@
     "n_pl_nom": "modesta"
    },
    "antonyms": [
-    "la0755"
+    "la0756"
    ]
   },
   {
    "la": "sinister",
    "en": "left, unlucky",
    "pos": "adjective",
-   "id": "la0827",
+   "id": "la0828",
    "lesson": "15",
    "adj_type": "er",
    "declension_forms": "er",
@@ -28232,1304 +28252,1304 @@
     "n_pl_nom": "sinistra"
    },
    "antonyms": [
-    "la0764"
+    "la0765"
    ]
   },
   {
    "la": "nōn",
    "en": "not",
    "pos": "adverb",
-   "id": "la0828",
+   "id": "la0829",
    "lesson": "1"
   },
   {
    "la": "semper",
    "en": "always",
    "pos": "adverb",
-   "id": "la0829",
+   "id": "la0830",
    "lesson": "11",
    "antonyms": [
-    "la0831"
+    "la0832"
    ]
   },
   {
    "la": "saepe",
    "en": "often",
    "pos": "adverb",
-   "id": "la0830",
+   "id": "la0831",
    "lesson": "11"
   },
   {
    "la": "numquam",
    "en": "never",
    "pos": "adverb",
-   "id": "la0831",
+   "id": "la0832",
    "lesson": "11",
    "antonyms": [
-    "la0829"
+    "la0830"
    ]
   },
   {
    "la": "nunc",
    "en": "now",
    "pos": "adverb",
-   "id": "la0832",
+   "id": "la0833",
    "lesson": "11"
   },
   {
    "la": "tum",
    "en": "then, at that time",
    "pos": "adverb",
-   "id": "la0833",
+   "id": "la0834",
    "lesson": "11"
   },
   {
    "la": "iam",
    "en": "now, already",
    "pos": "adverb",
-   "id": "la0834",
+   "id": "la0835",
    "lesson": "11"
   },
   {
    "la": "hodiē",
    "en": "today",
    "pos": "adverb",
-   "id": "la0835",
+   "id": "la0836",
    "lesson": "11",
    "antonyms": [
-    "la0837"
+    "la0838"
    ]
   },
   {
    "la": "herī",
    "en": "yesterday",
    "pos": "adverb",
-   "id": "la0836",
+   "id": "la0837",
    "lesson": "11"
   },
   {
    "la": "crās",
    "en": "tomorrow",
    "pos": "adverb",
-   "id": "la0837",
+   "id": "la0838",
    "lesson": "11",
    "antonyms": [
-    "la0835"
+    "la0836"
    ]
   },
   {
    "la": "diū",
    "en": "for a long time",
    "pos": "adverb",
-   "id": "la0838",
+   "id": "la0839",
    "lesson": "11"
   },
   {
    "la": "statim",
    "en": "immediately",
    "pos": "adverb",
-   "id": "la0839",
+   "id": "la0840",
    "lesson": "11"
   },
   {
    "la": "subitō",
    "en": "suddenly",
    "pos": "adverb",
-   "id": "la0840",
+   "id": "la0841",
    "lesson": "11"
   },
   {
    "la": "mox",
    "en": "soon",
    "pos": "adverb",
-   "id": "la0841",
+   "id": "la0842",
    "lesson": "11"
   },
   {
    "la": "ibi",
    "en": "there",
    "pos": "adverb",
-   "id": "la0842",
+   "id": "la0843",
    "lesson": "3"
   },
   {
    "la": "hīc",
    "en": "here",
    "pos": "adverb",
-   "id": "la0843",
+   "id": "la0844",
    "lesson": "3"
   },
   {
    "la": "ubi",
    "en": "where, when",
    "pos": "adverb",
-   "id": "la0844",
+   "id": "la0845",
    "lesson": "3"
   },
   {
    "la": "undique",
    "en": "from all sides",
    "pos": "adverb",
-   "id": "la0845",
+   "id": "la0846",
    "lesson": "3"
   },
   {
    "la": "bene",
    "en": "well",
    "pos": "adverb",
-   "id": "la0846",
+   "id": "la0847",
    "lesson": "15",
    "antonyms": [
-    "la0847"
+    "la0848"
    ]
   },
   {
    "la": "male",
    "en": "badly",
    "pos": "adverb",
-   "id": "la0847",
+   "id": "la0848",
    "lesson": "15",
    "antonyms": [
-    "la0846"
+    "la0847"
    ]
   },
   {
    "la": "valdē",
    "en": "very, strongly",
    "pos": "adverb",
-   "id": "la0848",
+   "id": "la0849",
    "lesson": "15"
   },
   {
    "la": "tandem",
    "en": "at last",
    "pos": "adverb",
-   "id": "la0849",
+   "id": "la0850",
    "lesson": "15"
   },
   {
    "la": "etiam",
    "en": "also, even",
    "pos": "adverb",
-   "id": "la0850",
+   "id": "la0851",
    "lesson": "15",
    "synonyms": [
-    "la0851"
+    "la0852"
    ]
   },
   {
    "la": "quoque",
    "en": "also, too",
    "pos": "adverb",
-   "id": "la0851",
+   "id": "la0852",
    "lesson": "15",
    "synonyms": [
-    "la0850"
+    "la0851"
    ]
   },
   {
    "la": "forte",
    "en": "by chance",
    "pos": "adverb",
-   "id": "la0852",
+   "id": "la0853",
    "lesson": "15"
   },
   {
    "la": "frūstrā",
    "en": "in vain",
    "pos": "adverb",
-   "id": "la0853",
+   "id": "la0854",
    "lesson": "15"
   },
   {
    "la": "celeriter",
    "en": "quickly",
    "pos": "adverb",
-   "id": "la0854",
+   "id": "la0855",
    "lesson": "15"
   },
   {
    "la": "fortiter",
    "en": "bravely",
    "pos": "adverb",
-   "id": "la0855",
+   "id": "la0856",
    "lesson": "15"
   },
   {
    "la": "facile",
    "en": "easily",
    "pos": "adverb",
-   "id": "la0856",
+   "id": "la0857",
    "lesson": "15"
   },
   {
    "la": "cūr",
    "en": "why",
    "pos": "adverb",
-   "id": "la0857",
+   "id": "la0858",
    "lesson": "15"
   },
   {
    "la": "ad",
    "en": "to, towards (+ acc.)",
    "pos": "preposition",
-   "id": "la0858",
+   "id": "la0859",
    "lesson": "3"
   },
   {
    "la": "in",
    "en": "in, on (+ abl.); into (+ acc.)",
    "pos": "preposition",
-   "id": "la0859",
+   "id": "la0860",
    "lesson": "3"
   },
   {
    "la": "ex",
    "en": "out of, from (+ abl.)",
    "pos": "preposition",
-   "id": "la0860",
+   "id": "la0861",
    "lesson": "3"
   },
   {
    "la": "ab",
    "en": "from, by (+ abl.)",
    "pos": "preposition",
-   "id": "la0861",
+   "id": "la0862",
    "lesson": "3"
   },
   {
    "la": "cum",
    "en": "with (+ abl.)",
    "pos": "preposition",
-   "id": "la0862",
+   "id": "la0863",
    "lesson": "3"
   },
   {
    "la": "sine",
    "en": "without (+ abl.)",
    "pos": "preposition",
-   "id": "la0863",
+   "id": "la0864",
    "lesson": "3"
   },
   {
    "la": "per",
    "en": "through (+ acc.)",
    "pos": "preposition",
-   "id": "la0864",
+   "id": "la0865",
    "lesson": "3"
   },
   {
    "la": "prope",
    "en": "near (+ acc.)",
    "pos": "preposition",
-   "id": "la0865",
+   "id": "la0866",
    "lesson": "3"
   },
   {
    "la": "post",
    "en": "after, behind (+ acc.)",
    "pos": "preposition",
-   "id": "la0866",
+   "id": "la0867",
    "lesson": "3",
    "antonyms": [
-    "la0867"
+    "la0868"
    ]
   },
   {
    "la": "ante",
    "en": "before, in front of (+ acc.)",
    "pos": "preposition",
-   "id": "la0867",
+   "id": "la0868",
    "lesson": "3",
    "antonyms": [
-    "la0866"
+    "la0867"
    ]
   },
   {
    "la": "inter",
    "en": "between, among (+ acc.)",
    "pos": "preposition",
-   "id": "la0868",
+   "id": "la0869",
    "lesson": "3"
   },
   {
    "la": "trāns",
    "en": "across (+ acc.)",
    "pos": "preposition",
-   "id": "la0869",
+   "id": "la0870",
    "lesson": "3"
   },
   {
    "la": "sub",
    "en": "under (+ abl./acc.)",
    "pos": "preposition",
-   "id": "la0870",
+   "id": "la0871",
    "lesson": "3"
   },
   {
    "la": "dē",
    "en": "down from, about (+ abl.)",
    "pos": "preposition",
-   "id": "la0871",
+   "id": "la0872",
    "lesson": "3"
   },
   {
    "la": "prō",
    "en": "in front of, on behalf of (+ abl.)",
    "pos": "preposition",
-   "id": "la0872",
+   "id": "la0873",
    "lesson": "3"
   },
   {
    "la": "contrā",
    "en": "against (+ acc.)",
    "pos": "preposition",
-   "id": "la0873",
+   "id": "la0874",
    "lesson": "7"
   },
   {
    "la": "et",
    "en": "and",
    "pos": "conjunction",
-   "id": "la0874",
+   "id": "la0875",
    "lesson": "1"
   },
   {
    "la": "sed",
    "en": "but",
    "pos": "conjunction",
-   "id": "la0875",
+   "id": "la0876",
    "lesson": "1"
   },
   {
    "la": "aut",
    "en": "or",
    "pos": "conjunction",
-   "id": "la0876",
+   "id": "la0877",
    "lesson": "1"
   },
   {
    "la": "nam",
    "en": "for",
    "pos": "conjunction",
-   "id": "la0877",
+   "id": "la0878",
    "lesson": "1"
   },
   {
    "la": "quod",
    "en": "because",
    "pos": "conjunction",
-   "id": "la0878",
+   "id": "la0879",
    "lesson": "1",
    "synonyms": [
-    "la0879"
+    "la0880"
    ]
   },
   {
    "la": "quia",
    "en": "because",
    "pos": "conjunction",
-   "id": "la0879",
+   "id": "la0880",
    "lesson": "1",
    "synonyms": [
-    "la0878"
+    "la0879"
    ]
   },
   {
    "la": "sī",
    "en": "if",
    "pos": "conjunction",
-   "id": "la0880",
+   "id": "la0881",
    "lesson": "1"
   },
   {
    "la": "ubi",
    "en": "when",
    "pos": "conjunction",
-   "id": "la0881",
+   "id": "la0882",
    "lesson": "1"
   },
   {
    "la": "dum",
    "en": "while",
    "pos": "conjunction",
-   "id": "la0882",
+   "id": "la0883",
    "lesson": "1"
   },
   {
    "la": "tamen",
    "en": "however, nevertheless",
    "pos": "conjunction",
-   "id": "la0883",
+   "id": "la0884",
    "lesson": "1"
   },
   {
    "la": "igitur",
    "en": "therefore",
    "pos": "conjunction",
-   "id": "la0884",
+   "id": "la0885",
    "lesson": "1"
   },
   {
    "la": "enim",
    "en": "for, indeed",
    "pos": "conjunction",
-   "id": "la0885",
+   "id": "la0886",
    "lesson": "1"
   },
   {
    "la": "atque",
    "en": "and, and also",
    "pos": "conjunction",
-   "id": "la0886",
+   "id": "la0887",
    "lesson": "1"
   },
   {
    "la": "neque",
    "en": "and not, nor",
    "pos": "conjunction",
-   "id": "la0887",
+   "id": "la0888",
    "lesson": "1"
   },
   {
    "la": "ego",
    "en": "I",
    "pos": "pronoun",
-   "id": "la0888",
+   "id": "la0889",
    "lesson": "1"
   },
   {
    "la": "tū",
    "en": "you (sg.)",
    "pos": "pronoun",
-   "id": "la0889",
+   "id": "la0890",
    "lesson": "1"
   },
   {
    "la": "nōs",
    "en": "we, us",
    "pos": "pronoun",
-   "id": "la0890",
+   "id": "la0891",
    "lesson": "1"
   },
   {
    "la": "vōs",
    "en": "you (pl.)",
    "pos": "pronoun",
-   "id": "la0891",
+   "id": "la0892",
    "lesson": "1"
   },
   {
    "la": "is",
    "en": "he, that",
    "pos": "pronoun",
-   "id": "la0892",
+   "id": "la0893",
    "lesson": "1"
   },
   {
    "la": "ea",
    "en": "she, that",
    "pos": "pronoun",
-   "id": "la0893",
+   "id": "la0894",
    "lesson": "1"
   },
   {
    "la": "id",
    "en": "it, that",
    "pos": "pronoun",
-   "id": "la0894",
+   "id": "la0895",
    "lesson": "1"
   },
   {
    "la": "hic",
    "en": "this, this man",
    "pos": "pronoun",
-   "id": "la0895",
+   "id": "la0896",
    "lesson": "1"
   },
   {
    "la": "ille",
    "en": "that, that man",
    "pos": "pronoun",
-   "id": "la0896",
+   "id": "la0897",
    "lesson": "1"
   },
   {
    "la": "quī",
    "en": "who, which",
    "pos": "pronoun",
-   "id": "la0897",
+   "id": "la0898",
    "lesson": "1"
   },
   {
    "la": "quis",
    "en": "who?",
    "pos": "pronoun",
-   "id": "la0898",
+   "id": "la0899",
    "lesson": "1"
   },
   {
    "la": "quid",
    "en": "what?",
    "pos": "pronoun",
-   "id": "la0899",
+   "id": "la0900",
    "lesson": "1"
   },
   {
    "la": "sē",
    "en": "himself, herself, themselves",
    "pos": "pronoun",
-   "id": "la0900",
+   "id": "la0901",
    "lesson": "1"
   },
   {
    "la": "nēmō",
    "en": "no one",
    "pos": "pronoun",
-   "id": "la0901",
+   "id": "la0902",
    "lesson": "1"
   },
   {
    "la": "nihil",
    "en": "nothing",
    "pos": "pronoun",
-   "id": "la0902",
+   "id": "la0903",
    "lesson": "1"
   },
   {
    "la": "omnia",
    "en": "everything, all things",
    "pos": "pronoun",
-   "id": "la0903",
+   "id": "la0904",
    "lesson": "1"
   },
   {
    "la": "ūnus",
    "en": "one",
    "pos": "number",
-   "id": "la0904",
+   "id": "la0905",
    "lesson": "11"
   },
   {
    "la": "duo",
    "en": "two",
    "pos": "number",
-   "id": "la0905",
+   "id": "la0906",
    "lesson": "11"
   },
   {
    "la": "trēs",
    "en": "three",
    "pos": "number",
-   "id": "la0906",
+   "id": "la0907",
    "lesson": "11"
   },
   {
    "la": "quattuor",
    "en": "four",
    "pos": "number",
-   "id": "la0907",
+   "id": "la0908",
    "lesson": "11"
   },
   {
    "la": "quīnque",
    "en": "five",
    "pos": "number",
-   "id": "la0908",
+   "id": "la0909",
    "lesson": "11"
   },
   {
    "la": "sex",
    "en": "six",
    "pos": "number",
-   "id": "la0909",
+   "id": "la0910",
    "lesson": "11"
   },
   {
    "la": "septem",
    "en": "seven",
    "pos": "number",
-   "id": "la0910",
+   "id": "la0911",
    "lesson": "11"
   },
   {
    "la": "octō",
    "en": "eight",
    "pos": "number",
-   "id": "la0911",
+   "id": "la0912",
    "lesson": "11"
   },
   {
    "la": "novem",
    "en": "nine",
    "pos": "number",
-   "id": "la0912",
+   "id": "la0913",
    "lesson": "11"
   },
   {
    "la": "decem",
    "en": "ten",
    "pos": "number",
-   "id": "la0913",
+   "id": "la0914",
    "lesson": "11"
   },
   {
    "la": "centum",
    "en": "a hundred",
    "pos": "number",
-   "id": "la0914",
+   "id": "la0915",
    "lesson": "11"
   },
   {
    "la": "mīlle",
    "en": "a thousand",
    "pos": "number",
-   "id": "la0915",
+   "id": "la0916",
    "lesson": "11"
   },
   {
    "la": "iterum",
    "en": "again",
    "pos": "adverb",
-   "id": "la0916",
+   "id": "la0917",
    "lesson": "11"
   },
   {
    "la": "deinde",
    "en": "then, next",
    "pos": "adverb",
-   "id": "la0917",
+   "id": "la0918",
    "lesson": "11"
   },
   {
    "la": "posteā",
    "en": "afterwards",
    "pos": "adverb",
-   "id": "la0918",
+   "id": "la0919",
    "lesson": "11"
   },
   {
    "la": "anteā",
    "en": "before, previously",
    "pos": "adverb",
-   "id": "la0919",
+   "id": "la0920",
    "lesson": "11"
   },
   {
    "la": "simul",
    "en": "at the same time",
    "pos": "adverb",
-   "id": "la0920",
+   "id": "la0921",
    "lesson": "11"
   },
   {
    "la": "ōlim",
    "en": "once, formerly",
    "pos": "adverb",
-   "id": "la0921",
+   "id": "la0922",
    "lesson": "11"
   },
   {
    "la": "nūper",
    "en": "recently",
    "pos": "adverb",
-   "id": "la0922",
+   "id": "la0923",
    "lesson": "11"
   },
   {
    "la": "adhūc",
    "en": "still, up to now",
    "pos": "adverb",
-   "id": "la0923",
+   "id": "la0924",
    "lesson": "11"
   },
   {
    "la": "satis",
    "en": "enough",
    "pos": "adverb",
-   "id": "la0924",
+   "id": "la0925",
    "lesson": "15"
   },
   {
    "la": "nimis",
    "en": "too much",
    "pos": "adverb",
-   "id": "la0925",
+   "id": "la0926",
    "lesson": "15"
   },
   {
    "la": "paene",
    "en": "almost",
    "pos": "adverb",
-   "id": "la0926",
+   "id": "la0927",
    "lesson": "15"
   },
   {
    "la": "vix",
    "en": "scarcely, hardly",
    "pos": "adverb",
-   "id": "la0927",
+   "id": "la0928",
    "lesson": "15"
   },
   {
    "la": "procul",
    "en": "far off",
    "pos": "adverb",
-   "id": "la0928",
+   "id": "la0929",
    "lesson": "15"
   },
   {
    "la": "quam",
    "en": "how, than",
    "pos": "adverb",
-   "id": "la0929",
+   "id": "la0930",
    "lesson": "15"
   },
   {
    "la": "tam",
    "en": "so, so much",
    "pos": "adverb",
-   "id": "la0930",
+   "id": "la0931",
    "lesson": "15"
   },
   {
    "la": "ita",
    "en": "thus, so",
    "pos": "adverb",
-   "id": "la0931",
+   "id": "la0932",
    "lesson": "15"
   },
   {
    "la": "sīc",
    "en": "thus, in this way",
    "pos": "adverb",
-   "id": "la0932",
+   "id": "la0933",
    "lesson": "15"
   },
   {
    "la": "fortasse",
    "en": "perhaps",
    "pos": "adverb",
-   "id": "la0933",
+   "id": "la0934",
    "lesson": "15"
   },
   {
    "la": "certē",
    "en": "certainly",
    "pos": "adverb",
-   "id": "la0934",
+   "id": "la0935",
    "lesson": "15"
   },
   {
    "la": "lentē",
    "en": "slowly",
    "pos": "adverb",
-   "id": "la0935",
+   "id": "la0936",
    "lesson": "15"
   },
   {
    "la": "graviter",
    "en": "seriously, heavily",
    "pos": "adverb",
-   "id": "la0936",
+   "id": "la0937",
    "lesson": "15"
   },
   {
    "la": "libenter",
    "en": "gladly, willingly",
    "pos": "adverb",
-   "id": "la0937",
+   "id": "la0938",
    "lesson": "15"
   },
   {
    "la": "prīmum",
    "en": "first, at first",
    "pos": "adverb",
-   "id": "la0938",
+   "id": "la0939",
    "lesson": "15"
   },
   {
    "la": "magnopere",
    "en": "greatly",
    "pos": "adverb",
-   "id": "la0939",
+   "id": "la0940",
    "lesson": "15"
   },
   {
    "la": "autem",
    "en": "however, moreover",
    "pos": "conjunction",
-   "id": "la0940",
+   "id": "la0941",
    "lesson": "1"
   },
   {
    "la": "itaque",
    "en": "and so, therefore",
    "pos": "conjunction",
-   "id": "la0941",
+   "id": "la0942",
    "lesson": "1"
   },
   {
    "la": "ergō",
    "en": "therefore",
    "pos": "conjunction",
-   "id": "la0942",
+   "id": "la0943",
    "lesson": "1"
   },
   {
    "la": "praetereā",
    "en": "besides, moreover",
    "pos": "conjunction",
-   "id": "la0943",
+   "id": "la0944",
    "lesson": "1"
   },
   {
    "la": "nisi",
    "en": "unless, if not",
    "pos": "conjunction",
-   "id": "la0944",
+   "id": "la0945",
    "lesson": "1"
   },
   {
    "la": "quamquam",
    "en": "although",
    "pos": "conjunction",
-   "id": "la0945",
+   "id": "la0946",
    "lesson": "1"
   },
   {
    "la": "ut",
    "en": "as, so that",
    "pos": "conjunction",
-   "id": "la0946",
+   "id": "la0947",
    "lesson": "1"
   },
   {
    "la": "nē",
    "en": "lest, that not",
    "pos": "conjunction",
-   "id": "la0947",
+   "id": "la0948",
    "lesson": "1"
   },
   {
    "la": "apud",
    "en": "at, among, at the house of (+ acc.)",
    "pos": "preposition",
-   "id": "la0948",
+   "id": "la0949",
    "lesson": "3"
   },
   {
    "la": "circum",
    "en": "around (+ acc.)",
    "pos": "preposition",
-   "id": "la0949",
+   "id": "la0950",
    "lesson": "3"
   },
   {
    "la": "propter",
    "en": "because of (+ acc.)",
    "pos": "preposition",
-   "id": "la0950",
+   "id": "la0951",
    "lesson": "3"
   },
   {
    "la": "super",
    "en": "above, over (+ acc.)",
    "pos": "preposition",
-   "id": "la0951",
+   "id": "la0952",
    "lesson": "3"
   },
   {
    "la": "tertius",
    "en": "third",
    "pos": "number",
-   "id": "la0952",
+   "id": "la0953",
    "lesson": "11"
   },
   {
    "la": "quārtus",
    "en": "fourth",
    "pos": "number",
-   "id": "la0953",
+   "id": "la0954",
    "lesson": "11"
   },
   {
    "la": "quīntus",
    "en": "fifth",
    "pos": "number",
-   "id": "la0954",
+   "id": "la0955",
    "lesson": "11"
   },
   {
    "la": "vīgintī",
    "en": "twenty",
    "pos": "number",
-   "id": "la0955",
+   "id": "la0956",
    "lesson": "11"
   },
   {
    "la": "intereā",
    "en": "meanwhile",
    "pos": "adverb",
-   "id": "la0956",
+   "id": "la0957",
    "lesson": "11"
   },
   {
    "la": "umquam",
    "en": "ever",
    "pos": "adverb",
-   "id": "la0957",
+   "id": "la0958",
    "lesson": "11"
   },
   {
    "la": "aliquandō",
    "en": "sometimes, at some time",
    "pos": "adverb",
-   "id": "la0958",
+   "id": "la0959",
    "lesson": "11"
   },
   {
    "la": "cotīdiē",
    "en": "daily, every day",
    "pos": "adverb",
-   "id": "la0959",
+   "id": "la0960",
    "lesson": "11"
   },
   {
    "la": "prīdiē",
    "en": "on the day before",
    "pos": "adverb",
-   "id": "la0960",
+   "id": "la0961",
    "lesson": "11"
   },
   {
    "la": "posthāc",
    "en": "hereafter, from now on",
    "pos": "adverb",
-   "id": "la0961",
+   "id": "la0962",
    "lesson": "11"
   },
   {
    "la": "prīmō",
    "en": "at first",
    "pos": "adverb",
-   "id": "la0962",
+   "id": "la0963",
    "lesson": "11",
    "antonyms": [
-    "la0963"
+    "la0964"
    ]
   },
   {
    "la": "dēnique",
    "en": "finally, at last",
    "pos": "adverb",
-   "id": "la0963",
+   "id": "la0964",
    "lesson": "11",
    "antonyms": [
-    "la0962"
+    "la0963"
    ]
   },
   {
    "la": "ubīque",
    "en": "everywhere",
    "pos": "adverb",
-   "id": "la0964",
+   "id": "la0965",
    "lesson": "3"
   },
   {
    "la": "illūc",
    "en": "to that place, thither",
    "pos": "adverb",
-   "id": "la0965",
+   "id": "la0966",
    "lesson": "3",
    "antonyms": [
-    "la0966"
+    "la0967"
    ]
   },
   {
    "la": "hūc",
    "en": "to this place, hither",
    "pos": "adverb",
-   "id": "la0966",
+   "id": "la0967",
    "lesson": "3",
    "antonyms": [
-    "la0965"
+    "la0966"
    ]
   },
   {
    "la": "inde",
    "en": "from there, thence",
    "pos": "adverb",
-   "id": "la0967",
+   "id": "la0968",
    "lesson": "3"
   },
   {
    "la": "unde",
    "en": "from where, whence",
    "pos": "adverb",
-   "id": "la0968",
-   "lesson": "3",
-   "antonyms": [
-    "la0969"
-   ]
-  },
-  {
-   "la": "quō",
-   "en": "to where, whither",
-   "pos": "adverb",
    "id": "la0969",
-   "lesson": "3",
-   "antonyms": [
-    "la0968"
-   ]
-  },
-  {
-   "la": "intrā",
-   "en": "within (+ acc.)",
-   "pos": "preposition",
-   "id": "la0970",
-   "lesson": "3",
-   "antonyms": [
-    "la0971"
-   ]
-  },
-  {
-   "la": "extrā",
-   "en": "outside (+ acc.)",
-   "pos": "preposition",
-   "id": "la0971",
    "lesson": "3",
    "antonyms": [
     "la0970"
    ]
   },
   {
-   "la": "suprā",
-   "en": "above (+ acc.)",
-   "pos": "preposition",
-   "id": "la0972",
+   "la": "quō",
+   "en": "to where, whither",
+   "pos": "adverb",
+   "id": "la0970",
    "lesson": "3",
    "antonyms": [
-    "la0973"
+    "la0969"
    ]
   },
   {
-   "la": "īnfrā",
-   "en": "below (+ acc.)",
+   "la": "intrā",
+   "en": "within (+ acc.)",
    "pos": "preposition",
-   "id": "la0973",
+   "id": "la0971",
    "lesson": "3",
    "antonyms": [
     "la0972"
    ]
   },
   {
+   "la": "extrā",
+   "en": "outside (+ acc.)",
+   "pos": "preposition",
+   "id": "la0972",
+   "lesson": "3",
+   "antonyms": [
+    "la0971"
+   ]
+  },
+  {
+   "la": "suprā",
+   "en": "above (+ acc.)",
+   "pos": "preposition",
+   "id": "la0973",
+   "lesson": "3",
+   "antonyms": [
+    "la0974"
+   ]
+  },
+  {
+   "la": "īnfrā",
+   "en": "below (+ acc.)",
+   "pos": "preposition",
+   "id": "la0974",
+   "lesson": "3",
+   "antonyms": [
+    "la0973"
+   ]
+  },
+  {
    "la": "ob",
    "en": "on account of (+ acc.)",
    "pos": "preposition",
-   "id": "la0974",
+   "id": "la0975",
    "lesson": "3"
   },
   {
    "la": "praeter",
    "en": "past, except (+ acc.)",
    "pos": "preposition",
-   "id": "la0975",
+   "id": "la0976",
    "lesson": "3"
   },
   {
    "la": "ūsque",
    "en": "all the way, continuously",
    "pos": "adverb",
-   "id": "la0976",
+   "id": "la0977",
    "lesson": "3"
   },
   {
    "la": "magis",
    "en": "more",
    "pos": "adverb",
-   "id": "la0977",
+   "id": "la0978",
    "lesson": "15",
    "antonyms": [
-    "la0979"
+    "la0980"
    ]
   },
   {
    "la": "maximē",
    "en": "most, especially",
    "pos": "adverb",
-   "id": "la0978",
+   "id": "la0979",
    "lesson": "15"
   },
   {
    "la": "minus",
    "en": "less",
    "pos": "adverb",
-   "id": "la0979",
+   "id": "la0980",
    "lesson": "15",
    "antonyms": [
-    "la0977"
+    "la0978"
    ]
   },
   {
    "la": "minimē",
    "en": "least, not at all",
    "pos": "adverb",
-   "id": "la0980",
+   "id": "la0981",
    "lesson": "15"
   },
   {
    "la": "melius",
    "en": "better",
    "pos": "adverb",
-   "id": "la0981",
+   "id": "la0982",
    "lesson": "15"
   },
   {
    "la": "peius",
    "en": "worse",
    "pos": "adverb",
-   "id": "la0982",
+   "id": "la0983",
    "lesson": "15"
   },
   {
    "la": "saltem",
    "en": "at least",
    "pos": "adverb",
-   "id": "la0983",
+   "id": "la0984",
    "lesson": "15"
   },
   {
    "la": "ferē",
    "en": "almost, generally",
    "pos": "adverb",
-   "id": "la0984",
+   "id": "la0985",
    "lesson": "15"
   },
   {
    "la": "rūrsus",
    "en": "again, back",
    "pos": "adverb",
-   "id": "la0985",
+   "id": "la0986",
    "lesson": "15"
   },
   {
    "la": "ūnā",
    "en": "together",
    "pos": "adverb",
-   "id": "la0986",
+   "id": "la0987",
    "lesson": "15"
   },
   {
    "la": "sextus",
    "en": "sixth",
    "pos": "number",
-   "id": "la0987",
+   "id": "la0988",
    "lesson": "11"
   },
   {
    "la": "septimus",
    "en": "seventh",
    "pos": "number",
-   "id": "la0988",
+   "id": "la0989",
    "lesson": "11"
   },
   {
    "la": "octāvus",
    "en": "eighth",
    "pos": "number",
-   "id": "la0989",
+   "id": "la0990",
    "lesson": "11"
   },
   {
    "la": "nōnus",
    "en": "ninth",
    "pos": "number",
-   "id": "la0990",
+   "id": "la0991",
    "lesson": "11"
   },
   {
    "la": "decimus",
    "en": "tenth",
    "pos": "number",
-   "id": "la0991",
+   "id": "la0992",
    "lesson": "11"
   },
   {
    "la": "undecim",
    "en": "eleven",
    "pos": "number",
-   "id": "la0992",
+   "id": "la0993",
    "lesson": "11"
   },
   {
    "la": "duodecim",
    "en": "twelve",
    "pos": "number",
-   "id": "la0993",
+   "id": "la0994",
    "lesson": "11"
   },
   {
    "la": "trīgintā",
    "en": "thirty",
    "pos": "number",
-   "id": "la0994",
+   "id": "la0995",
    "lesson": "11"
   },
   {
    "la": "quīnquāgintā",
    "en": "fifty",
    "pos": "number",
-   "id": "la0995",
+   "id": "la0996",
    "lesson": "11"
   },
   {
    "la": "ipse",
    "en": "himself, herself, itself",
    "pos": "pronoun",
-   "id": "la0996",
+   "id": "la0997",
    "lesson": "1"
   },
   {
    "la": "īdem",
    "en": "the same",
    "pos": "pronoun",
-   "id": "la0997",
+   "id": "la0998",
    "lesson": "1"
   },
   {
    "la": "alius",
    "en": "other, another",
    "pos": "pronoun",
-   "id": "la0998",
+   "id": "la0999",
    "lesson": "1"
   },
   {
    "la": "alter",
    "en": "the other (of two)",
    "pos": "pronoun",
-   "id": "la0999",
+   "id": "la1000",
    "lesson": "1"
   },
   {
    "la": "uterque",
    "en": "each (of two), both",
    "pos": "pronoun",
-   "id": "la1000",
+   "id": "la1001",
    "lesson": "1"
   },
   {
    "la": "quisque",
    "en": "each one, everyone",
    "pos": "pronoun",
-   "id": "la1001",
+   "id": "la1002",
    "lesson": "1"
   },
   {
    "la": "aliquis",
    "en": "someone, anyone",
    "pos": "pronoun",
-   "id": "la1002",
+   "id": "la1003",
    "lesson": "1"
   }
  ],
