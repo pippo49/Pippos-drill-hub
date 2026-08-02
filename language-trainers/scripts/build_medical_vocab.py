@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from med_elements import PREFIXES, SUFFIXES, ROOTS, DOUBLETS
 from med_terms import (EXTRA_ROOTS, EXTRA_SUFFIXES, TERMS, PLURALS,
                        CONFUSABLES, ANATOMICAL, PRESCRIPTION, CLOZE, CLOZE_ONLY)
+from med_examples import EXAMPLE_GLOSSARY, NOT_TERMS
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vocab_med.json")
 VOWELS = "aeiou"
@@ -191,6 +192,70 @@ def main():
         by_term[target].setdefault("cloze", []).append({"sent": sentence})
         attached += 1
 
+    # 6. notes illustrate an element with real words ("appendectomy,
+    # nephrectomy"). Resolve each cited term to a gloss so the panel can show
+    # what they mean, and FAIL if one cannot be resolved -- otherwise a future
+    # note could quietly cite a term the learner has no way to look up.
+    gloss = {}
+    def index(key, meaning):
+        k = key.lower().strip()
+        if k and k not in gloss:
+            gloss[k] = meaning
+    for e in entries:
+        index(e["term"], e["en"])
+        if e.get("plural"):
+            index(e["plural"], "plural of " + e["term"] + " — " + e["en"])
+        if e.get("pair_term"):
+            index(e["pair_term"], e.get("pair_gloss", ""))
+    for k, v in EXAMPLE_GLOSSARY.items():
+        index(k, v)
+
+    def spell(w):
+        """The notes use British spelling, the deck American; try both."""
+        return {w, w.replace("ae", "e").replace("oe", "e")}
+
+    def look_up(w):
+        for base in spell(w):
+            for cand in (base, "-" + base, base + "/o", base + "/e", base + "/i"):
+                if cand in gloss:
+                    return gloss[cand]
+        return None
+
+    ETYMON = re.compile(r"\b(?:Gk|L|Latin|Greek|from)\s+([A-Za-zÀ-ÿ/]+)")
+    MEDICAL = re.compile(
+        r"(itis|ectomy|ostomy|otomy|plasty|pexy|desis|centesis|scopy|scope|graphy|"
+        r"gram|metry|meter|logy|logist|pathy|algia|emia|uria|penia|megaly|malacia|"
+        r"sclerosis|stenosis|ectasis|ptosis|rrhea|rrhagia|cele|oma|plegia|paresis|"
+        r"phobia|lith|iasis|emesis|pnea|phagia|phasia|plasia|trophy|genesis|cyte|"
+        r"blast|clast|poiesis|esthesia|kinesia|osis|ism|ia)$")
+    unexplained, cited_total = set(), 0
+    for e in entries:
+        note = e.get("note") or ""
+        if not note:
+            continue
+        etyma = {m.group(1).lower() for m in ETYMON.finditer(note)}
+        seen, pairs = set(), []
+        for w in re.findall(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'-]{4,}", note):
+            lw = w.lower().strip("'-")
+            if lw in seen or lw in etyma or lw in NOT_TERMS:
+                continue
+            if not MEDICAL.search(lw):
+                continue
+            seen.add(lw)
+            g = look_up(lw)
+            if g is None:
+                unexplained.add(lw)
+            elif lw != e["term"].lower():   # don't re-gloss the headword itself
+                pairs.append([w.strip("'-"), g])
+        if pairs:
+            e["note_terms"] = pairs
+            cited_total += len(pairs)
+
+    assert not unexplained, (
+        "these terms are cited in a note but have no gloss anywhere -- add them "
+        "to EXAMPLE_GLOSSARY (or NOT_TERMS if they are ordinary English or an "
+        f"etymon), or reword the note: {sorted(unexplained)}")
+
     lessons = sorted({e["lesson"] for e in entries})
     data = {"entries": entries, "lessons": lessons}
     with open(OUT, "w", encoding="utf-8") as fh:
@@ -207,6 +272,8 @@ def main():
             origins[e["origin"]] = origins.get(e["origin"], 0) + 1
     print(f"  {len(DOUBLETS)} Greek/Latin doublets · {attached} cloze sentences")
     print("  term origins: " + " · ".join(f"{k} {v}" for k, v in sorted(origins.items())))
+    n_notes = sum(1 for e in entries if e.get("note_terms"))
+    print(f"  {cited_total} cited terms glossed across {n_notes} notes")
 
 
 if __name__ == "__main__":

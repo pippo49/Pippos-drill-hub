@@ -72,6 +72,32 @@ irregular beside Greek-throughout neighbours like *gastritis*.
 
 Origin is shown only **after** answering, so it never hints at the answer.
 
+## Terms cited inside a note are glossed too
+
+The notes illustrate an element with real words — "-ectomy … Appendectomy,
+nephrectomy". Those are now listed with their meanings, so nothing in an
+explanation is left for the learner to guess:
+
+```
+Notes
+  Gk ektome 'a cutting out'. Appendectomy, nephrectomy.
+Terms used above
+  Appendectomy    surgical removal of the appendix
+  nephrectomy     surgical removal of a kidney
+```
+
+496 citations across 309 notes. Most resolve against the deck itself — an entry,
+its plural, or the same word in the other spelling convention (the notes are
+written in British English, the deck headwords are American, so `haematuria`
+finds `hematuria`). The rest come from `scripts/med_examples.py`.
+
+**The build fails if a note cites a medical term with no gloss anywhere.** That
+is the point of the assertion: it is not possible to add a note mentioning an
+unexplained term and have it ship. Fixing it means either adding the gloss to
+`EXAMPLE_GLOSSARY`, listing the word in `NOT_TERMS` (ordinary English, or a
+Greek/Latin etymon the sentence already explains), or rewording the note.
+Verified by deleting a gloss and watching the build refuse.
+
 ## Generated deck — do not hand-edit `vocab_med.json`
 
 Curated data lives in `scripts/med_elements.py` (prefixes, suffixes, roots,

@@ -359,6 +359,13 @@ EXTRAS = r'''function buildElementSection() {
   }
   if (e.latin) { heading("Latin"); noteRow(e.latin); }
   if (e.note) { heading("Notes"); noteRow(e.note); }
+  // The notes illustrate an element with real words ("appendectomy,
+  // nephrectomy"). Spell out what those mean rather than leaving the learner to
+  // guess; the generator resolves every one and fails the build if it cannot.
+  if (e.note_terms && e.note_terms.length) {
+    heading("Terms used above");
+    e.note_terms.forEach(function(t) { pairRow(t[0], t[1]); });
+  }
   if (!any) return null;
 
   btn.addEventListener("click", function() {
