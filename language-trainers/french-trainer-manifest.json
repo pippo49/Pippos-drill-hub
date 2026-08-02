@@ -1,0 +1,13 @@
+{
+  "name": "Vocabulaire — French/English Trainer",
+  "short_name": "French Trainer",
+  "start_url": "./french_trainer.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f3e8",
+  "theme_color": "#f8f3e8",
+  "icons": [
+    { "src": "./icons/french-trainer-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/french-trainer-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

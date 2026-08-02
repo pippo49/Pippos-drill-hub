@@ -27,6 +27,7 @@ LANGUAGE_APPS = [
     ("polish_trainer.html",  "vocab.json",    "Polish",  "polski → deutsch",   "#22304a", "#ffffff", "PL"),
     ("spanish_trainer.html", "vocab_es.json", "Spanish", "español → english",  "#7a2331", "#ffffff", "ES"),
     ("italian_trainer.html", "vocab_it.json", "Italian", "italiano → english", "#0e5c3a", "#f4f1e4", "IT"),
+    ("french_trainer.html",  "vocab_fr.json", "French",  "français → english", "#1f3a80", "#f5f2e8", "FR"),
     ("latin_trainer.html",   "vocab_la.json", "Latin",   "latina → english",   "#5c1f2e", "#f0d9a8", "LA"),
 ]
 

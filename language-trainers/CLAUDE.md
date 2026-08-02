@@ -7,17 +7,25 @@ Apps in this repo:
 - `spanish_trainer.html` + `vocab_es.json` — Spanish→English. Details: `HANDOFF_ES.md`
 - `latin_trainer.html` + `vocab_la.json` — Latin→English, school years 1–2. Details: `HANDOFF_LA.md`
 - `italian_trainer.html` + `vocab_it.json` — Italian→English, A1–A2. Details: `HANDOFF_IT.md`
+- `french_trainer.html` + `vocab_fr.json` — French→English, A1–A2, **small-talk focused**. Details: `HANDOFF_FR.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
 
-## Generated decks (Latin, Italian)
+## Generated decks (Latin, Italian, French)
 
-`vocab_la.json` and `vocab_it.json` are **generated, not hand-edited** — the curated
+`vocab_la.json`, `vocab_it.json` and `vocab_fr.json` are **generated, not hand-edited** — the curated
 word lists live in `scripts/build_<lang>_vocab.py` and the paradigms come from
 `scripts/<lang>_morph.py`. The Polish and Spanish decks remain hand-maintained JSON.
 Both generators cross-check every expansion against whatever the source authored,
 so a wrong plural, genitive or principal part fails the build instead of shipping;
 this caught real errors in both decks (`miscēō`→`misceō`, `mūs` mis-flagged as a
 non-i-stem, a masculine `-ga` plural rule that produced `collegi` for `colleghi`).
+
+**French-specific:** the deck is deliberately weighted to **small talk** — lessons are
+conversational situations and 181 of 1014 entries are ready-made phrases (Spanish has 12,
+Italian 22). Keep that share when expanding. Its `FILLER` is `{to}` only, *not* the
+Italian `{to, a, an, the}`, because French answers contain a bare `a` (`il a`, `il y a`);
+English glosses therefore omit articles. Aspirate h is curated — it is unrecoverable from
+spelling and decides both article and elision (`le héros` vs `l'hôtel`). See `HANDOFF_FR.md`.
 
 **Italian-specific:** `-co`/`-go` plurals are lexical (`amico`→`amici` but
 `fuoco`→`fuochi`) and come from curated tables; the generator *raises* for any such
