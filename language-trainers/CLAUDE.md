@@ -79,6 +79,18 @@ Known generator constraints (all fail loudly rather than silently):
 - Plural-only nouns (`castra`, `arma`, `thermae`) pass their genitive **plural** and
   set `plural_only=True`.
 
+## The on-page error box
+
+Each trainer shows a red diagnostic box for uncaught errors. It **ignores opaque
+cross-origin errors** — `message: "Script error."` with no filename or line. That is
+what a browser reports when a script from another origin throws, and since these pages
+load no external scripts at all, such an error is always someone else's injected code
+(an in-app browser, an extension, a content blocker), not ours. It was reported from a
+phone as a "Script error." banner on a working app; a 600-question run across every mode
+threw nothing, and dispatching a synthetic opaque ErrorEvent reproduced the banner
+exactly. Errors from our own inline script carry the page URL and a real line number and
+are still reported — don't widen the filter past the no-filename-and-no-line case.
+
 ## Offline support (PWA)
 
 Each app has a matching `<name>-sw.js` service worker + `<name>-manifest.json` manifest + `icons/<name>-icon-{192,512}.png`, registered from a snippet inside the app's existing single `<script>` block (registration must stay inside that block, not a second `<script>` tag — `scripts/validate.py` extracts JS from the first `<script>` to the last `</script>`, and a second tag breaks the extraction).

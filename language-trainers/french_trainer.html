@@ -247,6 +247,15 @@
 <script>
 // === DIAGNOSTIC: catch any errors and show them on the page ===
 window.addEventListener("error", function(e) {
+  // Ignore opaque cross-origin errors. When a script from another origin throws
+  // — an in-app browser's or an extension's injected code — the browser masks
+  // the details and reports message "Script error." with no filename or line.
+  // This page loads NO external scripts, so such an error is never ours, and
+  // showing it just alarms the reader about somebody else's bug. Anything our
+  // own inline script throws arrives with this page's URL and a real line
+  // number, so it still gets reported below.
+  if (!e.filename && !e.lineno &&
+      (!e.message || String(e.message).indexOf("Script error") === 0)) return;
   var el = document.getElementById("error-box");
   if (!el) {
     el = document.createElement("div");
