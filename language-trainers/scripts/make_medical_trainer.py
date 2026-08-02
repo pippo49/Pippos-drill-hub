@@ -258,6 +258,9 @@ function generateQuestion(mode) {
              prompt: c.sent.replace(/\{[^}]*\}/, "_____"),
              subPrompt: "Fill the gap with the correct term.",
              hint: e.en,
+             // the other clinical words in THIS sentence, so the explanation
+             // does not itself need explaining
+             clozeTerms: c.terms || null,
              promptLabel: "Clinical context",
              answerLabel: "Term", target: answer, rawTarget: answer };
   }
@@ -365,6 +368,12 @@ EXTRAS = r'''function buildElementSection() {
   if (e.note_terms && e.note_terms.length) {
     heading("Terms used above");
     e.note_terms.forEach(function(t) { pairRow(t[0], t[1]); });
+  }
+  // A cloze sentence is real clinical prose and uses words beyond the answer;
+  // these belong to the sentence just asked, not to the entry.
+  if (currentQ.clozeTerms && currentQ.clozeTerms.length) {
+    heading("Other terms in this sentence");
+    currentQ.clozeTerms.forEach(function(t) { pairRow(t[0], t[1]); });
   }
   if (!any) return null;
 

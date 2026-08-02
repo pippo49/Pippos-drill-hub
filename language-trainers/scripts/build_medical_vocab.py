@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from med_elements import PREFIXES, SUFFIXES, ROOTS, DOUBLETS
 from med_terms import (EXTRA_ROOTS, EXTRA_SUFFIXES, TERMS, PLURALS,
                        CONFUSABLES, ANATOMICAL, PRESCRIPTION, CLOZE, CLOZE_ONLY)
-from med_examples import EXAMPLE_GLOSSARY, NOT_TERMS
+from med_examples import EXAMPLE_GLOSSARY, NOT_TERMS, CLINICAL_GLOSSARY
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vocab_med.json")
 VOWELS = "aeiou"
@@ -256,6 +256,39 @@ def main():
         "to EXAMPLE_GLOSSARY (or NOT_TERMS if they are ordinary English or an "
         f"etymon), or reword the note: {sorted(unexplained)}")
 
+    # 7. a cloze sentence is real clinical prose, so it uses clinical words the
+    # learner may not know either. Attach the ones we can explain to that
+    # sentence. Matching is phrase-first ("iliac fossa" beats a bare "fossa")
+    # and word-bounded, so "media" does not match inside "immediate".
+    clinical = dict(CLINICAL_GLOSSARY)
+    for k, v in gloss.items():
+        if k.startswith("-") or "/" in k:
+            continue                      # elements are not words in a sentence
+        clinical.setdefault(k, v)
+    keys = sorted(clinical, key=len, reverse=True)
+    patterns = [(k, re.compile(r"(?<![A-Za-z])" + re.escape(k) + r"(?![A-Za-z])", re.I))
+                for k in keys]
+
+    cloze_terms_total = 0
+    for e in entries:
+        for c in e.get("cloze") or []:
+            answer = re.search(r"\{([^}]*)\}", c["sent"]).group(1).lower()
+            plain = re.sub(r"\{[^}]*\}", " ", c["sent"])
+            found, used = [], []
+            for k, pat in patterns:
+                m = pat.search(plain)
+                if not m or k == answer:
+                    continue
+                lo, hi = m.span()
+                if any(lo < b and a < hi for a, b in used):
+                    continue              # already covered by a longer phrase
+                used.append((lo, hi))
+                found.append([m.group(0), clinical[k]])
+            if found:
+                found.sort(key=lambda t: plain.lower().index(t[0].lower()))
+                c["terms"] = found
+                cloze_terms_total += len(found)
+
     lessons = sorted({e["lesson"] for e in entries})
     data = {"entries": entries, "lessons": lessons}
     with open(OUT, "w", encoding="utf-8") as fh:
@@ -274,6 +307,8 @@ def main():
     print("  term origins: " + " · ".join(f"{k} {v}" for k, v in sorted(origins.items())))
     n_notes = sum(1 for e in entries if e.get("note_terms"))
     print(f"  {cited_total} cited terms glossed across {n_notes} notes")
+    n_cl = sum(1 for e in entries for c in (e.get("cloze") or []) if c.get("terms"))
+    print(f"  {cloze_terms_total} clinical terms glossed across {n_cl} cloze sentences")
 
 
 if __name__ == "__main__":

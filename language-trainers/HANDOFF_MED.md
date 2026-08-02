@@ -98,6 +98,30 @@ unexplained term and have it ship. Fixing it means either adding the gloss to
 Greek/Latin etymon the sentence already explains), or rewording the note.
 Verified by deleting a gloss and watching the build refuse.
 
+## Clinical terms inside a cloze sentence are glossed too
+
+A cloze sentence is real clinical prose, so it uses vocabulary beyond the answer.
+Those words are listed with the sentence that used them:
+
+```
+Migratory right iliac fossa pain is the classic history of _____.
+
+Other terms in this sentence
+  Migratory     moving from one site to another over time
+  iliac fossa   the lower quarter of the abdomen on either side
+```
+
+84 terms across 47 of the 60 sentences. Unlike the note citations these cannot be
+found by a suffix — *febrile*, *erythema*, *melaena*, *rigidity* are not built
+from elements — so `CLINICAL_GLOSSARY` in `scripts/med_examples.py` curates them,
+and the deck's own entries are folded in on top.
+
+Matching is **phrase-first and word-bounded**: `iliac fossa` wins over a bare
+`fossa`, `costal margin` over `costal`, and `media` does not match inside
+`immediate`. Overlaps are resolved by preferring the longer phrase, and the
+answer itself is never listed. Terms attach to the **sentence**, not the entry,
+so a card only ever shows the words actually in front of the learner.
+
 ## Generated deck — do not hand-edit `vocab_med.json`
 
 Curated data lives in `scripts/med_elements.py` (prefixes, suffixes, roots,
