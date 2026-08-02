@@ -275,4 +275,56 @@ CLINICAL_GLOSSARY = {
     "tremor": "a rhythmic involuntary shaking",
     "intolerance": "inability to tolerate something, such as cold",
     "fracture": "a break in a bone",
+
+    # picked up when the cloze vocabulary was reviewed word by word: clinical
+    # jargon whose everyday sense is different or vaguer than the medical one
+    "acute": "of sudden onset and short duration — the opposite of chronic",
+    "red flag": "a feature that raises the possibility of serious disease",
+    "frequency": "needing to pass urine more often than normal",
+    "discharge": "fluid coming out of a body opening or wound",
+    "distribution": "the pattern of body regions a sign affects",
+    "dominant hemisphere": "the half of the brain that holds language, the left in most people",
+    "admission": "being taken into hospital as an inpatient",
+    "imaging": "producing pictures of the inside of the body",
+    "iron deficiency": "too little iron to make haemoglobin normally",
+    "forward-bend test": "bending forward to make a spinal curve visible — screens for scoliosis",
+    "probing to bone": "a wound deep enough for a probe to touch bone, suggesting bone infection",
+    "ecg": "electrocardiogram — a recording of the heart's electrical activity",
+    "t waves": "part of the ECG trace; tall peaked T waves suggest a high potassium",
+    "x-ray": "an image made with x-radiation",
+    "artery": "a vessel carrying blood away from the heart",
+    "vein": "a vessel carrying blood back to the heart",
+    "gallbladder": "the small sac under the liver that stores bile",
 }
+
+
+# Every word used in a cloze sentence must be classified: either it has a gloss
+# (deck entry, EXAMPLE_GLOSSARY or CLINICAL_GLOSSARY) or it is ordinary English
+# and listed here. `build_medical_vocab.py` fails on anything else, so a new
+# cloze sentence CANNOT introduce an unexplained clinical word — the author is
+# forced to decide which of the two it is. Generated once from the sentences in
+# the deck and then reviewed by hand; add to it deliberately, not to silence a
+# failure you have not read.
+ORDINARY_WORDS = set("""
+    a abdominal acquired adolescent's adult affected affecting after an
+    antibiotics any area as assessment at athlete's attributed beats below
+    better beyond bleeding bruising burning but cause caused chest child's
+    classic climbing cm cold combination commonest condition confirmed
+    confirming count course described despite detected diagnosed discussed
+    ear edge enlargement enlarging establish eye family fatigue fatty
+    features fever finding flight fluid following for forward-bend found
+    frankly from gain general gut had hands he him his history hour hours in
+    increasing indicate indicated indicates infection insertion
+    investigation irregular is jaw joints kg labelled left limit lips
+    liquids liver long-standing loss man massive may meal middle minute ml
+    more neck needing needs new night no normal of older on over pain
+    painless patient patient's per performed persistent persisting pillows
+    point possibility presented procedure produce profound progressive
+    prominent prompted raise raises raising reflect remained reported
+    resolved rest resting revealed review right right-sided several severe
+    she short should showed side simple single six solids spreading stairs
+    stone suggested suggests supports suspicion sweating swollen taken than
+    the then three times tissue tongue treated treating treatment typical
+    under upper use usually visible vision wall warm warrants was weeks
+    weight well which with without woman worrying worse young
+""".split())

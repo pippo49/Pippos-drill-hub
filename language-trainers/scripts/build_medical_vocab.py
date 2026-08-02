@@ -27,7 +27,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from med_elements import PREFIXES, SUFFIXES, ROOTS, DOUBLETS
 from med_terms import (EXTRA_ROOTS, EXTRA_SUFFIXES, TERMS, PLURALS,
                        CONFUSABLES, ANATOMICAL, PRESCRIPTION, CLOZE, CLOZE_ONLY)
-from med_examples import EXAMPLE_GLOSSARY, NOT_TERMS, CLINICAL_GLOSSARY
+from med_examples import (EXAMPLE_GLOSSARY, NOT_TERMS, CLINICAL_GLOSSARY,
+                          ORDINARY_WORDS)
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vocab_med.json")
 VOWELS = "aeiou"
@@ -288,6 +289,31 @@ def main():
                 found.sort(key=lambda t: plain.lower().index(t[0].lower()))
                 c["terms"] = found
                 cloze_terms_total += len(found)
+
+    # 8. closed vocabulary over the cloze sentences. Clinical prose words cannot
+    # be spotted by a suffix the way -itis can, so instead of guessing a pattern
+    # every word must be CLASSIFIED: glossed, or listed as ordinary English. A
+    # new sentence therefore cannot introduce an unexplained clinical term —
+    # the build stops until someone decides which of the two it is.
+    covered = set(ORDINARY_WORDS)
+    for k in clinical:
+        covered.add(k)                       # the key as written ("x-ray")
+        for w in re.split(r"[\s-]+", k):     # and its parts ("iliac", "fossa")
+            if w:
+                covered.add(w)
+    unclassified = {}
+    for e in entries:
+        for c in e.get("cloze") or []:
+            plain = re.sub(r"\{[^}]*\}", " ", c["sent"])
+            for w in re.findall(r"[A-Za-z][A-Za-z'-]*", plain):
+                lw = w.lower().strip("'-")
+                if lw and lw not in covered:
+                    unclassified.setdefault(lw, c["sent"])
+    assert not unclassified, (
+        "cloze sentences use words that are neither glossed nor marked ordinary. "
+        "Add each to CLINICAL_GLOSSARY if a learner would need it explained, or "
+        "to ORDINARY_WORDS if it is everyday English:\n  "
+        + "\n  ".join(f"{w!r}  in: {sent}" for w, sent in sorted(unclassified.items())))
 
     lessons = sorted({e["lesson"] for e in entries})
     data = {"entries": entries, "lessons": lessons}

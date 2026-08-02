@@ -122,6 +122,28 @@ Matching is **phrase-first and word-bounded**: `iliac fossa` wins over a bare
 answer itself is never listed. Terms attach to the **sentence**, not the entry,
 so a card only ever shows the words actually in front of the learner.
 
+### The cloze vocabulary is closed — new sentences cannot smuggle a term in
+
+Clinical prose words cannot be recognised by a suffix the way `-itis` can, so
+rather than guess at a pattern, **every word in every cloze sentence must be
+classified**: it either has a gloss, or it is listed in `ORDINARY_WORDS` as
+everyday English. The build fails on anything else, naming the word *and the
+sentence it appeared in*.
+
+That makes adding sentences safe: write one, run the build, and it tells you
+exactly which words need a decision. Verified both ways — a sentence containing
+`tachyphylaxis` is refused, one using only classified vocabulary builds.
+
+`ORDINARY_WORDS` (199 words) was generated once from the deck's own sentences and
+then read through by hand; that review is what promoted `acute`, `red flag`,
+`frequency`, `discharge`, `dominant hemisphere`, `ecg` and ten others out of it
+and into `CLINICAL_GLOSSARY`. Extend it deliberately — adding a word there to
+silence a failure you have not read defeats the point.
+
+**The notes are guarded differently.** Their citations *are* morphologically
+detectable, so the suffix check covers them (see above); a closed vocabulary
+would mean classifying 1,440 words of ordinary prose for very little gain.
+
 ## Generated deck — do not hand-edit `vocab_med.json`
 
 Curated data lives in `scripts/med_elements.py` (prefixes, suffixes, roots,
