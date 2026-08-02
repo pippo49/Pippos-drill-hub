@@ -65,6 +65,14 @@
   .fb.wrong{background:var(--bad-bg);border:1px solid var(--bad)} .fb.wrong .g{color:var(--bad)}
   .fb pre{font-family:var(--mono);font-size:13px;white-space:pre-wrap;margin:6px 0 0;background:rgba(127,127,127,.10);padding:8px 10px;border-radius:7px}
   .fb .why{margin-top:8px;color:var(--muted);font-family:var(--sans)}
+  /* "Teach me this" holds a full beginner explanation, not a one-liner:
+     preserve the authored paragraph breaks and indented code lines.
+     NB: the teach panel is a SIBLING of .fb, not a child — the feedback div is
+     already closed before the button is appended — so this must not be
+     nested under .fb or it silently stops applying. */
+  .teach{margin-top:10px;color:var(--ink);font-family:var(--sans);
+    font-size:14px;line-height:1.55;white-space:pre-wrap;
+    border-left:3px solid var(--line);padding:2px 0 2px 12px}
   .hintlink{font-size:12.5px;color:var(--accent);background:none;border:none;padding:4px 0;cursor:pointer;font-weight:550}
   .panelhead{font-weight:600;font-size:14px;margin:0 0 10px}
   .pills{display:flex;flex-wrap:wrap;gap:7px}
@@ -3282,7 +3290,7 @@ function commitInto(slot, grade, val, expected, why){
   nb.onclick = advance;
   if(showTeach){
     slot.querySelector("#teach").onclick = function(){
-      this.outerHTML = '<div class="why" style="margin-top:6px">'+esc(summary)+'</div>';
+      this.outerHTML = '<div class="teach">'+esc(summary)+'</div>';
     };
   }
   setTimeout(function(){ document.addEventListener("keydown", enterAdvance); }, 0);
