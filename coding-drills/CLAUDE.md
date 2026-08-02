@@ -9,6 +9,9 @@ lead with results, keep responses concise, batch-and-validate before delivering.
 - `bash-drill.html`   — bashDrill, PROG_KEY `bashdrill_progress_v1`
 - `cpp-drill.html`    — cppDrill, PROG_KEY `cppdrill_progress_v1`
 - `tools/validate.js` — jsdom full-flow probe (see Validation)
+- `tools/update_summaries.py` — splices rewritten `summary` text into inline DECK_DATA
+- `tools/strip_backticks.py` — one-off Markdown-backtick cleanup (see Teach panel)
+- `tools/tighten_teach_code.py` — narrows comment padding on overflowing code lines
 - `<name>-sw.js` + `<name>-manifest.json` + `icons/<name>-icon-{192,512}.png` — offline support (PWA), one set per app (see below)
 
 ## Offline support (PWA)
@@ -46,6 +49,58 @@ v1.5 additions (2026-07-15, ported from the Polish trainer):
 Engine changes must be applied identically to all three files (the engine JS is
 byte-identical apart from branding/PROG_KEY; patch via exact-match string
 replacement on all three).
+
+## Teach panel ("Teach me this")
+
+Every card's `summary` is a beginner-level explanation, not a terse reminder.
+All 645 cards were rewritten to this format on 2026-08-02 (pyDrill 329,
+bashDrill 192, cppDrill 124).
+
+Format, ~80–150 words per card:
+1. the mental model in plain language
+2. why it behaves that way
+3. a small worked example, indented four spaces
+4. the rule or trap to carry away
+
+### How it renders
+
+`renderTeach(summary)` (engine, identical in all three files) splits the plain
+text into blocks: runs of lines indented four spaces become
+`<pre class="tc">` (monospace, `white-space: pre`, own `overflow-x: auto`),
+everything else becomes `<div class="tp">` (`white-space: pre-wrap`).
+
+Prose therefore wraps and code keeps its alignment, scrolling inside its own box
+instead of reflowing. Before this split the whole panel was one `pre-wrap` node
+and every example longer than ~55 characters reflowed into the prose, losing its
+indentation.
+
+Hard constraints, all learned the hard way:
+- **Plain text only.** The summary is escaped with `esc()`. No HTML, and no
+  Markdown either — backticks and asterisks render literally.
+  `tools/strip_backticks.py` cleaned up an earlier pass that used `` `code` ``;
+  its `SKIP_IDS` protects b1-003, where a backtick IS the syntax being taught.
+  (`**` survives in pyDrill only as real `**kwargs` syntax.)
+- **The `.teach` CSS rule must not be nested under `.fb`.** The teach panel is a
+  SIBLING of the feedback div — `.fb` is already closed before the button is
+  appended — so `.fb .teach` silently never matches. This was only caught by
+  checking computed style in a browser, not by reading the diff.
+- **Code-run detection is `/^ {4}/` on a non-blank line, not `/^ {4}\S/`.** The
+  stricter form treats a more deeply indented continuation line as prose and
+  shatters one example into several `<pre>` blocks.
+- `.tc` fits ~45 monospace characters at 11.5px on a 390px viewport. Keep example
+  lines within that where the code allows; `tools/tighten_teach_code.py` trims
+  comment-alignment padding on lines that overflow (85% of code lines now fit,
+  the rest scroll). The page itself must never scroll sideways — verify by
+  rendering every card, not a sample.
+
+Workflow for a batch: dump a topic's cards, write `{card_id: text}` to a Python
+file, then
+
+    python3 tools/update_summaries.py <drill>.html <summaries>.py
+    node tools/validate.js <drill>.html
+
+`update_summaries.py` asserts on unknown ids, blank text, and anything under
+`MIN_WORDS` (45), so a half-finished batch fails loudly. It is re-runnable.
 
 ## Deck conventions
 - Cards live in `const DECK_DATA` inside each HTML file. Every card carries a
