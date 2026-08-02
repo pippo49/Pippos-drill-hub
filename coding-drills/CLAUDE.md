@@ -9,6 +9,8 @@ lead with results, keep responses concise, batch-and-validate before delivering.
 - `bash-drill.html`   — bashDrill, PROG_KEY `bashdrill_progress_v1`
 - `cpp-drill.html`    — cppDrill, PROG_KEY `cppdrill_progress_v1`
 - `tools/validate.js` — jsdom full-flow probe (see Validation)
+- `tools/patch_hardest.py` — adds the hardest-questions round to all three (re-runnable)
+- `tools/check_hardest.js` — jsdom regression test for that round
 - `tools/update_summaries.py` — splices rewritten `summary` text into inline DECK_DATA
 - `tools/strip_backticks.py` — one-off Markdown-backtick cleanup (see Teach panel)
 - `tools/tighten_teach_code.py` — narrows comment padding on overflowing code lines
@@ -49,6 +51,38 @@ v1.5 additions (2026-07-15, ported from the Polish trainer):
 Engine changes must be applied identically to all three files (the engine JS is
 byte-identical apart from branding/PROG_KEY; patch via exact-match string
 replacement on all three).
+
+## Hardest-questions round
+
+A second button on the home screen, beside "Start round", queues **only** the
+questions you have got wrong most often. Added by `tools/patch_hardest.py`
+(re-runnable) and locked down by `tools/check_hardest.js` — **run it after
+touching round or selection logic.**
+
+It exists because `weightFor` cannot concentrate practice here at all: it scores
+an always-wrong unit 5 against 1 for a mastered one and 12 for an *unseen* one,
+and `buildQueue` only *reorders* the selection. That buys a hard question a
+slightly earlier slot in a 381-question round — it never lets you drill the hard
+ones on their own.
+
+Design decisions, the same three as the language trainers:
+- **Ranking is raw wrong count.** `recordResult` books a `close` grade as a
+  correct answer and never increments `wrong`, so this counts outright misses
+  only. Ties break on the worse rate.
+- **Scope is global**: `hardestUnits()` walks `everyUnit()`, not
+  `askableUnits()`, so it **ignores the topic and drill-mode pills**. That is the
+  one place in the engine that bypasses them, and it is deliberate — swapping in
+  `askableUnits()` is exactly what `check_hardest.js` catches.
+- **Shape is a separate round button**, reusing the round machinery.
+
+Size is `max(8, ceil(0.10 × units attempted))`, capped at the number of units
+with any mistake. Below 8 the button is disabled and says how many are needed.
+
+`startRound(units, kind)` now takes a round kind: no argument = ordinary round
+over the selection, an array = review (queued in the caller's order, since you
+re-drill exactly what you missed), array + `"hardest"` = weight-shuffled like an
+ordinary round. `session.review` / `session.hardest` drive the eyebrow label and
+the summary heading.
 
 ## Teach panel ("Teach me this")
 
@@ -118,7 +152,8 @@ file, then
 2. `npm install` once, then `node tools/validate.js <file>.html` — full flow:
    starts a round, answers every unit across all modes, checks summary,
    wrong counts, history cap, and the populated Progress card.
-3. jsdom gotchas (already handled in validate.js): construct JSDOM with
+3. `node tools/check_hardest.js <file>.html` if round/selection logic changed.
+4. jsdom gotchas (already handled in validate.js): construct JSDOM with
    `url: 'https://localhost/'` or localStorage throws; detect the summary via
    the `.card.summary` element, never `body.textContent` (it includes the
    inline script source, which contains UI strings).

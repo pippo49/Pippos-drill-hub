@@ -270,6 +270,47 @@ function renderProgressCard(){
     '<div class="small" style="margin-top:8px">Bar = mastery (coverage \u00d7 accuracy). Right column: attempted \u00b7 accuracy.</div></div>');
 }
 
+/* ============================== HARDEST QUESTIONS ============================== */
+/* weightFor prefers questions you get wrong, but only softly (5 against 1 for a
+   mastered unit, and 12 for an unseen one), and buildQueue only reorders the
+   selection -- so a hard question never gets drilled on its own. This round
+   queues ONLY the questions with the most wrong answers.
+   Deliberately global: it ignores the topic and drill-mode pills, so it is the
+   hardest questions overall rather than the hardest in the current selection. */
+var HARDEST_SHARE = 0.10;     // top 10% of everything attempted
+var HARDEST_MIN_POOL = 8;     // below this there is too little history to be useful
+
+/* every unit in the deck, filters ignored -- askableUnits() honours the pills */
+function everyUnit(){
+  var out = [];
+  DECK_DATA.cards.forEach(function(card){
+    MODE_LABELS.forEach(function(m){
+      unitsForCardMode(card, m[0]).forEach(function(u, i){
+        out.push({card:card, mode:m[0], i:i, kind:u.kind, item:u.item, qid:qidFor(card,m[0],i)});
+      });
+    });
+  });
+  return out;
+}
+
+/* Ranked by raw wrong count. recordResult books a near-miss ("close") as a
+   correct answer and never increments wrong, so this is outright misses only. */
+function hardestUnits(){
+  var attempted = 0, rows = [];
+  everyUnit().forEach(function(u){
+    var p = progress[u.qid];
+    if(!p || !p.seen) return;                  // unseen is not hard, just unmet
+    attempted++;
+    if(p.wrong > 0) rows.push({u:u, wrong:p.wrong, rate:p.wrong/p.seen});
+  });
+  rows.sort(function(a,b){
+    if(b.wrong !== a.wrong) return b.wrong - a.wrong;
+    return b.rate - a.rate;                    // tie-break on the worse rate
+  });
+  var target = Math.max(HARDEST_MIN_POOL, Math.ceil(attempted * HARDEST_SHARE));
+  return rows.slice(0, Math.min(target, rows.length)).map(function(r){ return r.u; });
+}
+
 /* weighted ordering: higher weight tends earlier, with variety */
 function buildQueue(units){
   return units.map(function(u){
@@ -439,21 +480,40 @@ function renderHome(){
   });
 
   var units = askableUnits();
+  // Hardest-questions round: an alternative to "Start round", not a filter.
+  var hard = hardestUnits();
+  var hardReady = hard.length >= HARDEST_MIN_POOL;
+  var hardCard = el('<div class="card center"><button id="hardestBtn"'+
+    (hardReady?"":" disabled")+'>Drill my hardest questions'+
+    (hardReady?' · '+hard.length:'')+'</button>'+
+    '<div class="small" style="margin-top:8px">'+
+    (hardReady
+      ? 'The '+hard.length+' you get wrong most often, across the whole deck — '+
+        'ignores the topic and drill-mode selections above.'
+      : 'Unlocks once '+HARDEST_MIN_POOL+' different questions have been missed ('+
+        hard.length+' so far).')+
+    '</div></div>');
+  if(hardReady){
+    hardCard.querySelector("#hardestBtn").onclick = function(){ startRound(hard, "hardest"); };
+  }
   var startCard = el('<div class="card center"><button class="primary" id="startBtn" '+
     (units.length?"":"disabled")+'>Start round \u00b7 '+units.length+' questions</button>'+
     (LS_AVAILABLE?"":'<div class="small" style="margin-top:8px">Progress won\u2019t persist (storage unavailable here).</div>')+
     '</div>');
   startCard.querySelector("#startBtn").onclick = function(){ startRound(); };
 
-  app.appendChild(c1); app.appendChild(c2); app.appendChild(renderProgressCard()); app.appendChild(startCard);
+  app.appendChild(c1); app.appendChild(c2); app.appendChild(renderProgressCard());
+  app.appendChild(hardCard); app.appendChild(startCard);
 }
 
-function startRound(reviewUnits){
-  var review = Array.isArray(reviewUnits);
-  var units = review ? reviewUnits : askableUnits();
+function startRound(givenUnits, kind){
+  var given = Array.isArray(givenUnits);
+  var hardest = given && kind === "hardest";
+  var review = given && !hardest;
+  var units = given ? givenUnits : askableUnits();
   if(!units.length) return;
   session = { queue: review ? units.slice() : buildQueue(units),
-              idx:0, results:[], review: review, total: units.length };
+              idx:0, results:[], review: review, hardest: hardest, total: units.length };
   nextQuestion();
 }
 function nextQuestion(){
@@ -472,7 +532,7 @@ function renderQuestion(){
   var u = currentU;
   var head = '<div class="eyebrow"><span class="topic">'+esc(topicLabel(u.card.topic))+'</span>'+
     '<span>'+esc(modeLabel(u.mode))+' \u00b7 '+(session.idx+1)+'/'+session.queue.length+
-    (session.review?' \u00b7 review':'')+'</span></div>';
+    (session.review?' \u00b7 review':session.hardest?' \u00b7 hardest':'')+'</span></div>';
   var nameLine = '<p class="qname">'+esc(u.card.name)+'</p>';
 
   if(u.mode==="confusable"){
@@ -624,7 +684,7 @@ function renderSummary(){
     : '<div class="miss">Clean round \u2014 nothing missed.</div>';
 
   var c = el('<div class="card summary center">'+
-    '<div class="eyebrow"><span class="topic">'+(session.review?"Review complete":"Round complete")+'</span><span></span></div>'+
+    '<div class="eyebrow"><span class="topic">'+(session.review?"Review complete":session.hardest?"Hardest questions complete":"Round complete")+'</span><span></span></div>'+
     '<div class="big">'+exact+'/'+res.length+'</div>'+
     '<div class="small">exact \u00b7 '+close+' close \u00b7 '+wrong+' missed</div>'+
     '<div class="bars" style="text-align:left;max-width:340px;margin:14px auto 0">'+
@@ -639,6 +699,12 @@ function renderSummary(){
   if(missed.length){
     c.querySelector("#reviewBtn").onclick = function(){ startRound(missed); };
   }
+  var hardNext = hardestUnits();
+  if(hardNext.length >= HARDEST_MIN_POOL && !session.hardest){
+    var hb = el('<button id="hardestNextBtn">Hardest '+hardNext.length+'</button>');
+    c.querySelector(".row").insertBefore(hb, c.querySelector("#homeBtn"));
+    hb.onclick = function(){ startRound(hardNext, "hardest"); };
+  }
   c.querySelector("#homeBtn").onclick = function(){ session=null; render(); };
   app.innerHTML=""; app.appendChild(el(header())); app.appendChild(c);
 }
@@ -648,7 +714,8 @@ render();
 
 /* expose for runtime probe / debugging */
 window.__pd = { DECK_DATA:DECK_DATA, askableUnits:askableUnits, buildQueue:buildQueue,
-  gradeText:gradeText, gradeOutput:gradeOutput, gradeBigO:gradeBigO, weightFor:weightFor, unitsForCardMode:unitsForCardMode };
+  gradeText:gradeText, gradeOutput:gradeOutput, gradeBigO:gradeBigO, weightFor:weightFor, unitsForCardMode:unitsForCardMode,
+  everyUnit:everyUnit, hardestUnits:hardestUnits, HARDEST_MIN_POOL:HARDEST_MIN_POOL };
 </script>
 <script>
 if ('serviceWorker' in navigator) {
