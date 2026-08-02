@@ -503,8 +503,53 @@ DOUBLETS = [
     ("acous/o", "audi/o", "hearing"),
     ("lip/o", "adip/o", "fat"),
     ("hidr/o", "sudor/i", "sweat"),
+    # added after the bone report and the audit that followed
+    ("oste/o", "oss/e", "bone"),
+    ("hemat/o", "sanguin/o", "blood"),
+    ("cephal/o", "capit/o", "head"),
+    ("neur/o", "nerv/o", "nerve"),
+    ("myel/o", "medull/o", "bone marrow"),
+    ("somat/o", "corpor/o", "body"),
+    ("hydr/o", "aqu/e", "water"),
+    ("lith/o", "calcul/o", "stone"),
+    ("orchi/o", "test/o", "testis"),
+    ("aden/o", "glandul/o", "gland"),
+    # both halves were already in the deck but had never been linked
+    ("cyt/o", "cellul/o", "cell"),
+    ("leuk/o", "alb/o", "white"),
+    ("phon/o", "son/o", "sound"),
+    ("ten/o", "tendin/o", "tendon"),
+    ("chol/e", "bil/i", "bile"),
+    ("lapar/o", "abdomin/o", "abdomen"),
 ]
 
 # sudor/i is only needed as the Latin half of a doublet; add it here so the
 # doublet check has both sides without cluttering the Integumentary root list.
+# --- Latin counterparts that were missing ---------------------------------
+# Found after a report that bone appeared as Greek oste/o only. An audit for
+# glosses where Greek and Latin both name the same structure turned up the rest;
+# without these the doublet drill could only ever ask half the pairs.
+ROOTS += [
+    ("oss/e", "bone", "L", "Musculoskeletal",
+     "L os, ossis 'bone'. Osseous tissue is bone tissue; the ear ossicles are the three smallest bones in the body. Also written oss/i."),
+    ("sanguin/o", "blood", "L", "Blood & immune",
+     "L sanguis 'blood'. Sanguineous drainage is blood-stained; consanguinity is blood relationship."),
+    ("capit/o", "head", "L", "Anatomical position & planes",
+     "L caput, capitis 'head'. The capitate is the head-shaped wrist bone; decapitation is removal of the head."),
+    ("nerv/o", "nerve", "L", "Nervous system",
+     "L nervus 'sinew, nerve'. Innervation is the nerve supply to a part."),
+    ("medull/o", "bone marrow; the inner part of an organ", "L", "Musculoskeletal",
+     "L medulla 'marrow, pith'. The medullary cavity holds bone marrow; the adrenal medulla is the inner part of that gland."),
+    ("corpor/o", "body", "L", "Anatomical position & planes",
+     "L corpus, corporis 'body'. The corpus callosum joins the two halves of the brain."),
+    ("aqu/e", "water", "L", "General & colour roots",
+     "L aqua 'water'. The aqueous humour is the watery fluid at the front of the eye."),
+    ("calcul/o", "stone", "L", "Renal & urinary",
+     "L calculus 'pebble', once used for counting. A renal calculus is a kidney stone."),
+    ("test/o", "testis", "L", "Reproductive & obstetric",
+     "L testis. Testicular torsion is a surgical emergency; testosterone is the main male hormone."),
+    ("glandul/o", "gland", "L", "Endocrine & metabolic",
+     "L glandula 'little acorn'. Glandular tissue is made of secreting cells."),
+]
+
 ROOTS.append(("sudor/i", "sweat", "L", "Integumentary", "L sudor. Sudoriferous glands; diaphoresis is the Greek-derived clinical term."))

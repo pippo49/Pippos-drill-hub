@@ -222,7 +222,13 @@ def main():
                     return gloss[cand]
         return None
 
-    ETYMON = re.compile(r"\b(?:Gk|L|Latin|Greek|from)\s+([A-Za-zÀ-ÿ/]+)")
+    # A Latin or Greek headword is often cited with its genitive -- "L caput,
+    # capitis", "L os, ossis" -- so capture the whole comma- or slash-separated
+    # run, not just the first word. Without this, "capitis" looked like an
+    # -itis term to the pattern below and was reported as an unexplained
+    # citation, which it is not: the sentence around it is the explanation.
+    ETYMON = re.compile(
+        r"\b(?:Gk|L|Latin|Greek|from)\s+([A-Za-zÀ-ÿ/]+(?:\s*,\s*[A-Za-zÀ-ÿ/]+)*)")
     MEDICAL = re.compile(
         r"(itis|ectomy|ostomy|otomy|plasty|pexy|desis|centesis|scopy|scope|graphy|"
         r"gram|metry|meter|logy|logist|pathy|algia|emia|uria|penia|megaly|malacia|"
@@ -234,7 +240,9 @@ def main():
         note = e.get("note") or ""
         if not note:
             continue
-        etyma = {m.group(1).lower() for m in ETYMON.finditer(note)}
+        etyma = set()
+        for m in ETYMON.finditer(note):
+            etyma |= {w for w in re.split(r"[,/\s]+", m.group(1).lower()) if w}
         seen, pairs = set(), []
         for w in re.findall(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'-]{4,}", note):
             lw = w.lower().strip("'-")

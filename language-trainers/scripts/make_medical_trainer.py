@@ -460,6 +460,28 @@ def main():
     assert src.count(old_split) == 1, "gradeAnswer alt-splitting not found"
     src = src.replace(old_split, new_split)
 
+    # ---- explain the notation on the page itself
+    # Reported: "hydr/o — is one the stem and the other a masculine ending?"
+    # It is not; the slash marks a combining vowel, which carries no meaning and
+    # no gender. Nothing in the app said so, so a reasonable guess had nowhere
+    # to be corrected. This sits under the deck summary, always visible.
+    old_meta = '<div class="meta-line" id="deck-meta"></div>'
+    new_meta = old_meta + """
+    <div class="meta-line" id="notation-note">Roots are written <b>root/vowel</b> — <b>cardi/o</b>.
+      The letter after the slash is a <b>combining vowel</b>: it links the root to the next element,
+      carries no meaning and no gender, and is dropped before an element starting with a vowel
+      (gastr/o + -itis &rarr; gastritis, but gastr/o + -scopy &rarr; gastroscopy).
+      Most are <b>o</b> from Greek; Latin roots often take <b>i</b> or <b>e</b> (dent/i, chol/e).
+      Typing the vowel is optional &mdash; cardi/o, cardio and cardi all count.</div>"""
+    assert src.count(old_meta) == 1, "deck-meta line not found"
+    src = src.replace(old_meta, new_meta)
+    old_css = "  .conj-table { display: none;"
+    new_css = ("  #notation-note{margin-top:8px;line-height:1.55;max-width:60ch}\n"
+               "  #notation-note b{font-weight:600;color:var(--ink)}\n"
+               "  .conj-table { display: none;")
+    assert src.count(old_css) == 1, "conj-table CSS not found"
+    src = src.replace(old_css, new_css)
+
     # ---- branding, storage keys, service worker
     for a, b in [
         ("<title>Lingua Latina — Latin / English trainer</title>",

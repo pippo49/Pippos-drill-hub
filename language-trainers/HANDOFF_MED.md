@@ -14,6 +14,14 @@ pathology/surgery word (*nephrectomy*), the Latin form the plain anatomical
 adjective (*renal artery*). Splitting the languages would hide exactly that.
 
 Every root carries `origin`, and the `doublet` drill asks for the other side.
+**45 doublets.** Sixteen of those were added after a report that bone appeared as
+Greek `oste/o` only — Latin *os, ossis* gives `oss/e-` (osseous, ossicle). An
+audit for glosses where Greek and Latin both name the same structure found the
+rest: ten Latin roots were missing entirely (`oss/e`, `sanguin/o`, `capit/o`,
+`nerv/o`, `medull/o`, `corpor/o`, `aqu/e`, `calcul/o`, `test/o`, `glandul/o`) and
+six pairs were both present but never linked (cell, white, sound, tendon, bile,
+abdomen). Worth re-running that audit after adding roots — the drill can only
+ask the pairs that are linked.
 
 ## Drill types, and why they differ from the conversational trainers
 
@@ -45,6 +53,19 @@ Deliberate choices:
   against two suffixes). The pair *is* the question.
 - **Prescription Latin withholds the Latin** when asking for the meaning — it
   would give the answer away — and shows it in the reveal panel instead.
+
+## The notation is explained on the page
+
+Reported: *"hydr/o — is one the stem and the other the masculine ending?"* It is
+not, and nothing in the app said so, which left a reasonable guess with nowhere
+to be corrected. A permanent note under the deck summary now explains that the
+slash marks a **combining vowel** — a linker with no meaning and no gender,
+dropped before a vowel-initial element, usually `o` from Greek but `i` or `e`
+on Latin roots (`dent/i`, `chol/e`), and optional when typing an answer.
+
+The confusion is understandable: Latin `-us` *is* a masculine ending, and the
+deck carries `-us` as a suffix. The difference is position — a real ending
+closes a finished word, a combining vowel sits between two elements.
 
 ## Greek or Latin — shown on every element and on the word
 
