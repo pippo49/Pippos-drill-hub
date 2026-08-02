@@ -189,6 +189,11 @@
     font-style: italic; text-align: center; line-height: 1.6;
   }
   .export-msg { color: var(--green) !important; font-style: italic; margin-left: 8px; }
+  .hardest-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
+    border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+  .btn-hardest:disabled{opacity:.4;cursor:default}
+  .hardest-note{font-size:12px;color:var(--muted)}
   .empty { padding: 36px; text-align: center; color: var(--muted) !important; font-style: italic; }
 
   /* Inline file label */
@@ -206,6 +211,7 @@
       <div class="stats" id="selection-count"></div>
     </div>
     <div class="meta-line">1126 entries · 598 nouns · 173 adjectives · 156 verbs · 83 adverbs · 31 numbers</div>
+    <div class="hardest-row" id="hardest-row"></div>
   </header>
 
   <section>
@@ -531,7 +537,13 @@ function generateQuestion(mode) {
   let pool = [], weights = [];
 
   const buildPool = (filter) => {
-    pool = entries.filter(function(e){ return filter(e) && enabledLessons[e.lesson] && enabledPos[e.pos]; });
+    pool = entries.filter(function(e){
+      if (!filter(e)) return false;
+      // A hardest-words round is global on purpose: it ignores the lesson and
+      // word-form filters so it always drills the hardest words overall.
+      if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
+      return enabledLessons[e.lesson] && enabledPos[e.pos];
+    });
     if (pool.length === 0) { weights = []; return; }
     // Never ask the same word twice in a row, as long as there's an alternative
     if (pool.length > 1) {
@@ -752,6 +764,7 @@ function recordAnswer(grade) {
 
 // === RENDER ===
 function renderStats() {
+  renderHardestButton();
   const stats = Object.values(progress.stats);
   const totalSeen = stats.reduce((a, s) => a + s.seen, 0);
   const totalCorrect = stats.reduce((a, s) => a + s.correct, 0);
@@ -901,6 +914,13 @@ function renderSelectionCount() {
   if (!anyLesson) { el.textContent = "no lessons selected"; return; }
   if (!anyPos) { el.textContent = "no word forms selected"; return; }
   if (!anyMode) { el.textContent = "no drill types selected"; return; }
+  if (hardestMode && hardestIds) {
+    const h = VOCAB_DATA.entries.filter(function(e){
+      return hardestIds[e.id] && selectionCanAsk(e);
+    }).length;
+    el.textContent = h + (h === 1 ? " word" : " words") + " in this hardest-words round";
+    return;
+  }
   const n = VOCAB_DATA.entries.filter(function(e){
     return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
   }).length;
@@ -955,7 +975,10 @@ function pickQuestion(focusInput) {
 
 function selectionExhausted() {
   const selIds = VOCAB_DATA.entries
-    .filter(function(e){ return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e); })
+    .filter(function(e){
+      if (hardestMode) return !!(hardestIds && hardestIds[e.id]) && selectionCanAsk(e);
+      return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
+    })
     .map(function(e){ return e.id; });
   if (selIds.length === 0) return false;
   for (let i = 0; i < selIds.length; i++) {
@@ -1085,6 +1108,13 @@ function showSummary() {
     next.textContent = "New round";
     next.addEventListener("click", startNewRound);
     actions.appendChild(next);
+    if (hardestRows().length >= HARDEST_MIN_POOL) {
+      const hard = document.createElement("button");
+      hard.type = "button"; hard.className = "btn-ghost";
+      hard.textContent = "Hardest words";
+      hard.addEventListener("click", startHardestRound);
+      actions.appendChild(hard);
+    }
   } else {
     // Perfect round, or the review chain is fully cleared: cycle ends here.
     summaryPrimaryAction = startNewRound;
@@ -1099,7 +1129,47 @@ function showSummary() {
   area.appendChild(card);
 }
 
-function startNewRound() {
+// --- Hardest-words round --------------------------------------------------
+// The weighting below already prefers items you get wrong, but softly: 5 for an
+// always-wrong item against 1 for a mastered one, and 12 for an unseen one, so
+// in a deck this size a hard word still only comes up about one question in
+// seven. This round draws ONLY from the words with the most wrong answers.
+// Deliberately global: it ignores the lesson and word-form filters, so it is
+// the hardest words overall rather than the hardest within the current view.
+const HARDEST_SHARE = 0.10;    // top 10% of everything attempted
+const HARDEST_MIN_POOL = 8;    // below this there is too little history to be useful
+
+let hardestMode = false;       // is the current round a hardest-words round?
+let hardestIds = null;         // {id: true} fixed at the start of that round
+
+// Ranked by raw wrong count, as asked for. recordAnswer already scores a
+// near-miss as half a wrong, so typos count toward difficulty without a typo
+// outranking an outright wrong answer.
+function hardestRows() {
+  const stats = (progress && progress.stats) || {};
+  const rows = [];
+  let attempted = 0;
+  Object.keys(stats).forEach(function(id) {
+    const s = stats[id];
+    if (!s || !s.seen || !byId[id]) return;   // entries only; unseen never qualifies
+    attempted++;
+    if (s.wrong > 0) rows.push({ id: id, wrong: s.wrong, seen: s.seen });
+  });
+  rows.sort(function(a, b) {
+    if (b.wrong !== a.wrong) return b.wrong - a.wrong;
+    return (b.wrong / b.seen) - (a.wrong / a.seen);   // tie-break on the worse rate
+  });
+  // 10% of everything attempted, but never more than there are words with a
+  // mistake against them -- a word you have never got wrong is not hard.
+  const target = Math.max(HARDEST_MIN_POOL, Math.ceil(attempted * HARDEST_SHARE));
+  return rows.slice(0, Math.min(target, rows.length));
+}
+
+function startHardestRound() {
+  const rows = hardestRows();
+  if (rows.length === 0) return;
+  hardestIds = {};
+  rows.forEach(function(r) { hardestIds[r.id] = true; });
   session = { count: 0, results: [] };
   summaryShowing = false;
   reviewMode = false;
@@ -1107,7 +1177,49 @@ function startNewRound() {
   reviewOrigin = [];
   roundAsked = new Set();
   breakShown = false;
+  hardestMode = true;
   pickQuestion();
+  renderHardestButton();
+  renderSelectionCount();   // the header line must describe this round, not the filters
+}
+
+function renderHardestButton() {
+  const row = document.getElementById("hardest-row");
+  if (!row) return;
+  while (row.firstChild) row.removeChild(row.firstChild);
+  const rows = hardestRows();
+  const ready = rows.length >= HARDEST_MIN_POOL;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-hardest";
+  btn.textContent = ready ? "Drill my hardest words (" + rows.length + ")"
+                          : "Drill my hardest words";
+  if (ready) btn.addEventListener("click", startHardestRound);
+  else btn.disabled = true;
+  row.appendChild(btn);
+  const note = document.createElement("span");
+  note.className = "hardest-note";
+  note.textContent = hardestMode
+    ? "hardest-words round in progress"
+    : ready ? "the " + rows.length + " you get wrong most often — ignores the filters below"
+            : "unlocks once " + HARDEST_MIN_POOL + " different words have been missed (" +
+              rows.length + " so far)";
+  row.appendChild(note);
+}
+
+function startNewRound() {
+  session = { count: 0, results: [] };
+  summaryShowing = false;
+  reviewMode = false;
+  hardestMode = false;
+  hardestIds = null;
+  reviewQueue = [];
+  reviewOrigin = [];
+  roundAsked = new Set();
+  breakShown = false;
+  pickQuestion();
+  renderHardestButton();
+  renderSelectionCount();
 }
 
 // origin: the batch this review chain springs from. Pass the original set to
@@ -1355,6 +1467,7 @@ function renderCard(focusInput) {
     empty.textContent = !anyLesson ? "Select at least one lesson to begin."
       : !anyPos ? "Select at least one word form to begin."
       : !anyMode ? "Select at least one drill type to begin."
+      : hardestMode ? "None of the selected drill types can ask your hardest words. Turn on more drill types, or start a new round."
       : "No words match the selected drill types, lessons, and word forms.";
     area.appendChild(empty);
     return;

@@ -201,6 +201,46 @@ drill types, lessons, and word forms" on ~9% of questions whenever a narrow
 Word-forms filter was active. The empty state now appears only when *no* enabled
 mode can serve the selection, which is a real dead end worth reporting.
 
+## The hardest-words round
+
+A button in the header starts a round drawn **only** from the words with the most
+wrong answers. Added by `scripts/patch_hardest.py` (re-runnable, idempotent) and
+locked down by `scripts/check_hardest.py` — **run it after touching selection or
+round logic.**
+
+It exists because the SRS weighting cannot concentrate practice: an always-wrong
+item scores 5 against 1 for a mastered one and 12 for an *unseen* one, so in a
+1000-word deck a hard word still surfaces about one question in seven, and only
+once coverage is complete. Same conclusion as repeat avoidance — only a hard
+exclusion moves the distribution.
+
+Design decisions, all made by the owner when asked:
+- **Ranking is raw wrong count**, not error rate, with no minimum-attempts floor.
+  `recordAnswer` already books a near-miss as half a wrong, so typos accumulate
+  toward difficulty without outranking outright errors. Ties break on the worse
+  rate.
+- **Scope is global**: the round deliberately **ignores the lesson and word-form
+  filters**, so it is the hardest words overall rather than the hardest inside
+  the current view. This is the one place `buildPool` bypasses those filters.
+- **Shape is a separate round button**, not a drill type and not a fourth filter
+  dimension — it reuses the existing round machinery and needs no threading
+  through `selectionCanAsk`/empty-state.
+
+Size is `max(8, ceil(0.10 × words attempted))`, capped at the number of words
+with any mistake against them. Below 8 missed words the button is disabled and
+says how many are needed — with no history there is nothing to drill, so the
+feature is inert rather than misleading.
+
+Enabled **drill types still apply** (so "hardest words, as cloze" works), but
+`specialModeAllowed` returns false in a hardest round: the Spanish/Italian/French
+sentence banks draw from `VOCAB_DATA.special` and carry no entry id to match
+against the hardest set.
+
+Three surfaces have to know about the round or they lie: `selectionExhausted`
+(coverage means the hardest set, not the selection), the `renderCard` empty-state
+chain, and `renderSelectionCount` (it would otherwise claim "880 words in
+selection" while drilling 12).
+
 `recentIds` is the single shared, global recency log across every mode and both special banks — pushed once per successful `pickQuestion()`, id namespaces never collide (`es####` vocab ids vs `se###`/`pp###` bank ids), so mixing modes doesn't defeat the floor.
 
 `learning_tool_pattern.md` describes the engine architecture (drill modes, graded answering, SRS weighting, review rounds, cloze UX) and my working preferences. Read it before making changes.
