@@ -8,6 +8,7 @@ Apps in this repo:
 - `latin_trainer.html` + `vocab_la.json` — Latin→English, school years 1–2. Details: `HANDOFF_LA.md`
 - `italian_trainer.html` + `vocab_it.json` — Italian→English, A1–A2. Details: `HANDOFF_IT.md`
 - `french_trainer.html` + `vocab_fr.json` — French→English, A1–A2, **small-talk focused**. Details: `HANDOFF_FR.md`
+- `medical_trainer.html` + `vocab_med.json` — **Latin & Greek medical terminology**, for medicine students. Details: `HANDOFF_MED.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
 
 ## Generated decks (Latin, Italian, French)
@@ -33,6 +34,36 @@ word not in them rather than guessing. Italian's `essere`/`stare` split is **not
 Spanish's `ser`/`estar` — `essere` covers location and temporary states
 (`sono a Roma`, `sono stanco`), with `stare` reserved for health, the progressive,
 `stare per`, and fixed expressions. See `HANDOFF_IT.md` before touching that bank.
+
+## Medical terminology: a different drill set on the same engine
+
+`medical_trainer.html` is **generated from `latin_trainer.html`** by
+`scripts/make_medical_trainer.py` — edit that script, not the HTML, so engine
+fixes in the Latin trainer keep flowing through. Its data comes from
+`scripts/med_elements.py` + `scripts/med_terms.py` via
+`scripts/build_medical_vocab.py`.
+
+The drill types are replaced wholesale, because medical terminology is a
+morphology skill rather than a translation one: element↔meaning both ways,
+**build the term** from a definition, **break it down** into elements,
+**Greek ↔ Latin doublets**, classical **plurals**, **confusable pairs** as a
+two-way forced choice, prescription Latin, MC and clinical cloze. Latin and Greek
+share one deck on purpose — see `HANDOFF_MED.md`.
+
+Two engine behaviours are overridden for this app only, both applied by the
+generator script:
+- **`gradeAnswer` splits alternatives on comma only.** The shared version splits
+  on comma *or slash*, which is right when `a / b` means "either answer" but
+  wrong here, where `cardi/o` is a single form — it tore every root in half and
+  graded correct answers as typos. The validator could not see this (it only
+  checks a question can be generated); a browser grading probe did.
+- The deck-summary pluraliser needs real plurals; its `p + "s"` fallback printed
+  "suffixs"/"prefixs".
+
+`build_medical_vocab.py`'s `segment_ok` is the counterpart of the Latin paradigm
+cross-check: every term's authored parts must actually be able to spell the term
+under the combining-vowel and elision rules, so a wrong root, a wrong order or an
+`-ectomy`/`-ostomy` swap fails the build.
 
 ## Latin: generated data, and how it differs from the other decks
 

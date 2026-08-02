@@ -1,0 +1,13 @@
+{
+  "name": "Terminologia Medica — Latin & Greek for Medicine",
+  "short_name": "Med Terms",
+  "start_url": "./medical_trainer.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f3e8",
+  "theme_color": "#f8f3e8",
+  "icons": [
+    { "src": "./icons/medical-trainer-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/medical-trainer-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

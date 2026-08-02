@@ -29,6 +29,11 @@ LANGUAGE_APPS = [
     ("italian_trainer.html", "vocab_it.json", "Italian", "italiano → english", "#0e5c3a", "#f4f1e4", "IT"),
     ("french_trainer.html",  "vocab_fr.json", "French",  "français → english", "#1f3a80", "#f5f2e8", "FR"),
     ("latin_trainer.html",   "vocab_la.json", "Latin",   "latina → english",   "#5c1f2e", "#f0d9a8", "LA"),
+    # Latin AND Greek in one deck on purpose: clinical vocabulary mixes both, and
+    # the Greek/Latin doublet (nephr/o vs ren/o) is one of the things students
+    # are actually examined on. Splitting them would hide that.
+    ("medical_trainer.html", "vocab_med.json", "Medical terminology",
+     "latin & greek for medicine", "#5a1e2c", "#f0d8a8", "MD"),
 ]
 
 CODING_APPS = [
