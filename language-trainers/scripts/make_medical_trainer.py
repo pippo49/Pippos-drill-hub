@@ -400,8 +400,8 @@ def main():
     # a slash (cardi/o), so that split tore every root in half and graded a
     # perfectly typed answer as a typo. Split on comma only; the modes supply
     # their alternatives through acceptableAnswers instead.
-    old_split = "const alts = target.split(/[,/]/).map(a => a.trim()).filter(Boolean);"
-    new_split = "const alts = target.split(/,/).map(a => a.trim()).filter(Boolean);"
+    old_split = "const alts = [target.trim()].concat(target.split(/[,/]/).map(a => a.trim())).filter(Boolean);"
+    new_split = "const alts = [target.trim()].concat(target.split(/,/).map(a => a.trim())).filter(Boolean);"
     assert src.count(old_split) == 1, "gradeAnswer alt-splitting not found"
     src = src.replace(old_split, new_split)
 

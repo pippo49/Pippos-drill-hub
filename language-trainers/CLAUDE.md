@@ -141,6 +141,49 @@ Repeat avoidance is two-layered, in `buildPool` (and, for Spanish only, mirrored
 1. **Hard floor** — `NO_REPEAT_WINDOW` (8): a word can't resurface within the last 8 questions *of its own pool*, as long as the pool is big enough to still leave a choice (`Math.min(recentIds.length, pool.length - 1, NO_REPEAT_WINDOW)`). This is the part that actually matters for small pools (a single lesson, or one part-of-speech filter) — a soft multiplier alone doesn't reliably prevent short gaps once you check it against a synthetic gap simulation, because the *average* revisit gap for a fixed pool size trends toward the pool size regardless of weighting shape; only a hard exclusion moves the *minimum* gap.
 2. **Soft recency decay** on top, for pools bigger than the hard window: `w *= recency / (recency + 12)` over a `recentIds` lookback capped at 40 (was `+6` / cap 20 before this was widened).
 
+## Answer acceptance: what counts as correct
+
+Reported from real use: the apps were marking correct answers wrong. Fixed by
+`scripts/patch_grading.py` (re-runnable, idempotent) and locked down by
+`scripts/check_grading.py`, which fails if any of these regress.
+**Run `python3 scripts/check_grading.py` after touching grading.**
+
+1. **English contractions, both directions.** Glosses are written as people speak
+   them ("it's", "what's your name?"); a learner taught formal written English
+   types "it is" / "what is your name". `expandContractions` rewrites both sides
+   before comparing. Each pattern requires a recognised English pronoun or
+   auxiliary before the apostrophe (or the `n't` ending), so they cannot touch
+   French elision — `j'ai`, `qu'est-ce`, `l'hôtel`, `t'appelles` pass through
+   unchanged, with guard cases proving it.
+
+2. **French question forms (French only).** A question has three shapes: rising
+   intonation (`tu veux venir ?`), `est-ce que`, and inversion (`veux-tu venir ?`).
+   The deck stores one; `frenchQuestionVariants` derives the others for the
+   EN→FR accept list, including the reflexive case
+   (`comment tu t'appelles ?` <-> `comment t'appelles-tu ?`) and interrogative
+   in situ (`qu'est-ce que ça veut dire ?` <-> `ça veut dire quoi ?`).
+   Only stored answers containing `?` are transformed, so the noun
+   `rendez-vous` is never mistaken for an inverted verb. Which token is the verb
+   cannot be known without parsing, so several candidate shapes are offered; the
+   extra ones only widen acceptance.
+
+3. **Adjective agreement (fr/es/it, NOT Latin).** An EN→X prompt carries no
+   gender or number, so every agreeing form answers it: "big" is
+   grand/grande/grands/grandes. Latin is excluded on purpose — its `declension`
+   spans cases, so accepting every form would accept a genitive plural for "good".
+
+4. **Curated synonyms** linked on an entry join its accept list, on top of the
+   existing cross-entry rule (any entry sharing an English alternative).
+
+5. **A comma inside a phrase is not an alternative separator.** `gradeAnswer`
+   splits the target on `,` and `/` — right for "town, city", wrong for
+   "I'm fine, thanks", which could therefore never match in full. The intact
+   target is now always offered alongside the split parts.
+
+Still not accepted: a synonym that is **not in the deck at all**. Cross-entry
+acceptance can only find words the deck knows; add the word as an entry whose
+gloss shares an alternative and it is accepted everywhere.
+
 **Punctuation is stripped, apostrophes are not.** `normalize` removes
 `. , ! ? ; : ¡ ¿ … « » – — “ ”` so an answer never depends on typing punctuation.
 The Spanish opening marks matter: they were originally missing while the closing

@@ -352,6 +352,32 @@ const stripGermanFiller = (s) => {
   return kept || s;   // never let filler-stripping reduce an answer to nothing
 };
 
+// --- English contractions -------------------------------------------------
+// The English glosses are written as people speak them ("it's", "what's your
+// name?"). A learner taught formal written English types "it is" / "what is
+// your name" -- also correct, and it was being marked wrong. Expand both sides
+// before comparing so the two spell the same thing.
+// The patterns are English-specific by construction and cannot match French
+// elision (j'ai, qu'est-ce, l'hotel, t'appelles): every one of them requires a
+// recognised English pronoun/auxiliary before the apostrophe, or the n't ending.
+const CONTRACTIONS = [
+  [/\bcan't\b/g, "can not"], [/\bcannot\b/g, "can not"],
+  [/\bwon't\b/g, "will not"], [/\bshan't\b/g, "shall not"],
+  [/\b([a-z]+)n't\b/g, "$1 not"],
+  [/\blet's\b/g, "let us"],
+  [/\b(it|that|there|what|who|how|where|here|he|she|one)'s\b/g, "$1 is"],
+  [/\bi'm\b/g, "i am"],
+  [/\b(you|we|they)'re\b/g, "$1 are"],
+  [/\b(i|you|we|they|he|she|it)'ll\b/g, "$1 will"],
+  [/\b(i|you|we|they)'ve\b/g, "$1 have"],
+  [/\b(i|you|we|they|he|she|it)'d\b/g, "$1 would"],
+];
+const expandContractions = (s) => {
+  let out = s;
+  for (let i = 0; i < CONTRACTIONS.length; i++) out = out.replace(CONTRACTIONS[i][0], CONTRACTIONS[i][1]);
+  return out.replace(/\s+/g, " ").trim();
+};
+
 const gradeOne = (input, target) => {
   let ni = normalize(input);
   let nt = normalize(target);
@@ -359,6 +385,8 @@ const gradeOne = (input, target) => {
   // Make "sich entschuldigen" and "entschuldigen" interchangeable, both sides
   ni = stripGermanFiller(ni);
   nt = stripGermanFiller(nt);
+  ni = expandContractions(ni);
+  nt = expandContractions(nt);
   if (ni === nt) return "exact";
   if (stripDiacritics(ni) === stripDiacritics(nt)) return "diacritic";
   const d = editDistance(stripDiacritics(ni), stripDiacritics(nt));
@@ -369,7 +397,7 @@ const RANK = { exact: 3, diacritic: 2, typo: 1, wrong: 0 };
 
 const gradeAnswer = (input, target) => {
   if (!input || !target) return "wrong";
-  const alts = target.split(/[,/]/).map(a => a.trim()).filter(Boolean);
+  const alts = [target.trim()].concat(target.split(/[,/]/).map(a => a.trim())).filter(Boolean);
   let best = "wrong";
   for (const a of alts) {
     const g = gradeOne(input, a);

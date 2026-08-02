@@ -69,3 +69,31 @@ Both are **verb** drills, so both follow the Word-forms "Verbs" toggle via `spec
 ## My preferences
 
 Direct, concise, lead with the result; batch sizes as I specify; only apply corrections you're confident in, flag the rest; no blanket auto-sweeps on lexical morphology; always rebuild + validate before presenting files.
+
+
+## Answer acceptance (fixes from user feedback)
+
+Reported: the drill marked correct answers wrong. Fixed in
+`scripts/patch_grading.py`; `scripts/check_grading.py` is the regression test —
+run it after any grading change.
+
+- **Formal written English is accepted.** "it is" for "it's", "what is your
+  name" for "what's your name?", "it does not matter" for "it doesn't matter",
+  in both directions.
+- **All three French question forms are accepted**, whichever the deck stores:
+  intonation, `est-ce que`, and inversion — including reflexives
+  (`comment tu t'appelles ?` <-> `comment t'appelles-tu ?`) and interrogative in
+  situ (`qu'est-ce que ça veut dire ?` <-> `ça veut dire quoi ?`).
+- **tu / vous / toi** are all accepted for "you", and where the deck holds both
+  registers of a phrase as separate entries (`comment vas-tu ?` /
+  `comment allez-vous ?`) either answers the other's prompt.
+- **Feminine and plural adjective forms** are accepted for an EN→FR prompt that
+  carries no gender or number.
+- **Curated synonyms** are accepted for the same gloss.
+
+The reveal line lists every accepted form, so the other correct answers are
+still shown after answering.
+
+Not fixable in the engine: a French word that is **not in the deck** cannot be
+accepted. If a specific rejected answer should be valid, add it as an entry
+sharing an English alternative with the existing one.
