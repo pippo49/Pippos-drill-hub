@@ -642,9 +642,13 @@ CLOZE = [
 ]
 
 # Terms used only in cloze sentences; defined so the deck can gloss them.
+# (term, meaning, lesson, note, origin) — origin is given explicitly here
+# because these have no `parts` for the generator to derive it from.
 CLOZE_ONLY = [
     ("jaundice", "yellow discolouration of skin and eyes from bilirubin", "Gastrointestinal",
-     "From French jaune 'yellow'. The Greek-derived synonym is icterus."),
+     "Via Old French jaune 'yellow', from Latin galbinus. The Greek-derived synonym is icterus.",
+     "Latin"),
     ("diverticulitis", "inflammation of an outpouching of the bowel wall", "Gastrointestinal",
-     "diverticul/o + -itis. Diverticulosis is the presence of them; diverticulitis is inflammation."),
+     "diverticul/o (Latin) + -itis (Greek). Diverticulosis is having them; diverticulitis is inflammation.",
+     "Hybrid — Greek + Latin"),
 ]

@@ -46,6 +46,32 @@ Deliberate choices:
 - **Prescription Latin withholds the Latin** when asking for the meaning — it
   would give the answer away — and shows it in the reveal panel instead.
 
+## Greek or Latin — shown on every element and on the word
+
+The reveal panel labels the origin of each element and of the word as a whole:
+
+```
+Elements
+  appendic/o    appendix        — Latin
+  -itis         inflammation    — Greek
+Word origin
+  Hybrid — Greek + Latin
+  A Latin stem with a Greek ending — the usual shape.
+```
+
+A term's origin is **derived from its parts**, not authored, so it cannot drift
+out of step with the breakdown: all-Greek elements give "Greek throughout",
+all-Latin "Latin throughout", and a mix is flagged as a hybrid with the pattern
+named (Latin stem + Greek ending, or the reverse). The two terms with no parts
+(*jaundice*, *diverticulitis*) carry an explicit origin in `CLOZE_ONLY`.
+
+Current split: **237 Greek · 41 hybrid · 1 Latin**. Hybrids are worth flagging
+rather than hiding — *appendicitis*, *vasectomy*, *quadriplegia*, *nocturia* and
+*sinusitis* all pair a Latin stem with a Greek ending, which is why they look
+irregular beside Greek-throughout neighbours like *gastritis*.
+
+Origin is shown only **after** answering, so it never hints at the answer.
+
 ## Generated deck — do not hand-edit `vocab_med.json`
 
 Curated data lives in `scripts/med_elements.py` (prefixes, suffixes, roots,

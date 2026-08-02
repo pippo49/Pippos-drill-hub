@@ -119,16 +119,30 @@ def main():
         assert segment_ok(term, parts), (
             f"{term}: parts {parts} cannot spell it — wrong root, wrong order, "
             f"or a typo on one side")
+        codes = [by_form[p][2] for p in parts]
+        kinds = {c for c in codes if c in ("G", "L")}
+        # A term built from Greek and Latin elements is a hybrid, and saying so
+        # is a real teaching point: appendicitis is Latin appendic- with a Greek
+        # -itis, which is why it looks irregular next to Greek-throughout words.
+        if kinds == {"G"}:
+            term_origin = "Greek"
+        elif kinds == {"L"}:
+            term_origin = "Latin"
+        elif kinds == {"G", "L"}:
+            term_origin = "Hybrid — Greek + Latin"
+        else:
+            term_origin = "Greek/Latin"
         id_of_term[term] = add(term=term, en=mean, pos="term", lesson=lesson,
-                               origin="Greek/Latin", parts=parts,
-                               part_glosses=[by_form[p][1] for p in parts])
+                               origin=term_origin, parts=parts,
+                               part_glosses=[by_form[p][1] for p in parts],
+                               part_origins=[ORIGIN[c] for c in codes])
         # No `note` here on purpose: the extras panel already renders the parts
         # and their glosses as its own row, so a note repeating them just
         # duplicated the same text twice in the same panel.
 
-    for term, mean, lesson, note in CLOZE_ONLY:
+    for term, mean, lesson, note, term_origin in CLOZE_ONLY:
         id_of_term[term] = add(term=term, en=mean, pos="term", lesson=lesson,
-                               origin="Greek/Latin", note=note)
+                               origin=term_origin, note=note)
 
     # 4. doublets, linked both ways
     for gk, la, gloss in DOUBLETS:
@@ -187,7 +201,12 @@ def main():
         kinds[e["pos"]] = kinds.get(e["pos"], 0) + 1
     print(f"vocab_med.json: {len(entries)} entries across {len(lessons)} lessons")
     print("  " + " · ".join(f"{k} {v}" for k, v in sorted(kinds.items())))
+    origins = {}
+    for e in entries:
+        if e["pos"] == "term":
+            origins[e["origin"]] = origins.get(e["origin"], 0) + 1
     print(f"  {len(DOUBLETS)} Greek/Latin doublets · {attached} cloze sentences")
+    print("  term origins: " + " · ".join(f"{k} {v}" for k, v in sorted(origins.items())))
 
 
 if __name__ == "__main__":

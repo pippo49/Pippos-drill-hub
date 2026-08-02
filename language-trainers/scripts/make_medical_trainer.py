@@ -286,23 +286,6 @@ EXTRAS = r'''function buildElementSection() {
   const e = byId[currentQ.entryId];
   if (!e) return null;
 
-  const rows = [];
-  if (e.parts && e.part_glosses) {
-    rows.push(["Elements", e.parts.map(function(p, i) {
-      return p + "  =  " + e.part_glosses[i];
-    }).join("\n")]);
-  }
-  if (e.counterpart) {
-    rows.push([(e.origin === "Greek" ? "Latin" : "Greek") + " counterpart",
-               e.counterpart + "   (" + e.counterpart_gloss + ")"]);
-  }
-  if (e.plural) rows.push(["Plural", e.term + " → " + e.plural + "\n" + e.plural_rule]);
-  if (e.pair_term) rows.push(["Do not confuse with", e.pair_term + " — " + e.pair_gloss]);
-  if (e.latin) rows.push(["Latin", e.latin]);
-  if (e.origin && !e.parts) rows.push(["Origin", e.origin]);
-  if (e.note) rows.push(["Notes", e.note]);
-  if (!rows.length) return null;
-
   const wrap = document.createElement("div");
   wrap.className = "conj-section";
   const btn = document.createElement("button");
@@ -310,18 +293,74 @@ EXTRAS = r'''function buildElementSection() {
   btn.textContent = "Show breakdown";
   const tbl = document.createElement("div");
   tbl.className = "conj-table";
-  rows.forEach(function(r) {
-    const head = document.createElement("div");
-    head.className = "conj-label"; head.textContent = r[0];
-    tbl.appendChild(head);
-    const body = document.createElement("div");
-    body.className = "conj-row";
-    const span = document.createElement("span");
-    span.style.whiteSpace = "pre-wrap";
-    span.textContent = r[1];
-    body.appendChild(span);
-    tbl.appendChild(body);
-  });
+  let any = false;
+
+  const heading = function(text) {
+    const h = document.createElement("div");
+    h.className = "conj-label"; h.textContent = text;
+    tbl.appendChild(h); any = true;
+  };
+  const pairRow = function(left, right) {
+    const row = document.createElement("div"); row.className = "conj-row";
+    const l = document.createElement("span"); l.className = "cp"; l.textContent = left;
+    const r = document.createElement("span"); r.style.whiteSpace = "pre-wrap"; r.textContent = right;
+    row.appendChild(l); row.appendChild(r); tbl.appendChild(row); any = true;
+  };
+  const noteRow = function(text) {
+    const row = document.createElement("div"); row.className = "conj-row";
+    const s = document.createElement("span"); s.style.whiteSpace = "pre-wrap"; s.textContent = text;
+    row.appendChild(s); tbl.appendChild(row); any = true;
+  };
+
+  // Which language each element comes from is the substance of this deck, so it
+  // is labelled on every element, not just on the word as a whole.
+  if (e.parts && e.part_glosses) {
+    heading("Elements");
+    e.parts.forEach(function(p, i) {
+      const org = (e.part_origins && e.part_origins[i]) || "";
+      pairRow(p, e.part_glosses[i] + (org ? "   — " + org : ""));
+    });
+  }
+
+  if (e.origin) {
+    const hybrid = String(e.origin).indexOf("Hybrid") === 0;
+    heading(e.parts ? "Word origin" : "Origin");
+    if (e.parts && !hybrid) {
+      noteRow(e.origin + " throughout");
+    } else if (hybrid) {
+      // Name which side is which: a Latin stem under a Greek ending is the
+      // usual shape, and it is why such terms look irregular beside their
+      // Greek-throughout neighbours.
+      const orgs = e.part_origins || [];
+      const last = orgs[orgs.length - 1], rest = orgs.slice(0, -1);
+      let how = "Greek and Latin elements in one word.";
+      if (last === "Greek" && rest.indexOf("Latin") >= 0) {
+        how = "A Latin stem with a Greek ending — the usual shape.";
+      } else if (last === "Latin" && rest.indexOf("Greek") >= 0) {
+        how = "A Greek stem with a Latin ending.";
+      }
+      noteRow(e.origin + "\n" + how);
+    } else {
+      noteRow(e.origin);
+    }
+  }
+
+  if (e.counterpart) {
+    heading((e.origin === "Greek" ? "Latin" : "Greek") + " counterpart");
+    pairRow(e.counterpart, e.counterpart_gloss);
+  }
+  if (e.plural) {
+    heading("Plural");
+    pairRow(e.term + " → " + e.plural, e.plural_rule);
+  }
+  if (e.pair_term) {
+    heading("Do not confuse with");
+    pairRow(e.pair_term, e.pair_gloss);
+  }
+  if (e.latin) { heading("Latin"); noteRow(e.latin); }
+  if (e.note) { heading("Notes"); noteRow(e.note); }
+  if (!any) return null;
+
   btn.addEventListener("click", function() {
     const open = tbl.className.indexOf("open") >= 0;
     tbl.className = open ? "conj-table" : "conj-table open";
