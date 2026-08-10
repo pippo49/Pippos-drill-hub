@@ -13,6 +13,7 @@ lead with results, keep responses concise, batch-and-validate before delivering.
 - `tools/validate.js` — jsdom full-flow probe (see Validation)
 - `tools/check_accept.js` — accept-list sanity (see Engine v1.6)
 - `tools/verify_sql.py` — runs every sqlDrill answer against real PostgreSQL
+- `tools/verify_git.py` — replays every gitDrill answer in real git repositories
 - `tools/make_drill.py` — generates git-drill/sql-drill from python-drill
 - `tools/build_deck.py` + `tools/git_deck.py` + `tools/sql_deck.py` — curated decks
 - `tools/patch_engine_v16.py` — the v1.6 engine additions
@@ -91,6 +92,40 @@ Which fits, Recall. No predict-output, no complexity.
 - The Danger scale's middle level carries the real lesson: almost nothing
   *committed* is ever lost (reflog), and anything never committed has no safety
   net at all. `reset --hard` is rated by what is uncommitted, not by the reset.
+
+**gitDrill has an oracle too — `tools/verify_git.py`.** git is installed, so the
+answers are replayed rather than read:
+
+- **history**: the commit graph is built for real, the command runs, and
+  `git log` is read back with hashes mapped to letters. A prime is *derived* —
+  a subject that existed before and now has a different hash — so whether
+  rebase rewrites and merge does not is measured, not asserted. A subject that
+  never existed before (a merge commit) correctly takes no prime.
+- **command / fill**: the answer and every accepted alternative run in a
+  prepared scratch repo (real bare remote, modified + staged + untracked files).
+  `SETUPS` builds the extra state a card needs — a conflicted merge, a stash, an
+  `old-base` branch. 95 of 97 run; the 2 exceptions are in `EXISTS_ONLY` with
+  reasons, and are still checked for being real subcommands.
+- **danger**: the rating is a factual claim, so it is tested. A canary is
+  planted, the dangerous command runs, and we ask where the canary ended up —
+  the working tree (SAFE), only inside a git object (RECOVERABLE, since reflog
+  or fsck reaches it), or nowhere (GONE). For cards where the thing at risk is a
+  *commit* rather than content — rebase keeps every byte and replaces every
+  hash — reachability from a branch decides instead. 11 of 14 are probed;
+  `UNPROBED` names the three and why (two are claims about a colleague's clone).
+
+The harness found two deck faults and one design flaw. `git add file` and
+`git revert commit` had placeholder words as answers you could not actually
+type. And after a merge, **plain `git log` orders commits by timestamps the
+learner cannot see** — so a history card whose result contains a merge must use
+`--first-parent`, which the harness now enforces. Commits are built with
+distinct increasing timestamps for the same reason.
+
+Three surprising claims were checked by hand against real git as well, because
+they are the ones an error would hurt most: `build/` + `!build/keep.txt` really
+does fail where `build/*` works; `.gitignore` really does not untrack a tracked
+file; and re-merging after reverting a merge really does bring back only the
+new commits.
 
 **sqlDrill** — PostgreSQL. Modes: **Predict result** (tables as a fixture, type
 the rows), **Rows out** (one number — join fan-out, LEFT with no match, NULL
@@ -274,8 +309,9 @@ file, then
 4. `node tools/check_accept.js <file>.html` after any deck or grading edit.
 5. For gitDrill/sqlDrill: `python3 tools/build_deck.py && python3 tools/make_drill.py`
    FIRST — editing the HTML directly is a hard-rule violation and is lost.
-   After any sqlDrill deck edit also run `python3 tools/verify_sql.py`, which
-   needs a server:
+   After any gitDrill deck edit run `python3 tools/verify_git.py` — it needs
+   nothing but git. After any sqlDrill deck edit run `python3 tools/verify_sql.py`,
+   which needs a server:
    `initdb -D /tmp/pgdata -A trust -U pg && pg_ctl -D /tmp/pgdata -o '-p 5433 -k /tmp' start`
    It exits 1 with instructions when no server is reachable rather than skipping
    silently — a check that quietly passes when it cannot run is worse than none.
@@ -285,8 +321,10 @@ file, then
    inline script source, which contains UI strings).
 
 ## Deck state (2026-08-10 for git/sql, 2026-07-15 for the rest)
-- gitDrill: 16/16 topics, 57 cards / 114 questions
-  (32 command · 34 confusable · 17 recall · 14 danger · 13 fill · 4 history).
+- gitDrill: 16/16 topics, 57 cards / 120 questions
+  (34 confusable · 32 command · 17 recall · 14 danger · 13 fill · 10 history).
+  Four graphs are built for real by the verifier: FORK (feature off B),
+  fast-forward, LINEAR, and ONTO (branched off the wrong branch).
   g1 Three trees 3 · g2 Staging 5 · g3 Branches 4 · g4 Merging 4 · g5 Rebasing 5 ·
   g6 Undoing 5 · g7 Reflog 3 · g8 Stashing 3 · g9 Remotes 3 · g10 Fetch/pull/push 4 ·
   g11 History 4 · g12 Cherry-pick 2 · g13 Interactive rebase 2 · g14 Bisect 3 ·
@@ -315,10 +353,10 @@ file, then
   c9 Copies/moves 9 · c10 Templates/auto 10 · c11 Smart pointers 13
 
 ## Backlog (owner decides priority)
-0. Deepen gitDrill. sqlDrill was deepened on 2026-08-10 (39→71 cards,
-   5→28 predict, 9→26 rows), all Postgres-verified. gitDrill has no equivalent
-   oracle — its answers are checked by reading, so extra care is warranted, and
-   `history` is only 4 questions.
+0. Both new decks now have real oracles and were deepened on 2026-08-10:
+   sqlDrill 39→71 cards (5→28 predict, 9→26 rows), gitDrill history 4→10.
+   Next most useful: more gitDrill `danger` cards, since that mode is both the
+   most distinctive and now the most cheaply verifiable.
 1. Progress export/import + reset (all five) — guards against iOS Safari
    localStorage eviction. Highest value.
 2. Deck deepening: pyDrill t1/t2/t7/t8 predicts; bashDrill b13; cppDrill c9.

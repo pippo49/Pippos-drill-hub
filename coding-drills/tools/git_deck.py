@@ -47,6 +47,14 @@ FORK = """A---B---C          main
 
 LINEAR = """A---B---C          main  (HEAD)"""
 
+# Branched off the wrong branch: feature's own work sits on top of old-base,
+# which is itself off main. Only rebase --onto can move D and E without X and Y.
+ONTO = """A---B---C          main
+     \\
+      X---Y        old-base
+           \\
+            D---E  feature"""
+
 CARDS = [
 
 # ============================ g1 · The three trees ============================
@@ -195,6 +203,11 @@ CARDS = [
               "accept": ["git commit --amend --no-edit -a"],
               "hint": "amend, but do not open the editor",
               "why": "Stage the file first, then amend; --no-edit keeps the existing message."}],
+ "fixture": LINEAR,
+ "history": [{"prompt": "Nothing else has changed.",
+              "cmd": "git commit --amend --no-edit",
+              "answer": "C' B A",
+              "why": "Amend replaces the tip with a new commit, so C becomes C'. B and A are untouched — amend never reaches past the last commit."}],
  "danger": [{
    "prompt": "You run git commit --amend on a commit that is only local, then decide the old version was better.",
    "options": None, "answer": DANGER_REFLOG,
@@ -379,7 +392,11 @@ A---B          main (HEAD)
  "history": [{"prompt": "main has no commits of its own since feature branched.",
               "cmd": "git merge feature",
               "answer": "D C B A",
-              "why": "Nothing to reconcile, so git fast-forwards main to D. No merge commit is created."}],
+              "why": "Nothing to reconcile, so git fast-forwards main to D. No merge commit is created."},
+             {"prompt": "Same starting point, but you want the branch recorded in history.",
+              "cmd": "git merge --no-ff feature   # then: git log --oneline --first-parent",
+              "answer": "M B A",
+              "why": "--no-ff forces a merge commit even though a fast-forward was possible. Following first parents shows only what landed on main: the merge, then main's old tip. C and D sit on the second parent."}],
  "confusable": [{
    "prompt": "A merge finished but git log shows no merge commit. Why?",
    "options": ["It was a fast-forward", "The merge silently failed",
@@ -460,8 +477,10 @@ A---B          main (HEAD)
                "The common ancestor", "The remote's version"],
    "answer": 0,
    "explain": "Top is HEAD — where you are. Bottom, after =======, is the incoming branch."}],
- "command": [{"prompt": "You edited a conflicted file and removed the markers. Tell git this file is resolved.",
-              "answer": "git add file",
+ # Names the file rather than saying "file": the answer has to be something you
+ # could actually type, and f is the file this deck uses everywhere else.
+ "command": [{"prompt": "You fixed the conflict in f and removed the markers. Tell git it is resolved.",
+              "answer": "git add f",
               "accept": ["git add .", "git add -A", "git add -u"],
               "why": "Staging a conflicted file is how you mark it resolved; then git merge --continue."}],
 },
@@ -486,7 +505,7 @@ A---B          main (HEAD)
   "pulled D and E now has commits that no longer exist on your branch."
  ),
  "fixture": FORK,
- "history": [{"prompt": "You are on feature.", "cmd": "git rebase main",
+ "history": [{"prompt": "You are on feature.", "on": "feature", "cmd": "git rebase main",
               "answer": "E' D' C B A",
               "why": "D and E are replayed on top of C as new commits, so they are primed. C, B and A are untouched."}],
  "danger": [{
@@ -518,6 +537,12 @@ A---B          main (HEAD)
  "recall": [{"prompt": "Which of merge and rebase is always safe on a branch other people have pulled?",
              "answer": "merge", "accept": ["git merge", "merging"],
              "why": "Merge only adds a commit. Rebase rewrites, so everyone else's copies of those commits become orphans."}],
+ "fixture": FORK,
+ "history": [{"prompt": "You are on feature and bring main's work in by merging.",
+              "on": "feature",
+              "cmd": "git merge main   # then: git log --oneline --first-parent",
+              "answer": "M E D B A",
+              "why": "Nothing is rewritten: D and E keep their hashes and a merge commit is added on top. Compare the rebase card, where the same goal gives D' and E'."}],
 },
 {
  "id": "g5-003", "topic": "g5", "name": "The golden rule of rebasing",
@@ -570,6 +595,11 @@ A---B          main (HEAD)
  "command": [{"prompt": "Replay only the commits after old-base from branch feature onto main.",
               "answer": "git rebase --onto main old-base feature",
               "why": "Order is: --onto <newbase> <upstream> <branch>."}],
+ "fixture": ONTO,
+ "history": [{"prompt": "feature was branched off old-base by mistake; only D and E are yours.",
+              "cmd": "git rebase --onto main old-base feature",
+              "answer": "E' D' C B A",
+              "why": "D and E are replayed onto main as new commits. X and Y are left behind entirely — a plain git rebase main would have brought them along."}],
 },
 {
  "id": "g5-005", "topic": "g5", "name": "Rebase conflicts: continue, skip, abort",
@@ -622,6 +652,11 @@ A---B          main (HEAD)
               "answer": "git reset HEAD~1",
               "accept": ["git reset --mixed HEAD~1", "git reset HEAD^", "git reset --mixed HEAD^"],
               "why": "--mixed is the default: HEAD and index move back, the working tree is left alone."}],
+ "fixture": LINEAR,
+ "history": [{"prompt": "Everything is committed and the working tree is clean.",
+              "cmd": "git reset --hard HEAD~1",
+              "answer": "B A",
+              "why": "The branch label moves back to B, so C is no longer in the branch's history. C itself still exists in the object store and the reflog knows its hash."}],
 },
 {
  "id": "g6-002", "topic": "g6", "name": "reset --hard is the one that bites",
@@ -666,7 +701,7 @@ A---B          main (HEAD)
  ),
  "command": [{"prompt": "Undo a commit that is already pushed to a shared branch, without rewriting history.",
               "answer": "git revert HEAD",
-              "accept": ["git revert <commit>", "git revert commit"],
+              "accept": ["git revert <commit>"],
               "why": "revert appends an inverse commit, so the push stays a fast-forward."}],
  "confusable": [{
    "prompt": "Which is the safe way to undo a commit everybody has already pulled?",
@@ -1259,6 +1294,11 @@ A---B          main (HEAD)
    "prompt": "You squash eight local, unpushed commits into one and dislike the result.",
    "options": None, "answer": DANGER_REFLOG,
    "explain": "The eight originals are unreferenced but intact. git reset --hard ORIG_HEAD, or the reflog entry from before the rebase, restores them."}],
+ "fixture": LINEAR,
+ "history": [{"prompt": "In the todo list you change C's line from pick to squash, folding it into B.",
+              "cmd": "git rebase -i HEAD~2",
+              "answer": "B' A",
+              "why": "B and C become one commit carrying B's message — and it is a NEW commit, so B is primed. A is below the rebase and untouched."}],
 },
 
 # ========================== g14 · Bisect & blame ==========================
