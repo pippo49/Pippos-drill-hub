@@ -40,6 +40,10 @@
   .qname{font-weight:600;font-size:15px;margin:0 0 12px}
   pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);
     font-size:13.5px;line-height:1.55;padding:13px 14px;border-radius:10px;overflow-x:auto;margin:0 0 12px;white-space:pre}
+  pre.fixture{background:var(--card);border:1px solid var(--line);color:var(--ink);
+    font-family:var(--mono);font-size:12.5px;line-height:1.5;padding:11px 12px;border-radius:10px;
+    overflow-x:auto;margin:0 0 10px;white-space:pre}
+  pre.fixture b{font-weight:700}
   pre.code .blank{background:rgba(123,131,163,.35);border-radius:3px;padding:0 .35em;color:#fff}
   .prompt{color:var(--prompt)}
   label.lbl{display:block;font-size:13px;color:var(--muted);margin:2px 0 6px}
@@ -169,6 +173,10 @@ function unitsForCardMode(card, mode){
   if(mode==="fill")       return (card.fill||[]).map(function(it){return {kind:"text", item:it};});
   if(mode==="confusable") return (card.confusable||[]).map(function(it){return {kind:"mc", item:it};});
   if(mode==="recall")     return (card.recall||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="command")    return (card.command||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="history")    return (card.history||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="rows")       return (card.rows||[]).map(function(it){return {kind:"text", item:it};});
+  if(mode==="danger")     return (card.danger||[]).map(function(it){return {kind:"mc", item:it};});
   if(mode==="complexity"){
     if(!card.ops) return [];
     return Object.keys(card.ops).map(function(op){return {kind:"text", item:{op:op, info:card.ops[op]}};});
@@ -362,6 +370,21 @@ function gradeOutput(user, expected){
   return gradeText(user, expected);
 }
 
+/* A typed answer may have several correct spellings -- HEAD~1 and HEAD^ name the
+   same commit, JOIN and INNER JOIN the same join. Grade against each and keep
+   the best result, so an accepted alternative scores exact rather than close. */
+var GRADE_RANK = {wrong:0, close:1, exact:2};
+function gradeAny(user, expected, accept, grader){
+  var best = grader(user, expected);
+  if(best === "exact" || !accept || !accept.length) return best;
+  for(var i=0;i<accept.length;i++){
+    var g = grader(user, accept[i]);
+    if(GRADE_RANK[g] > GRADE_RANK[best]) best = g;
+    if(best === "exact") break;
+  }
+  return best;
+}
+
 function normBigO(s){ return String(s).toLowerCase().replace(/\s+/g,"").replace(/^[~\u2248]/,""); }
 function gradeBigO(user, expected){
   var u=normBigO(user), e=normBigO(expected);
@@ -535,7 +558,9 @@ function renderQuestion(){
     (session.review?' \u00b7 review':session.hardest?' \u00b7 hardest':'')+'</span></div>';
   var nameLine = '<p class="qname">'+esc(u.card.name)+'</p>';
 
-  if(u.mode==="confusable"){
+  // danger reuses the multiple-choice renderer: its options are a fixed
+  // three-way scale, written onto every card by the deck builder.
+  if(u.mode==="confusable" || u.mode==="danger"){
     renderMC(head, nameLine); return;
   }
 
@@ -553,6 +578,19 @@ function renderQuestion(){
   } else if(u.mode==="complexity"){
     codeHtml='<pre class="code">'+esc(u.card.name)+'  \u2014  '+esc(u.item.op)+'</pre>';
     lbl="Average-case complexity, e.g. O(1), O(n), O(log n)"; multiline=false;
+  } else if(u.mode==="command"){
+    codeHtml=''; lbl=u.item.lbl||"Type the command"; multiline=false;
+    nameLine='<p class="qname">'+esc(u.item.prompt||u.card.name)+'</p>';
+  } else if(u.mode==="history"){
+    codeHtml='<pre class="code"><span class="prompt">$ '+esc(u.item.cmd)+'</span></pre>';
+    // Apostrophe, not a typographic prime: the answers use ASCII and the label
+    // has to show something reachable from a phone keyboard.
+    lbl=u.item.lbl||"Commits newest first, e.g. E' D' C B A (' = rewritten)";
+    multiline=false;
+    nameLine='<p class="qname">'+esc(u.item.prompt||u.card.name)+'</p>';
+  } else if(u.mode==="rows"){
+    codeHtml='<pre class="code">'+esc(u.item.code)+'</pre>';
+    lbl=u.item.lbl||"How many rows does this return?"; multiline=false;
   }
 
   var input = multiline
@@ -562,7 +600,12 @@ function renderQuestion(){
   var hintBtn = (u.item && (u.item.hint))
     ? '<button class="hintlink" id="hintBtn">Show hint</button>' : '';
 
-  var c = el('<div class="card">'+head+nameLine+codeHtml+
+  // Context the question cannot be answered without: the repo state for git,
+  // the table contents for SQL. Sits above the snippet, scrolls on its own.
+  var fx = (u.item && u.item.fixture) || u.card.fixture || "";
+  var fxHtml = fx ? '<pre class="fixture">'+esc(fx)+'</pre>' : "";
+
+  var c = el('<div class="card">'+head+nameLine+fxHtml+codeHtml+
     '<label class="lbl">'+esc(lbl)+'</label>'+input+hintBtn+
     '<div class="row"><button class="primary" id="submit">Check</button>'+
     '<button id="skip">Skip</button></div><div id="fbslot"></div></div>');
@@ -586,12 +629,12 @@ function renderQuestion(){
 
   function doGrade(val){
     var expected = (u.mode==="predict") ? u.item.output
-                 : (u.mode==="fill")    ? u.item.answer
-                 : (u.mode==="recall")  ? u.item.answer
-                 : (u.mode==="complexity") ? u.item.info.bigO : "";
-    var grade = (u.mode==="predict") ? gradeOutput(val, expected)
-              : (u.mode==="complexity") ? gradeBigO(val, expected)
-              : gradeText(val, expected);
+                 : (u.mode==="complexity") ? u.item.info.bigO
+                 : u.item.answer;
+    var grader = (u.mode==="predict") ? gradeOutput
+               : (u.mode==="complexity") ? gradeBigO
+               : gradeText;
+    var grade = gradeAny(val, expected, u.item.accept, grader);
     commit(grade, val, expected);
   }
 }
@@ -714,8 +757,9 @@ render();
 
 /* expose for runtime probe / debugging */
 window.__pd = { DECK_DATA:DECK_DATA, askableUnits:askableUnits, buildQueue:buildQueue,
-  gradeText:gradeText, gradeOutput:gradeOutput, gradeBigO:gradeBigO, weightFor:weightFor, unitsForCardMode:unitsForCardMode,
-  everyUnit:everyUnit, hardestUnits:hardestUnits, HARDEST_MIN_POOL:HARDEST_MIN_POOL };
+  gradeText:gradeText, gradeAny:gradeAny, gradeOutput:gradeOutput, gradeBigO:gradeBigO, weightFor:weightFor, unitsForCardMode:unitsForCardMode,
+  everyUnit:everyUnit, hardestUnits:hardestUnits, HARDEST_MIN_POOL:HARDEST_MIN_POOL,
+  currentUnit:function(){ return currentU; } };
 </script>
 <script>
 if ('serviceWorker' in navigator) {

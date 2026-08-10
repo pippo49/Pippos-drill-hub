@@ -40,6 +40,11 @@ CODING_APPS = [
     ("python-drill.html", "pyDrill",   "Python",     "#1b1d27", "#ffd43b", "PY"),
     ("bash-drill.html",   "bashDrill", "Bash / CLI", "#0e1420", "#37e08a", "$_"),
     ("cpp-drill.html",    "cppDrill",  "C++17",      "#1b1d27", "#5c9fe0", "C++"),
+    # git and SQL are not programming languages, so their drill types differ:
+    # git asks goal-to-command, history-after and a three-way danger rating;
+    # SQL asks predict-the-result and how-many-rows. See coding-drills/CLAUDE.md.
+    ("git-drill.html",    "gitDrill",  "Git",        "#1b1d27", "#f05133", "git"),
+    ("sql-drill.html",    "sqlDrill",  "SQL / Postgres", "#12222e", "#4fc3f7", "SQL"),
 ]
 
 

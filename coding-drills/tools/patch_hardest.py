@@ -172,7 +172,8 @@ def patch(name):
     # 7. expose for the validator probe
     src = sub(src, name, "weightFor:weightFor, unitsForCardMode:unitsForCardMode };",
               "weightFor:weightFor, unitsForCardMode:unitsForCardMode,\n"
-              "  everyUnit:everyUnit, hardestUnits:hardestUnits, HARDEST_MIN_POOL:HARDEST_MIN_POOL };")
+              "  everyUnit:everyUnit, hardestUnits:hardestUnits, HARDEST_MIN_POOL:HARDEST_MIN_POOL,\n"
+              "  currentUnit:function(){ return currentU; } };")
 
     write(name, src)
     return "patched"
