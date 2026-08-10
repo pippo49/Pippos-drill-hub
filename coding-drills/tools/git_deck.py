@@ -91,7 +91,7 @@ CARDS = [
   "the staging area against the last commit. If you want the whole picture in "
   "one go, ask for git diff HEAD."
  ),
- "fill": [{"code": "# show exactly what the next commit will contain\ngit diff __",
+ "fill": [{"code": "# exactly what the next commit contains\ngit diff __",
            "answer": "--staged", "accept": ["--cached"],
            "hint": "the index versus HEAD"}],
  "confusable": [{
@@ -147,7 +147,7 @@ CARDS = [
    "options": ["git add -A", "git add -u", "git commit -a", "git add --update"],
    "answer": 0,
    "explain": "-u and commit -a both skip untracked files. new.py has never been tracked, so only -A (or an explicit path) picks it up."}],
- "fill": [{"code": "# stage every change, including files git has never seen\ngit add __",
+ "fill": [{"code": "# stage everything, new files included\ngit add __",
            "answer": "-A", "accept": ["--all", "."], "hint": "all"}],
 },
 {
@@ -321,7 +321,7 @@ CARDS = [
   "is the single most useful part of git for getting yourself out of trouble, "
   "and this shortcut is the friendliest corner of it."
  ),
- "fill": [{"code": "# hop straight back to the branch you were on before\ngit switch __",
+ "fill": [{"code": "# back to the branch you were just on\ngit switch __",
            "answer": "-", "accept": ["@{-1}"], "hint": "same character the shell uses with cd"}],
  "recall": [{"prompt": "Which git feature makes git switch - able to know where you were?",
              "answer": "the reflog", "accept": ["reflog", "HEAD reflog", "git reflog"],
@@ -565,7 +565,7 @@ A---B          main (HEAD)
   "are dropped. It is the one rebase form worth memorising, because nothing else "
   "does the job."
  ),
- "fill": [{"code": "# move only feature's own commits off old-base onto main\ngit rebase __ main old-base feature",
+ "fill": [{"code": "# move only feature's commits onto main\ngit rebase __ main old-base feature",
            "answer": "--onto", "hint": "the flag that names a different destination"}],
  "command": [{"prompt": "Replay only the commits after old-base from branch feature onto main.",
               "answer": "git rebase --onto main old-base feature",
@@ -695,7 +695,7 @@ A---B          main (HEAD)
    "prompt": "You run git clean -fdx in a project with a local .env file and a node_modules directory.",
    "options": None, "answer": DANGER_GONE,
    "explain": "clean deletes files git has never stored, and -x includes ignored ones. node_modules can be reinstalled; the .env cannot be recovered from git at all."}],
- "fill": [{"code": "# list what clean would delete, without deleting anything\ngit clean __",
+ "fill": [{"code": "# list what would go, delete nothing\ngit clean __",
            "answer": "-n", "accept": ["--dry-run"], "hint": "dry run"}],
 },
 {
@@ -840,7 +840,7 @@ A---B          main (HEAD)
   "Once you notice the pattern it is easy to remember which commands need to be "
   "told about new files explicitly: most of them."
  ),
- "fill": [{"code": "# stash your work INCLUDING files git has never seen\ngit stash __",
+ "fill": [{"code": "# stash tracked AND untracked files\ngit stash __",
            "answer": "-u", "accept": ["--include-untracked"], "hint": "include untracked"}],
  "confusable": [{
    "prompt": "You create new.py, run git stash, then git clean -fd. Where is new.py?",
@@ -942,7 +942,7 @@ A---B          main (HEAD)
   "It also feeds git status: your branch is ahead of origin/feature by 2 commits "
   "is only possible once an upstream exists."
  ),
- "fill": [{"code": "# push a new branch and remember the pairing for next time\ngit push __ origin feature",
+ "fill": [{"code": "# push a new branch, remember the pairing\ngit push __ origin feature",
            "answer": "-u", "accept": ["--set-upstream"], "hint": "set upstream"}],
  "command": [{"prompt": "Push the current new branch to origin and set its upstream so bare push works afterwards.",
               "answer": "git push -u origin HEAD",
@@ -1024,7 +1024,7 @@ A---B          main (HEAD)
               "answer": "git push --force-with-lease",
               "accept": ["git push --force-with-lease origin HEAD"],
               "why": "It compares the remote tip against your remote-tracking ref and aborts on a mismatch."}],
- "fill": [{"code": "# force, but only if nobody has pushed since my last fetch\ngit push __",
+ "fill": [{"code": "# force, unless someone pushed since I fetch\ngit push __",
            "answer": "--force-with-lease", "hint": "force, with a check"}],
 },
 {
@@ -1093,7 +1093,7 @@ A---B          main (HEAD)
   "It is long enough to be worth an alias: git config --global alias.lg \"log "
   "--oneline --graph --all --decorate\" and it becomes git lg."
  ),
- "fill": [{"code": "# one line per commit, ASCII branch drawing, every branch\ngit log --oneline --graph __",
+ "fill": [{"code": "# one line per commit, graph, all branches\ngit log --oneline --graph __",
            "answer": "--all", "hint": "not just the current branch"}],
  "command": [{"prompt": "Show a compact ASCII graph of every branch, with branch names marked.",
               "answer": "git log --oneline --graph --all --decorate",
@@ -1253,7 +1253,7 @@ A---B          main (HEAD)
   "rebase.autosquash=true and it happens without the flag.\n\n"
   "Only ever do this before pushing, or on a branch that is yours alone."
  ),
- "fill": [{"code": "# let git arrange fixup commits next to their targets\ngit rebase -i __ main",
+ "fill": [{"code": "# put fixup commits next to their targets\ngit rebase -i __ main",
            "answer": "--autosquash", "hint": "auto, plus the verb that folds commits together"}],
  "danger": [{
    "prompt": "You squash eight local, unpushed commits into one and dislike the result.",
@@ -1449,7 +1449,7 @@ A---B          main (HEAD)
   "Deleting has the same asymmetry — git tag -d removes it locally, and git push "
   "origin --delete v1.0 removes it from the server."
  ),
- "fill": [{"code": "# push commits plus the annotated tags pointing into them\ngit push __",
+ "fill": [{"code": "# push commits plus their annotated tags\ngit push __",
            "answer": "--follow-tags", "hint": "follow, plus what you are pushing"}],
  "confusable": [{
    "prompt": "You tagged a release and ran git push. Is the tag on the server?",

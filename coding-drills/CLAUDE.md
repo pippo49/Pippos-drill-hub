@@ -12,6 +12,7 @@ lead with results, keep responses concise, batch-and-validate before delivering.
 - `sql-drill.html`    — sqlDrill, PROG_KEY `sqldrill_progress_v1` — **generated**
 - `tools/validate.js` — jsdom full-flow probe (see Validation)
 - `tools/check_accept.js` — accept-list sanity (see Engine v1.6)
+- `tools/verify_sql.py` — runs every sqlDrill answer against real PostgreSQL
 - `tools/make_drill.py` — generates git-drill/sql-drill from python-drill
 - `tools/build_deck.py` + `tools/git_deck.py` + `tools/sql_deck.py` — curated decks
 - `tools/patch_engine_v16.py` — the v1.6 engine additions
@@ -95,6 +96,29 @@ Which fits, Recall. No predict-output, no complexity.
 the rows), **Rows out** (one number — join fan-out, LEFT with no match, NULL
 matching nothing), Fill the blank, Which fits, Recall.
 
+**Every sqlDrill predict and rows answer is checked by a real PostgreSQL 16
+server**, not worked out by hand — `tools/verify_sql.py`. `SETUP` in
+`sql_deck.py` holds the DDL behind each ASCII fixture, and each query runs in a
+fresh clone of it, so mutating cards (`DELETE ... RETURNING`, `CREATE TEMP
+TABLE`) cannot contaminate later ones.
+
+It enforces two things beyond the answer itself, both of which caught real
+faults:
+
+- **A multi-row predict needs a top-level ORDER BY.** The deck's own s1-002
+  teaches that no ORDER BY means no order; s8-001 then depended on unordered
+  output. (The check strips parenthesised groups first — the ORDER BY inside
+  `OVER (...)` orders the window, not the result.)
+- **The ordering must be TOTAL.** Each multi-row predict is re-run three times
+  with every table physically reshuffled; if the output moves, two rows tie on
+  the sort key and the card asks for something undefined. This caught s1-005,
+  where Ada and Grace tie on `dept`.
+
+The same principle retired a card: `UPDATE ... FROM` where the source matches
+three times updates once from an *arbitrary* match, so "predict the total" was
+unanswerable. It became a rows question — how many rows update *is* defined, and
+is the actual lesson.
+
 - There is deliberately **no write-the-whole-query mode**. Every such question
   has dozens of correct forms, so a grader loose enough to accept them would
   accept nonsense. Fill-the-blank plus accept-lists drills the same skill with a
@@ -130,6 +154,10 @@ this cost 215 fixes in the teach panels once already, and the guard now covers
 prompts and explanations, not just summaries); a `fill` whose answer is already
 visible in its own snippet; an accept entry equal to the answer; an MC answer
 index out of range; a `danger` card whose options are not the standard scale.
+
+Code lines are capped at **44 characters and it is a build failure**, not a
+warning: `pre.code` scrolls rather than breaking the page, but a browser shot of
+a CTE card showed the interesting clause scrolled off mid-line on a phone.
 
 `tools/check_accept.js` checks the two things the builder cannot: that no accept
 entry is **redundant** (the real grader already accepts it, so it widens
@@ -246,6 +274,11 @@ file, then
 4. `node tools/check_accept.js <file>.html` after any deck or grading edit.
 5. For gitDrill/sqlDrill: `python3 tools/build_deck.py && python3 tools/make_drill.py`
    FIRST — editing the HTML directly is a hard-rule violation and is lost.
+   After any sqlDrill deck edit also run `python3 tools/verify_sql.py`, which
+   needs a server:
+   `initdb -D /tmp/pgdata -A trust -U pg && pg_ctl -D /tmp/pgdata -o '-p 5433 -k /tmp' start`
+   It exits 1 with instructions when no server is reachable rather than skipping
+   silently — a check that quietly passes when it cannot run is worse than none.
 6. jsdom gotchas (already handled in validate.js): construct JSDOM with
    `url: 'https://localhost/'` or localStorage throws; detect the summary via
    the `.card.summary` element, never `body.textContent` (it includes the
@@ -258,11 +291,11 @@ file, then
   g6 Undoing 5 · g7 Reflog 3 · g8 Stashing 3 · g9 Remotes 3 · g10 Fetch/pull/push 4 ·
   g11 History 4 · g12 Cherry-pick 2 · g13 Interactive rebase 2 · g14 Bisect 3 ·
   g15 Worktrees/submodules 3 · g16 Tags/ignore/config 4
-- sqlDrill: 14/14 topics, 39 cards / 78 questions
-  (37 confusable · 14 recall · 13 fill · 9 rows · 5 predict).
-  s1 SELECT 3 · s2 NULL 3 · s3 Joins 5 · s4 Aggregation 3 · s5 Subqueries 2 ·
-  s6 Set ops 2 · s7 CTEs 2 · s8 Windows 3 · s9 Recursive 2 · s10 CASE/cast 3 ·
-  s11 DML 3 · s12 Constraints 2 · s13 Transactions 3 · s14 Indexes 3
+- sqlDrill: 14/14 topics, 71 cards / 142 questions
+  (54 confusable · 28 predict · 26 rows · 19 recall · 15 fill).
+  Five fixtures: employees/departments (every join type gives a different
+  count), scores (ties, for the ranking functions), orders/items (fan-out and
+  anti-joins), node (a tree, for recursion), sales (a series, for windows).
 
 - pyDrill: 12/12 topics, 329 cards / 381 units
   (215 predict · 62 fill · 58 confusable · 28 recall · 18 complexity).
@@ -282,10 +315,10 @@ file, then
   c9 Copies/moves 9 · c10 Templates/auto 10 · c11 Smart pointers 13
 
 ## Backlog (owner decides priority)
-0. Deepen gitDrill and sqlDrill. Both cover their topics but are thinner than
-   pyDrill; sqlDrill especially would benefit from more `predict` and `rows`
-   cards, which are its highest-value modes and the most work to author (each
-   needs a verified result against the fixture).
+0. Deepen gitDrill. sqlDrill was deepened on 2026-08-10 (39→71 cards,
+   5→28 predict, 9→26 rows), all Postgres-verified. gitDrill has no equivalent
+   oracle — its answers are checked by reading, so extra care is warranted, and
+   `history` is only 4 questions.
 1. Progress export/import + reset (all five) — guards against iOS Safari
    localStorage eviction. Highest value.
 2. Deck deepening: pyDrill t1/t2/t7/t8 predicts; bashDrill b13; cppDrill c9.

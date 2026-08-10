@@ -25,7 +25,12 @@ import json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 MIN_SUMMARY_WORDS = 45        # matches tools/update_summaries.py
-CODE_WIDTH_WARN = 52          # pre.code scrolls, but keep most lines on screen
+# pre.code has its own overflow-x, so a long line scrolls rather than breaking
+# the page. It still scrolls the interesting part off a phone screen mid-clause,
+# which was visible in a browser shot of a CTE card. 44 is what actually fits at
+# 13.5px mono in a 390px viewport, and it is enforced rather than warned about
+# so the decks cannot drift back.
+CODE_WIDTH_MAX = 44
 
 # The danger scale, written onto every danger card so the three levels stay
 # identical everywhere. Order is deliberate: it reads as increasing severity,
@@ -195,8 +200,8 @@ def build(deck_module, out_name, ctx):
                     check_text_item(cid, mode, it, ctx, card)
                 for field in ("code", "fixture"):
                     for line in str(it.get(field, "")).split("\n"):
-                        if len(line) > CODE_WIDTH_WARN:
-                            wide.append(f"{cid}/{mode}: {len(line)} chars")
+                        if len(line) > CODE_WIDTH_MAX:
+                            wide.append(f"{cid}/{mode}.{field}: {len(line)} chars — {line!r}")
                 mode_counts[mode] += 1
                 units += 1
         if units == 0:

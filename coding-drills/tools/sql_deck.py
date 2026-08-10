@@ -40,6 +40,37 @@ EMP = """employees                 departments
   4 | Barbara | NULL |  70"""
 
 # Ties on purpose: the three ranking functions all disagree here.
+NO_TABLES = "-- PostgreSQL, no tables needed"
+
+# One order with three items, one with a single item, one with none: enough to
+# show fan-out, an anti-join, and why summing across a join inflates a total.
+ORD = """orders                items
+ id | cust  | total    ord | sku | qty
+----+-------+------   -----+-----+----
+  1 | Ada   |  100       1 | A   |  2
+  2 | Grace |   50       1 | B   |  1
+  3 | Linus |   30       1 | C   |  3
+                         2 | A   |  1"""
+
+# A three-level tree with one branch two deep, for recursive CTEs.
+TREE = """node
+ id | parent | name
+----+--------+------
+  1 |  NULL  | root
+  2 |     1  | a
+  3 |     1  | b
+  4 |     2  | a1
+  5 |     4  | a1x"""
+
+# An ordered series, for running totals and LAG/LEAD.
+SALES = """sales
+ mon | amt
+-----+-----
+   1 | 100
+   2 | 150
+   3 |  90
+   4 | 200"""
+
 SCORES = """scores
  name  | pts
 -------+-----
@@ -47,6 +78,41 @@ SCORES = """scores
  Grace | 100
  Linus |  90
  Bela  |  80"""
+
+# Machine-readable counterpart of the ASCII fixtures above, keyed by the art
+# itself. tools/verify_sql.py builds these in a real PostgreSQL server and runs
+# every predict and rows query against them, so an authored answer that is
+# merely plausible fails the build. Hand-computed SQL results are exactly the
+# kind of thing that looks right and is not.
+SETUP = {
+    EMP: """
+        CREATE TABLE employees (id int, name text, dept int, sal int);
+        INSERT INTO employees VALUES
+          (1,'Ada',10,100), (2,'Grace',10,90), (3,'Linus',20,80), (4,'Barbara',NULL,70);
+        CREATE TABLE departments (id int, name text);
+        INSERT INTO departments VALUES (10,'Eng'), (20,'Sales'), (30,'Legal');
+    """,
+    SCORES: """
+        CREATE TABLE scores (name text, pts int);
+        INSERT INTO scores VALUES ('Ada',100), ('Grace',100), ('Linus',90), ('Bela',80);
+    """,
+    ORD: """
+        CREATE TABLE orders (id int, cust text, total int);
+        INSERT INTO orders VALUES (1,'Ada',100), (2,'Grace',50), (3,'Linus',30);
+        CREATE TABLE items (ord int, sku text, qty int);
+        INSERT INTO items VALUES (1,'A',2), (1,'B',1), (1,'C',3), (2,'A',1);
+    """,
+    TREE: """
+        CREATE TABLE node (id int, parent int, name text);
+        INSERT INTO node VALUES
+          (1,NULL,'root'), (2,1,'a'), (3,1,'b'), (4,2,'a1'), (5,4,'a1x');
+    """,
+    SALES: """
+        CREATE TABLE sales (mon int, amt int);
+        INSERT INTO sales VALUES (1,100), (2,150), (3,90), (4,200);
+    """,
+    NO_TABLES: "",
+}
 
 CARDS = [
 
@@ -96,7 +162,7 @@ CARDS = [
                "Yes, primary-key order is guaranteed", "Only inside a transaction"],
    "answer": 0,
    "explain": "It is an accident of the current plan. A new index, more rows or a parallel scan can change it at any time."}],
- "fill": [{"code": "-- highest salary first, ties broken so paging is stable\nSELECT name FROM employees\nORDER BY sal DESC, __;",
+ "fill": [{"code": "-- highest salary first, stable for paging\nSELECT name FROM employees\nORDER BY sal DESC, __;",
            "answer": "id", "hint": "a unique column to break ties"}],
 },
 {
@@ -167,7 +233,7 @@ CARDS = [
   "WHERE col IS NOT NULL to the subquery."
  ),
  "fixture": EMP,
- "rows": [{"code": "SELECT * FROM employees\nWHERE dept NOT IN (SELECT dept FROM employees);",
+ "rows": [{"code": "SELECT * FROM employees\nWHERE dept NOT IN\n  (SELECT dept FROM employees);",
            "answer": "0",
            "why": "The subquery yields 10, 10, 20 and NULL. NOT IN against a list containing NULL can never be true, so nothing is returned."}],
  "confusable": [{
@@ -224,7 +290,7 @@ CARDS = [
  "rows": [{"code": "SELECT * FROM employees e\nJOIN departments d ON e.dept = d.id;",
            "answer": "3",
            "why": "Ada, Grace and Linus match. Barbara's NULL dept matches nothing, and Legal has no employees."}],
- "fill": [{"code": "-- keep every employee, even one with no department\nSELECT e.name, d.name\nFROM employees e\n__ JOIN departments d ON e.dept = d.id;",
+ "fill": [{"code": "-- keep every employee, dept or not\nSELECT e.name, d.name\nFROM employees e\n__ JOIN departments d ON e.dept = d.id;",
            "answer": "LEFT", "accept": ["left", "LEFT OUTER"], "hint": "which side to keep whole"}],
 },
 {
@@ -312,7 +378,7 @@ CARDS = [
  "summary": (
   "A cross join pairs every row on the left with every row on the right. Four "
   "employees and three departments give twelve rows.\n\n"
-  "    SELECT * FROM employees CROSS JOIN departments;   -- 12 rows\n\n"
+  "    SELECT * FROM employees\nCROSS JOIN departments;   -- 12 rows\n\n"
   "It is genuinely useful for generating combinations — every product against "
   "every month, say — but it is far more often an accident. Writing a join in "
   "the old comma style and forgetting the WHERE produces exactly this:\n\n"
@@ -323,7 +389,7 @@ CARDS = [
   "silent disaster."
  ),
  "fixture": EMP,
- "rows": [{"code": "SELECT * FROM employees CROSS JOIN departments;",
+ "rows": [{"code": "SELECT * FROM employees\nCROSS JOIN departments;",
            "answer": "12",
            "why": "Every left row paired with every right row: 4 x 3."}],
  "recall": [{"prompt": "What is the row count of a CROSS JOIN between a 4-row and a 3-row table?",
@@ -337,7 +403,7 @@ CARDS = [
   "Once you GROUP BY, every column in SELECT must either be one of the grouping "
   "columns or be wrapped in an aggregate. Anything else has no single value for "
   "the group.\n\n"
-  "    SELECT dept, count(*) FROM employees GROUP BY dept;        -- fine\n"
+  "    SELECT dept, count(*) FROM employees\nGROUP BY dept;        -- fine\n"
   "    SELECT dept, name, count(*) FROM employees GROUP BY dept;  -- error\n\n"
   "Postgres rejects the second outright. MySQL historically allowed it and "
   "returned an arbitrary name from each group, which is why queries ported from "
@@ -349,7 +415,7 @@ CARDS = [
   "NULL."
  ),
  "fixture": EMP,
- "rows": [{"code": "SELECT dept, count(*) FROM employees GROUP BY dept;",
+ "rows": [{"code": "SELECT dept, count(*) FROM employees\nGROUP BY dept;",
            "answer": "3",
            "why": "Groups are 10 (two rows), 20 (one) and NULL (one). GROUP BY puts all NULLs in a single group."}],
  "confusable": [{
@@ -393,14 +459,14 @@ CARDS = [
   "    -- one row, containing 0\n\n"
   "That is the difference between count and the others. count over zero rows is "
   "0; sum, avg, max and min over zero rows are NULL.\n\n"
-  "    SELECT max(sal) FROM employees WHERE sal > 1000;\n"
+  "    SELECT max(sal) FROM employees\nWHERE sal > 1000;\n"
   "    -- one row, containing NULL\n\n"
   "It matters when the value feeds something else. coalesce(max(sal), 0) makes "
   "the empty case explicit. And code that expects zero rows back when nothing "
   "matched will be surprised: there is always exactly one row."
  ),
  "fixture": EMP,
- "rows": [{"code": "SELECT max(sal) FROM employees WHERE sal > 1000;",
+ "rows": [{"code": "SELECT max(sal) FROM employees\nWHERE sal > 1000;",
            "answer": "1",
            "why": "An ungrouped aggregate always returns exactly one row. Here it contains NULL, but the row exists."}],
  "confusable": [{
@@ -426,7 +492,7 @@ CARDS = [
   "For the positive case they usually plan identically in Postgres. For the "
   "negative case NOT EXISTS is both safer and generally faster than NOT IN."
  ),
- "fill": [{"code": "-- employees whose department row exists\nSELECT * FROM employees e\nWHERE __ (SELECT 1 FROM departments d WHERE d.id = e.dept);",
+ "fill": [{"code": "-- employees whose department row exists\nSELECT * FROM employees e\nWHERE __ (SELECT 1 FROM departments d\n          WHERE d.id = e.dept);",
            "answer": "EXISTS", "accept": ["exists"], "hint": "the null-safe existence test"}],
  "confusable": [{
    "prompt": "Why is NOT EXISTS preferred over NOT IN for a nullable subquery column?",
@@ -538,7 +604,7 @@ CARDS = [
   "before that it was always materialised, and MATERIALIZED or NOT MATERIALIZED "
   "still lets you force either behaviour."
  ),
- "fill": [{"code": "-- name a subquery so the main query stays readable\n__ recent AS (\n  SELECT * FROM orders WHERE created > now()\n)\nSELECT count(*) FROM recent;",
+ "fill": [{"code": "-- name a subquery for readability\n__ recent AS (\n  SELECT * FROM orders WHERE created > now()\n)\nSELECT count(*) FROM recent;",
            "answer": "WITH", "accept": ["with"], "hint": "the keyword that opens a CTE"}],
  "confusable": [{
    "prompt": "In Postgres 12+, is a CTE referenced once materialised by default?",
@@ -596,7 +662,7 @@ CARDS = [
   "did come first. Top-N-distinct-values wants DENSE_RANK."
  ),
  "fixture": SCORES,
- "predict": [{"code": "SELECT rank() OVER (ORDER BY pts DESC)\nFROM scores;",
+ "predict": [{"code": "SELECT rank() OVER (ORDER BY pts DESC)\nFROM scores\nORDER BY 1;",
               "output": "1\n1\n3\n4",
               "why": "Ada and Grace tie at 100 and both rank 1; rank then SKIPS 2. DENSE_RANK would give 1, 1, 2, 3."}],
  "confusable": [{
@@ -629,7 +695,7 @@ CARDS = [
                "One per distinct ordering value"],
    "answer": 0,
    "explain": "Window functions add a column; they never collapse rows. That is the difference from GROUP BY."}],
- "fill": [{"code": "-- rank employees within their own department\nSELECT name,\n  rank() OVER (__ BY dept ORDER BY sal DESC)\nFROM employees;",
+ "fill": [{"code": "-- rank within each department\nSELECT name,\n  rank() OVER (__ BY dept ORDER BY sal DESC)\nFROM employees;",
            "answer": "PARTITION", "accept": ["partition"], "hint": "the window's grouping keyword"}],
 },
 {
@@ -685,7 +751,7 @@ CARDS = [
   "omits it. It is the standard tool for walking a tree: org charts, category "
   "hierarchies, dependency graphs."
  ),
- "fill": [{"code": "-- walk a hierarchy from the root downwards\nWITH __ tree AS (\n  SELECT id, parent FROM node WHERE parent IS NULL\n  UNION ALL\n  SELECT n.id, n.parent FROM node n JOIN tree t ON n.parent = t.id\n)\nSELECT * FROM tree;",
+ "fill": [{"code": "-- walk a hierarchy from the root downwards\nWITH __ tree AS (\n  SELECT id, parent FROM node\n  WHERE parent IS NULL\n  UNION ALL\n  SELECT n.id, n.parent FROM node n\n  JOIN tree t ON n.parent = t.id\n)\nSELECT * FROM tree;",
            "answer": "RECURSIVE", "accept": ["recursive"], "hint": "the keyword after WITH"}],
  "confusable": [{
    "prompt": "What stops a recursive CTE?",
@@ -739,7 +805,7 @@ CARDS = [
   "Postgres also has ifnull-style greatest and least, which ignore NULLs "
   "entirely, unlike max and min over rows."
  ),
- "fill": [{"code": "-- average, but return NULL instead of erroring when n is 0\nSELECT total / __(n, 0) FROM stats;",
+ "fill": [{"code": "-- return NULL, not an error, when n is 0\nSELECT total / __(n, 0) FROM stats;",
            "answer": "nullif", "accept": ["NULLIF"], "hint": "turns one specific value into NULL"}],
  "confusable": [{
    "prompt": "What does coalesce(NULL, NULL, 3, 5) return?",
@@ -789,7 +855,7 @@ CARDS = [
   "drift."
  ),
  "predict": [{"code": "SELECT 7 / 2;",
-              "fixture": "-- PostgreSQL, no tables needed",
+              "fixture": NO_TABLES,
               "output": "3",
               "why": "Both operands are integers, so the result is an integer and the remainder is truncated."}],
  "confusable": [{
@@ -818,7 +884,7 @@ CARDS = [
   "psql has no autocommit-off by default, so without BEGIN the statement is "
   "committed the instant it runs."
  ),
- "fill": [{"code": "-- make the update reversible until you have checked the row count\n__;\nUPDATE employees SET sal = 100 WHERE id = 3;",
+ "fill": [{"code": "-- make it reversible until you check\n__;\nUPDATE employees SET sal = 100 WHERE id = 3;",
            "answer": "BEGIN", "accept": ["begin", "START TRANSACTION", "BEGIN TRANSACTION"],
            "hint": "open a transaction"}],
  "confusable": [{
@@ -834,7 +900,7 @@ CARDS = [
  "summary": (
   "Inserting a row that may already exist is a race in two statements and atomic "
   "in one.\n\n"
-  "    INSERT INTO stock (sku, qty) VALUES ('abc', 5)\n"
+  "    INSERT INTO stock (sku, qty)\nVALUES ('abc', 5)\n"
   "    ON CONFLICT (sku) DO UPDATE\n"
   "      SET qty = stock.qty + EXCLUDED.qty;\n\n"
   "EXCLUDED is the row you tried to insert; the table name refers to the row "
@@ -845,7 +911,7 @@ CARDS = [
   "MySQL spells it INSERT ... ON DUPLICATE KEY UPDATE, SQLite supports the "
   "Postgres syntax, and the standard MERGE arrived in Postgres 15."
  ),
- "fill": [{"code": "-- insert, or add to the existing quantity\nINSERT INTO stock (sku, qty) VALUES ('abc', 5)\nON CONFLICT (sku) DO UPDATE\n  SET qty = stock.qty + __.qty;",
+ "fill": [{"code": "-- insert, or add to the existing quantity\nINSERT INTO stock (sku, qty)\nVALUES ('abc', 5)\nON CONFLICT (sku) DO UPDATE\n  SET qty = stock.qty + __.qty;",
            "answer": "EXCLUDED", "accept": ["excluded"], "hint": "the row that was rejected"}],
  "confusable": [{
    "prompt": "In ON CONFLICT DO UPDATE, what does EXCLUDED refer to?",
@@ -932,7 +998,7 @@ CARDS = [
                "The FK is declared RESTRICT", "Missing ANALYZE on the parent"],
    "answer": 0,
    "explain": "Postgres indexes the referenced key, not the referencing column. Each parent delete then scans the child table."}],
- "fill": [{"code": "-- delete the order lines when the order goes\nFOREIGN KEY (order_id) REFERENCES orders(id)\n  ON DELETE __;",
+ "fill": [{"code": "-- delete the lines with the order\nFOREIGN KEY (order_id) REFERENCES orders(id)\n  ON DELETE __;",
            "answer": "CASCADE", "accept": ["cascade"], "hint": "follow the delete down"}],
 },
 
@@ -978,7 +1044,7 @@ CARDS = [
   "SERIALIZABLE catches everything but can abort your transaction with a "
   "serialization failure, so the application must be prepared to retry."
  ),
- "fill": [{"code": "-- lock this row so a concurrent session waits\nSELECT bal FROM acct WHERE id = 1 FOR __;",
+ "fill": [{"code": "-- lock the row; others wait\nSELECT bal FROM acct WHERE id = 1 FOR __;",
            "answer": "UPDATE", "accept": ["update", "NO KEY UPDATE"], "hint": "the strong row lock"}],
  "confusable": [{
    "prompt": "Two sessions read a balance, add 50 in application code, and write it back. What is lost?",
@@ -1098,5 +1164,846 @@ CARDS = [
              "accept": ["runs the query", "executes it and reports real timings",
                         "it executes the statement"],
              "why": "So wrap writes in BEGIN ... ROLLBACK, or they take effect."}],
+},
+
+# =================== deepening batch: predict and rows ===================
+# Every output below is checked against PostgreSQL 16 by tools/verify_sql.py.
+# The authored answers in this batch all held up; what the verifier actually
+# caught was three faults in ITSELF -- psql command tags leaking into
+# multi-statement output, a rows wrapper that cannot contain DELETE ...
+# RETURNING, and mutating cards contaminating the fixture for later queries.
+
+{
+ "id": "s1-004", "topic": "s1", "name": "DISTINCT applies to the whole row",
+ "summary": (
+  "DISTINCT is not a function you apply to one column. It de-duplicates the "
+  "entire selected row, so adding a column changes what counts as a duplicate.\n\n"
+  "    SELECT DISTINCT dept FROM employees;        3 rows\n"
+  "    SELECT DISTINCT dept, sal FROM employees;   4 rows\n\n"
+  "The second returns everything, because no two employees share both a "
+  "department and a salary. People write SELECT DISTINCT id, name expecting the "
+  "distinct to apply to name, and get every row back.\n\n"
+  "When you really do want one row per key, Postgres has DISTINCT ON:\n\n"
+  "    SELECT DISTINCT ON (dept) dept, name\n"
+  "    FROM employees ORDER BY dept, sal DESC;\n\n"
+  "which keeps the first row per dept in the given order. It is a Postgres "
+  "extension; elsewhere you use row_number in a subquery."
+ ),
+ "fixture": EMP,
+ "predict": [{"code": "SELECT DISTINCT dept FROM employees\nORDER BY dept;",
+              "output": "10\n20\nNULL",
+              "why": "Two 10s collapse to one. NULL forms its own group here, and sorts last in ascending order by default."}],
+ "rows": [{"code": "SELECT DISTINCT dept, sal FROM employees;",
+           "answer": "4",
+           "why": "No two employees share both values, so DISTINCT removes nothing. The distinct applies to the whole row, not to dept."}],
+},
+{
+ "id": "s1-005", "topic": "s1", "name": "Where NULLs sort",
+ "summary": (
+  "Postgres treats NULL as larger than any value for ordering purposes. So the "
+  "defaults are:\n\n"
+  "    ORDER BY col            NULLS LAST\n"
+  "    ORDER BY col DESC       NULLS FIRST\n\n"
+  "which means reversing the sort also moves the NULLs from one end to the "
+  "other. A top-10 list ordered by a nullable column descending starts with the "
+  "rows that have no value at all.\n\n"
+  "    ORDER BY col DESC NULLS LAST\n\n"
+  "is almost always what you meant. The clause is per-column, so a multi-column "
+  "sort needs it on each nullable one.\n\n"
+  "This is a real dialect difference: MySQL and SQLite sort NULLs first in "
+  "ascending order, the opposite of Postgres."
+ ),
+ "fixture": EMP,
+ "predict": [{"code": "SELECT name FROM employees\nORDER BY dept DESC, id;",
+              "output": "Barbara\nLinus\nAda\nGrace",
+              "why": "Descending puts NULLs FIRST in Postgres, so Barbara leads. The trailing id is what makes the Ada/Grace tie on dept 10 come out the same way every time."}],
+ "confusable": [{
+   "prompt": "In PostgreSQL, where do NULLs go in a plain ascending ORDER BY?",
+   "options": ["Last", "First", "They are excluded", "It depends on the index"],
+   "answer": 0,
+   "explain": "NULL sorts as larger than everything, so ascending puts them last and descending puts them first. MySQL and SQLite do the opposite."}],
+},
+{
+ "id": "s2-004", "topic": "s2", "name": "NULL propagates through expressions",
+ "summary": (
+  "Almost every operator returns NULL if any input is NULL. That includes string "
+  "concatenation and arithmetic, which surprises people who expect an empty "
+  "string or a zero.\n\n"
+  "    'a' || NULL      -> NULL, not 'a'\n"
+  "    1 + NULL         -> NULL\n"
+  "    concat('a',NULL) -> 'a'   (the function IS null-tolerant)\n\n"
+  "So building an address line by concatenating fields with || gives NULL for "
+  "the whole line if any part is missing. The fixes are coalesce on each part, "
+  "or the concat function, or concat_ws which also handles the separators.\n\n"
+  "This is why a report shows a blank where you expected a partial value: one "
+  "missing field poisoned the whole expression, and nothing warned you."
+ ),
+ "fixture": EMP,
+ "predict": [{"code": "SELECT name || '-' || dept FROM employees\nORDER BY id;",
+              "output": "Ada-10\nGrace-10\nLinus-20\nNULL",
+              "why": "Barbara's dept is NULL, and || returns NULL if any operand is NULL, so her whole line is NULL rather than 'Barbara-'."}],
+ "confusable": [{
+   "prompt": "Which of these returns 'a' when the second argument is NULL?",
+   "options": ["concat('a', NULL)", "'a' || NULL", "'a' + NULL", "'a'::text || NULL::text"],
+   "answer": 0,
+   "explain": "The concat function ignores NULL arguments; the || operator propagates NULL through the whole expression."}],
+},
+{
+ "id": "s2-005", "topic": "s2", "name": "IS DISTINCT FROM",
+ "summary": (
+  "Ordinary comparison cannot answer are these two values different when either "
+  "might be NULL. IS DISTINCT FROM can: it compares treating NULL as an ordinary "
+  "value that equals itself.\n\n"
+  "    NULL =  NULL                     -> NULL\n"
+  "    NULL IS NOT DISTINCT FROM NULL   -> true\n"
+  "    1    IS DISTINCT FROM NULL       -> true\n"
+  "    1    <> NULL                     -> NULL\n\n"
+  "It is the right tool for change detection: a trigger or a diff query asking "
+  "did this column change has to treat NULL to 5 as a change, and = cannot.\n\n"
+  "Postgres, SQLite and modern MySQL all have it. MySQL also has the <=> "
+  "operator, which is IS NOT DISTINCT FROM under a different name."
+ ),
+ "fixture": EMP,
+ "rows": [{"code": "SELECT * FROM employees\nWHERE dept IS DISTINCT FROM 10;",
+           "answer": "2",
+           "why": "Linus (20) and Barbara (NULL). Plain dept <> 10 would return only Linus, because NULL <> 10 is unknown."}],
+ "predict": [{"code": "SELECT NULL IS NOT DISTINCT FROM NULL;",
+              "fixture": NO_TABLES,
+              "output": "t",
+              "why": "IS NOT DISTINCT FROM treats NULL as equal to itself, so this is true. NULL = NULL would be NULL."}],
+},
+{
+ "id": "s3-006", "topic": "s3", "name": "The anti-join",
+ "summary": (
+  "Finding rows on one side with no match on the other is the anti-join, and it "
+  "has two idiomatic spellings.\n\n"
+  "    SELECT o.* FROM orders o\n"
+  "    LEFT JOIN items i ON i.ord = o.id\n"
+  "    WHERE i.ord IS NULL;\n\n"
+  "    SELECT o.* FROM orders o\n"
+  "    WHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.ord = o.id);\n\n"
+  "Both find orders with no items. The LEFT JOIN form works by keeping the "
+  "unmatched rows and then filtering for exactly the NULL-filled ones — which is "
+  "the one case where a WHERE on the right-hand table is correct rather than a "
+  "bug.\n\n"
+  "NOT EXISTS reads more clearly and cannot fan out. Prefer it unless you need "
+  "columns from the right side."
+ ),
+ "fixture": ORD,
+ "rows": [{"code": "SELECT o.* FROM orders o\nLEFT JOIN items i ON i.ord = o.id\nWHERE i.ord IS NULL;",
+           "answer": "1",
+           "why": "Only order 3 has no items. The LEFT JOIN keeps it with NULLs on the right, and the IS NULL test selects exactly those."}],
+ "confusable": [{
+   "prompt": "In an anti-join, why is the WHERE clause on the right-hand table not a bug?",
+   "options": ["Selecting the NULL-filled rows is the point",
+               "WHERE and ON are the same for LEFT JOIN", "It only works with IS NULL",
+               "The optimiser rewrites it"],
+   "answer": 0,
+   "explain": "Normally a WHERE on the right side undoes the outer join. Here that is exactly what you want: the unmatched rows are the answer."}],
+},
+{
+ "id": "s3-007", "topic": "s3", "name": "Fan-out inflates a sum",
+ "summary": (
+  "Join one order to its three items and the order row is repeated three times. "
+  "Sum the order total across that join and you count it three times.\n\n"
+  "    SELECT sum(o.total)\n"
+  "    FROM orders o JOIN items i ON i.ord = o.id;\n\n"
+  "gives 350, not 180: 100 counted three times plus 50 counted once, with order "
+  "3 dropped entirely by the inner join.\n\n"
+  "The number is plausible, which is what makes it dangerous — nothing errors "
+  "and the total is simply wrong.\n\n"
+  "The fix is to aggregate before joining, so each side has one row per key:\n\n"
+  "    SELECT sum(total) FROM orders;                        -- 180\n"
+  "    ... or join to (SELECT ord, sum(qty) FROM items GROUP BY ord)\n\n"
+  "When a total is too large by an oddly round factor, suspect a fan-out first."
+ ),
+ "fixture": ORD,
+ "predict": [{"code": "SELECT sum(o.total)\nFROM orders o JOIN items i ON i.ord = o.id;",
+              "output": "350",
+              "why": "Order 1 (100) is repeated once per item, so 300, plus order 2's 50. Order 3 has no items and the inner join drops it."}],
+ "rows": [{"code": "SELECT * FROM orders o\nLEFT JOIN items i ON i.ord = o.id;",
+           "answer": "5",
+           "why": "Order 1 fans out to three rows, order 2 to one, and order 3 survives as a single NULL-filled row."}],
+},
+{
+ "id": "s4-004", "topic": "s4", "name": "count(DISTINCT) after a join",
+ "summary": (
+  "Once a join has fanned rows out, count(*) counts join rows, not the thing you "
+  "meant to count. count(DISTINCT key) counts the thing.\n\n"
+  "    SELECT count(*)                 -- 4: one per item\n"
+  "    SELECT count(DISTINCT o.id)     -- 2: one per order\n"
+  "    FROM orders o JOIN items i ON i.ord = o.id;\n\n"
+  "Both are correct answers to different questions, and only one of them is the "
+  "question you asked.\n\n"
+  "count(DISTINCT ...) is noticeably more expensive than count(*) — it has to "
+  "sort or hash the values — so on a large table it is worth checking whether "
+  "aggregating before the join gets the same answer more cheaply.\n\n"
+  "And as always, DISTINCT skips NULLs, because count of a column always does."
+ ),
+ "fixture": ORD,
+ "predict": [{"code": "SELECT count(*), count(DISTINCT o.id)\nFROM orders o JOIN items i ON i.ord = o.id;",
+              "output": "4|2",
+              "accept": ["4 | 2"],
+              "why": "Four join rows, from two distinct orders. Order 3 is absent because the inner join drops it."}],
+ "rows": [{"code": "SELECT o.cust, count(*)\nFROM orders o JOIN items i ON i.ord = o.id\nGROUP BY o.cust;",
+           "answer": "2",
+           "why": "One group per customer that has any items: Ada and Grace. Linus has no items, so the inner join leaves him out entirely."}],
+},
+{
+ "id": "s4-005", "topic": "s4", "name": "string_agg collects a group",
+ "summary": (
+  "Sometimes you want the members of a group, not a count of them. string_agg "
+  "concatenates them into one value.\n\n"
+  "    SELECT dept, string_agg(name, ',' ORDER BY name)\n"
+  "    FROM employees GROUP BY dept;\n\n"
+  "The ORDER BY inside the aggregate is what makes the output stable — without "
+  "it the members appear in whatever order the group was built, which can change "
+  "between runs. It is easy to leave out and produces a value that looks "
+  "deterministic and is not.\n\n"
+  "array_agg does the same thing into an array, which is usually better if the "
+  "result is going back to an application rather than to a human.\n\n"
+  "MySQL calls it GROUP_CONCAT, SQLite calls it group_concat, and neither takes "
+  "the same argument shape — this one does not port."
+ ),
+ "fixture": EMP,
+ "predict": [{"code": "SELECT string_agg(name, ',' ORDER BY name)\nFROM employees WHERE dept = 10;",
+              "output": "Ada,Grace",
+              "why": "The two Eng employees, joined in name order. Without the ORDER BY inside the aggregate the order would be unspecified."}],
+ "recall": [{"prompt": "What makes string_agg output deterministic?",
+             "answer": "an ORDER BY inside the aggregate",
+             "accept": ["ORDER BY inside the aggregate", "ordering the aggregate",
+                        "an ORDER BY in the aggregate call"],
+             "why": "Without it the members appear in whatever order the group was assembled."}],
+},
+{
+ "id": "s5-003", "topic": "s5", "name": "A scalar subquery per row",
+ "summary": (
+  "A subquery in the SELECT list must return one row and one column. It runs "
+  "conceptually once per outer row, and returns NULL rather than nothing when it "
+  "finds no match.\n\n"
+  "    SELECT o.cust,\n"
+  "           (SELECT count(*) FROM items i WHERE i.ord = o.id)\n"
+  "    FROM orders o;\n\n"
+  "count is the special case: it returns 0 for an empty set, so the order with "
+  "no items shows 0 rather than NULL. Any other aggregate — sum, max — would "
+  "give NULL there, which is the usual source of a surprising blank.\n\n"
+  "The alternative is a LEFT JOIN with GROUP BY, which is one pass rather than "
+  "one per row, but needs coalesce to turn the missing side into 0. Postgres "
+  "often plans both the same way."
+ ),
+ "fixture": ORD,
+ "predict": [{"code": "SELECT (SELECT count(*) FROM items i\n        WHERE i.ord = o.id)\nFROM orders o\nORDER BY o.id;",
+              "output": "3\n1\n0",
+              "why": "Orders 1, 2 and 3 have three, one and no items. count returns 0 for the empty set; sum or max would have returned NULL."}],
+ "confusable": [{
+   "prompt": "A correlated sum(...) subquery finds no matching rows. What does that row show?",
+   "options": ["NULL", "0", "An empty string", "The row is dropped"],
+   "answer": 0,
+   "explain": "Only count returns 0 over an empty set. sum, avg, max and min all return NULL — wrap in coalesce if you need a number."}],
+},
+{
+ "id": "s6-003", "topic": "s6", "name": "How much UNION removes",
+ "summary": (
+  "The cost of UNION is proportional to what it has to look at, not to what it "
+  "removes. Two branches with no overlap still pay for a full de-duplication "
+  "pass that finds nothing.\n\n"
+  "    SELECT dept FROM employees\n"
+  "    UNION ALL\n"
+  "    SELECT id FROM departments;     -- 7 rows\n\n"
+  "    ... UNION ...                   -- 4 rows\n\n"
+  "The ALL version keeps all four employee departments (including the NULL) and "
+  "all three department ids. UNION collapses the duplicate 10s and the 10, 20 "
+  "appearing on both sides, and treats the two NULLs as one.\n\n"
+  "That last part is worth noticing: set operations are null-safe, so UNION "
+  "de-duplicates NULLs even though NULL = NULL is not true."
+ ),
+ "fixture": EMP,
+ "rows": [{"code": "SELECT dept FROM employees\nUNION ALL\nSELECT id FROM departments;",
+           "answer": "7",
+           "why": "Four rows from employees, including the NULL, plus three department ids. ALL removes nothing."}],
+ "predict": [{"code": "SELECT dept FROM employees\nUNION\nSELECT id FROM departments\nORDER BY 1;",
+              "output": "10\n20\n30\nNULL",
+              "why": "Duplicated 10s collapse, 10 and 20 appear on both sides, and the two NULLs count as one — set operations are null-safe."}],
+},
+{
+ "id": "s7-003", "topic": "s7", "name": "Chained CTEs read top to bottom",
+ "summary": (
+  "Each CTE can refer to the ones declared before it, so a query that would be "
+  "three levels of nesting becomes three named steps in the order they happen.\n\n"
+  "    WITH per_order AS (\n"
+  "      SELECT ord, sum(qty) AS q\n"
+  "      FROM items GROUP BY ord\n"
+  "    ), big AS (\n"
+  "      SELECT * FROM per_order WHERE q > 1\n"
+  "    )\n"
+  "    SELECT count(*) FROM big;\n\n"
+  "That is the aggregate-then-join pattern from the fan-out card, written so "
+  "each stage is visible and separately checkable — you can run the query with "
+  "SELECT * FROM per_order to see the intermediate result.\n\n"
+  "The steps are declarations, not execution order: Postgres still plans the "
+  "whole thing as one query and may inline every stage."
+ ),
+ "fixture": ORD,
+ "predict": [{"code": "WITH per_order AS (\n  SELECT ord, sum(qty) AS q\n  FROM items GROUP BY ord\n)\nSELECT q FROM per_order ORDER BY ord;",
+              "output": "6\n1",
+              "why": "Order 1's items are 2, 1 and 3, so 6; order 2 has a single item of 1. Order 3 has no items and so no group."}],
+ "rows": [{"code": "WITH per_order AS (\n  SELECT ord, sum(qty) AS q\n  FROM items GROUP BY ord\n)\nSELECT * FROM orders o\nLEFT JOIN per_order p ON p.ord = o.id;",
+           "answer": "3",
+           "why": "Aggregating first means one row per order, so the join cannot fan out. Three orders in, three rows out."}],
+},
+{
+ "id": "s8-004", "topic": "s8", "name": "Running totals",
+ "summary": (
+  "Adding ORDER BY inside OVER turns an aggregate into a running one. Without "
+  "it, the aggregate covers the whole partition; with it, each row sees "
+  "everything up to and including itself.\n\n"
+  "    sum(amt) OVER ()                    -- the grand total, on every row\n"
+  "    sum(amt) OVER (ORDER BY mon)        -- running total\n\n"
+  "That difference catches people out, because the two look almost identical and "
+  "one of them is a constant.\n\n"
+  "The reason is the default frame: with ORDER BY it is RANGE BETWEEN UNBOUNDED "
+  "PRECEDING AND CURRENT ROW, and without ORDER BY it is the whole partition.\n\n"
+  "Both forms are useful. sum(x) OVER () beside each row is the neat way to show "
+  "each row's share of the total without a self-join."
+ ),
+ "fixture": SALES,
+ "predict": [{"code": "SELECT sum(amt) OVER (ORDER BY mon)\nFROM sales\nORDER BY mon;",
+              "output": "100\n250\n340\n540",
+              "why": "A running total: 100, then 100+150, then +90, then +200. Adding ORDER BY inside OVER is what makes it cumulative."}],
+ "confusable": [{
+   "prompt": "What does sum(amt) OVER () — no ORDER BY — put on each row?",
+   "options": ["The grand total, the same on every row", "A running total",
+               "The row's own value", "NULL"],
+   "answer": 0,
+   "explain": "With no ORDER BY the frame is the whole partition, so every row sees the same total. ORDER BY makes it cumulative."}],
+},
+{
+ "id": "s8-005", "topic": "s8", "name": "LAG and LEAD",
+ "summary": (
+  "LAG reaches backwards in the ordered window, LEAD forwards. They are how you "
+  "compare a row with its neighbour without a self-join.\n\n"
+  "    lag(amt) OVER (ORDER BY mon)          the previous month's value\n"
+  "    amt - lag(amt) OVER (ORDER BY mon)    the change\n\n"
+  "The first row has no previous row, so LAG returns NULL — and subtracting NULL "
+  "gives NULL, so the first change is blank rather than zero. That is usually "
+  "correct, and if you want a number, LAG takes a default:\n\n"
+  "    lag(amt, 1, 0) OVER (ORDER BY mon)\n\n"
+  "The second argument is the offset, the third the default. Reaching two rows "
+  "back is lag(amt, 2)."
+ ),
+ "fixture": SALES,
+ "predict": [{"code": "SELECT amt - lag(amt) OVER (ORDER BY mon)\nFROM sales\nORDER BY mon;",
+              "output": "NULL\n50\n-60\n110",
+              "why": "The first row has no predecessor, so lag is NULL and the subtraction is NULL. Then 150-100, 90-150, 200-90."}],
+ "fill": [{"code": "-- previous amount, or 0 for month 1\nSELECT lag(amt, 1, __) OVER (ORDER BY mon)\nFROM sales;",
+           "answer": "0", "hint": "the third argument is the default"}],
+},
+{
+ "id": "s8-006", "topic": "s8", "name": "The last_value trap",
+ "summary": (
+  "first_value works as expected inside an ordered window. last_value usually "
+  "does not, and the reason is the default frame.\n\n"
+  "    last_value(amt) OVER (ORDER BY mon)\n\n"
+  "returns each row's own value, not the final one, because the default frame "
+  "ends at the current row — so the last row of the frame IS the current row.\n\n"
+  "The fix is to state the frame explicitly:\n\n"
+  "    last_value(amt) OVER (\n"
+  "      ORDER BY mon\n"
+  "      ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)\n\n"
+  "This is the clearest example of why frames are worth understanding rather "
+  "than memorising which functions misbehave. Nothing is wrong with last_value; "
+  "the frame is simply smaller than you assumed."
+ ),
+ "fixture": SALES,
+ "predict": [{"code": "SELECT last_value(amt) OVER (ORDER BY mon)\nFROM sales\nORDER BY mon;",
+              "output": "100\n150\n90\n200",
+              "why": "The default frame ends at the current row, so the last value in the frame is the row's own. Widen the frame to UNBOUNDED FOLLOWING to get 200 throughout."}],
+ "confusable": [{
+   "prompt": "Why does last_value() with a plain ORDER BY return each row's own value?",
+   "options": ["The default frame ends at the current row", "last_value ignores ORDER BY",
+               "It needs PARTITION BY", "It is a Postgres bug"],
+   "answer": 0,
+   "explain": "The default is RANGE UNBOUNDED PRECEDING TO CURRENT ROW. State ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING."}],
+},
+{
+ "id": "s9-003", "topic": "s9", "name": "Carrying depth through a recursion",
+ "summary": (
+  "The recursive branch can build up a value as it walks, which is how you get "
+  "the depth of each node or the path to it.\n\n"
+  "    WITH RECURSIVE t AS (\n"
+  "      SELECT id, name, 1 AS depth FROM node WHERE parent IS NULL\n"
+  "      UNION ALL\n"
+  "      SELECT n.id, n.name, t.depth + 1\n"
+  "      FROM node n JOIN t ON n.parent = t.id\n"
+  "    )\n"
+  "    SELECT depth FROM t ORDER BY id;\n\n"
+  "The base row starts at 1 and each step adds one. The same trick with an array "
+  "instead of an integer builds the full path, which is what the cycle detection "
+  "on the previous card needs.\n\n"
+  "Note the join is on n.parent = t.id: each round takes the rows found last "
+  "time and looks for their children."
+ ),
+ "fixture": TREE,
+ "predict": [{"code": "WITH RECURSIVE t AS (\n  SELECT id, 1 AS d FROM node\n  WHERE parent IS NULL\n  UNION ALL\n  SELECT n.id, t.d + 1 FROM node n\n  JOIN t ON n.parent = t.id\n)\nSELECT d FROM t ORDER BY id;",
+              "output": "1\n2\n2\n3\n4",
+              "why": "root is depth 1, a and b are 2, a1 is 3 and a1x is 4. Ordering by id lines them up with the table."}],
+ "rows": [{"code": "WITH RECURSIVE t AS (\n  SELECT id FROM node WHERE id = 2\n  UNION ALL\n  SELECT n.id FROM node n\n  JOIN t ON n.parent = t.id\n)\nSELECT * FROM t;",
+           "answer": "3",
+           "why": "Starting at a: itself, a1, and a1x. Starting the recursion anywhere gives that subtree."}],
+},
+{
+ "id": "s10-004", "topic": "s10", "name": "CASE stops at the first match",
+ "summary": (
+  "CASE evaluates its WHEN branches in order and takes the first that is true. "
+  "Later branches are not considered, even if they would also match.\n\n"
+  "    CASE WHEN sal > 50  THEN 'ok'\n"
+  "         WHEN sal > 95  THEN 'high'\n"
+  "         ELSE 'low' END\n\n"
+  "Nothing is ever 'high' here, because anything over 95 is already over 50 and "
+  "matched the first branch. Ordering overlapping conditions from narrowest to "
+  "widest is the whole discipline of writing CASE.\n\n"
+  "This makes CASE useful as a fall-through ladder, and makes a mis-ordered one "
+  "silently wrong — it produces a plausible value for every row and never errors."
+ ),
+ "fixture": EMP,
+ "predict": [{"code": "SELECT CASE WHEN sal > 50 THEN 'ok'\n            WHEN sal > 95 THEN 'high'\n            ELSE 'low' END\nFROM employees ORDER BY id;",
+              "output": "ok\nok\nok\nok",
+              "why": "Every salary is over 50, so the first branch always wins and the 'high' branch is unreachable. Order the conditions narrowest first."}],
+ "confusable": [{
+   "prompt": "In a CASE with two overlapping WHEN branches, which one applies?",
+   "options": ["The first one written", "The most specific one", "The last one written",
+               "It is an error"],
+   "answer": 0,
+   "explain": "Branches are tested in order and the first true one wins, so a wider condition placed first makes narrower ones unreachable."}],
+},
+{
+ "id": "s11-004", "topic": "s11", "name": "RETURNING hands rows back",
+ "summary": (
+  "Postgres lets INSERT, UPDATE and DELETE return the rows they touched, so you "
+  "do not need a second query to find out what happened.\n\n"
+  "    INSERT INTO orders (id, cust, total)\n"
+  "    VALUES (4, 'Bela', 70) RETURNING id;\n\n"
+  "    UPDATE orders SET total = total + 10\n"
+  "    WHERE cust = 'Ada' RETURNING id, total;\n\n"
+  "For an UPDATE, RETURNING gives the NEW values by default; the old ones are "
+  "available through the special OLD alias only in triggers, not here.\n\n"
+  "It matters most for generated keys: RETURNING id is how you learn the "
+  "identity of a row you just inserted without a round trip and without a "
+  "sequence-currval race. It is also what makes data-modifying CTEs possible."
+ ),
+ "fixture": ORD,
+ "predict": [{"code": "UPDATE orders SET total = total + 10\nWHERE cust = 'Ada'\nRETURNING total;",
+              "output": "110",
+              "why": "RETURNING gives the new value, not the old one. One row matched, so one row comes back."}],
+ "rows": [{"code": "DELETE FROM items WHERE ord = 1 RETURNING *;",
+           "answer": "3",
+           "why": "Order 1 has three items, so three rows are deleted and three are returned."}],
+},
+{
+ "id": "s12-003", "topic": "s12", "name": "A CHECK constraint passes on NULL",
+ "summary": (
+  "A CHECK constraint rejects a row only when the condition evaluates to false. "
+  "NULL is not false, so a NULL sails straight through.\n\n"
+  "    CREATE TABLE t (qty int CHECK (qty > 0));\n"
+  "    INSERT INTO t VALUES (NULL);   -- accepted\n\n"
+  "The condition is NULL > 0, which is unknown, and unknown is not a violation. "
+  "That is the standard behaviour and it is the same three-valued logic as "
+  "everywhere else — but a constraint that looks like it guarantees a positive "
+  "quantity guarantees nothing about missing ones.\n\n"
+  "If you meant it, say NOT NULL as well. The two constraints do different jobs "
+  "and a column often needs both."
+ ),
+ "fixture": NO_TABLES,
+ "predict": [{"code": "CREATE TEMP TABLE t (\n  qty int CHECK (qty > 0));\nINSERT INTO t VALUES (NULL);\nSELECT count(*) FROM t;",
+              "output": "1",
+              "why": "NULL > 0 is unknown, not false, and CHECK only rejects false. The row is accepted; NOT NULL is a separate constraint."}],
+ "confusable": [{
+   "prompt": "A column has CHECK (qty > 0). Can it hold NULL?",
+   "options": ["Yes — CHECK only rejects false", "No — NULL fails the check",
+               "Only if the column has a default", "Only in a transaction"],
+   "answer": 0,
+   "explain": "NULL > 0 is unknown, and a CHECK rejects only a definite false. Add NOT NULL if you need one."}],
+},
+{
+ "id": "s13-004", "topic": "s13", "name": "Savepoints roll back part of a transaction",
+ "summary": (
+  "A savepoint is a marker inside a transaction you can roll back to without "
+  "abandoning the whole thing.\n\n"
+  "    BEGIN;\n"
+  "    INSERT INTO t VALUES (1);\n"
+  "    SAVEPOINT s;\n"
+  "    INSERT INTO t VALUES (2);\n"
+  "    ROLLBACK TO s;      -- undoes only the second insert\n"
+  "    COMMIT;             -- the first one is committed\n\n"
+  "It matters more than it looks, because in Postgres any error aborts the entire "
+  "transaction: every later statement fails with current transaction is aborted "
+  "until you roll back. A savepoint before a statement that might fail lets you "
+  "recover and carry on.\n\n"
+  "That is exactly what psql's ON_ERROR_ROLLBACK does, and what most drivers use "
+  "to implement nested transactions — there is no real nesting underneath."
+ ),
+ "fixture": NO_TABLES,
+ "predict": [{"code": "CREATE TEMP TABLE t (n int);\nBEGIN;\nINSERT INTO t VALUES (1);\nSAVEPOINT s;\nINSERT INTO t VALUES (2);\nROLLBACK TO s;\nCOMMIT;\nSELECT n FROM t ORDER BY n;",
+              "output": "1",
+              "why": "Rolling back to the savepoint undoes only what happened after it. The first insert survives the commit."}],
+ "recall": [{"prompt": "In PostgreSQL, what happens to the rest of a transaction after any statement errors?",
+             "answer": "it is aborted until you roll back",
+             "accept": ["the whole transaction aborts", "every later statement fails",
+                        "the transaction is aborted"],
+             "why": "A SAVEPOINT taken before the risky statement is what lets you recover and continue."}],
+},
+
+# ============ second deepening batch: the thin topics ============
+{
+ "id": "s3-008", "topic": "s3", "name": "Self-join and USING",
+ "summary": (
+  "A table can be joined to itself, as long as each side gets its own alias. It "
+  "is how you compare rows within one table.\n\n"
+  "    SELECT a.name, b.name\n"
+  "    FROM employees a JOIN employees b\n"
+  "      ON a.dept = b.dept AND a.id < b.id;\n\n"
+  "The a.id < b.id is doing real work: without it every employee pairs with "
+  "themselves and each pair appears twice, once in each order.\n\n"
+  "When both sides name the join column identically, USING is shorter and "
+  "collapses the two columns into one in the output:\n\n"
+  "    FROM orders JOIN items USING (ord)     -- if both called it ord\n\n"
+  "USING also means SELECT * returns the key once rather than twice, which is "
+  "the main practical difference from ON."
+ ),
+ "fixture": EMP,
+ "rows": [{"code": "SELECT a.name, b.name\nFROM employees a JOIN employees b\n  ON a.dept = b.dept AND a.id < b.id;",
+           "answer": "1",
+           "why": "Only Ada and Grace share a department. a.id < b.id keeps one row per pair instead of two, and stops anyone pairing with themselves."}],
+ "confusable": [{
+   "prompt": "What does USING (id) do that ON a.id = b.id does not?",
+   "options": ["It returns the join column once in SELECT *", "It allows outer joins",
+               "It is faster", "It permits different column names"],
+   "answer": 0,
+   "explain": "USING merges the two identically named columns into one output column. ON leaves both."}],
+},
+{
+ "id": "s4-006", "topic": "s4", "name": "GROUP BY several columns",
+ "summary": (
+  "Grouping by two columns makes one group per distinct combination that "
+  "actually occurs. Combinations with no rows do not appear — GROUP BY never "
+  "invents a group.\n\n"
+  "    SELECT dept, sal, count(*)\n"
+  "    FROM employees GROUP BY dept, sal;\n\n"
+  "That is four groups here, because no two employees share both values.\n\n"
+  "The consequence people trip on is a report with gaps: group sales by month "
+  "and a month with no sales is simply missing, rather than showing zero. The "
+  "fix is to generate the full set of keys and LEFT JOIN the aggregate onto it — "
+  "generate_series is the usual source for dates.\n\n"
+  "ROLLUP and GROUPING SETS add subtotal rows on top of the ordinary grouping, "
+  "which is a different job from filling gaps."
+ ),
+ "fixture": EMP,
+ "rows": [{"code": "SELECT dept, sal FROM employees\nGROUP BY dept, sal;",
+           "answer": "4",
+           "why": "One group per combination that occurs, and all four employees differ in salary. Grouping by dept alone would give three."}],
+ "confusable": [{
+   "prompt": "You group sales by month. A month with no sales shows what?",
+   "options": ["Nothing — the row is absent", "A row with 0", "A row with NULL",
+               "An error"],
+   "answer": 0,
+   "explain": "GROUP BY only produces groups that have rows. Generate the months and LEFT JOIN the aggregate onto them."}],
+},
+{
+ "id": "s5-004", "topic": "s5", "name": "IN is = ANY in disguise",
+ "summary": (
+  "IN (a, b, c) is shorthand for = ANY, and Postgres also lets you pass an array "
+  "instead of a list.\n\n"
+  "    WHERE dept IN (10, 20)\n"
+  "    WHERE dept = ANY (ARRAY[10, 20])\n"
+  "    WHERE dept = ANY (SELECT id FROM departments)\n\n"
+  "The array form is worth knowing because a driver can bind one parameter for "
+  "the whole list. Building an IN list by string concatenation is the classic "
+  "way to end up with an injection hole and a query the planner cannot cache.\n\n"
+  "The mirror image is <> ALL, which is what NOT IN expands to — and which is "
+  "why one NULL in the list makes the whole thing unknown.\n\n"
+  "There is no equivalent shorthand for the NULL-safe case; that is what NOT "
+  "EXISTS is for."
+ ),
+ "fixture": EMP,
+ "rows": [{"code": "SELECT * FROM employees\nWHERE dept = ANY (ARRAY[10, 20]);",
+           "answer": "3",
+           "why": "Identical to dept IN (10, 20). Barbara's NULL matches neither, so she is excluded."}],
+ "recall": [{"prompt": "NOT IN (a, b) expands to which comparison?",
+             "answer": "<> ALL", "accept": ["<> ALL (a, b)", "not equal to all of them",
+                                            "col <> ALL"],
+             "why": "That expansion is why a NULL anywhere in the list makes every row unknown."}],
+},
+{
+ "id": "s5-005", "topic": "s5", "name": "LATERAL sees the row beside it",
+ "summary": (
+  "An ordinary subquery in FROM cannot refer to the other tables in the same "
+  "FROM. LATERAL lifts that restriction, so the subquery runs per outer row.\n\n"
+  "    SELECT o.cust, t.sku\n"
+  "    FROM orders o\n"
+  "    LEFT JOIN LATERAL (\n"
+  "      SELECT sku FROM items i\n"
+  "      WHERE i.ord = o.id ORDER BY qty DESC LIMIT 1\n"
+  "    ) t ON true;\n\n"
+  "That is the clean way to do top-N-per-group when N is small: the subquery is "
+  "an ordinary ORDER BY ... LIMIT, run once per order.\n\n"
+  "LEFT JOIN LATERAL ... ON true keeps outer rows whose subquery found nothing; "
+  "a plain comma or CROSS JOIN LATERAL would drop them. It is the lateral "
+  "equivalent of the difference between INNER and LEFT."
+ ),
+ "fixture": ORD,
+ "rows": [{"code": "SELECT o.cust, t.sku\nFROM orders o\nLEFT JOIN LATERAL (\n  SELECT sku FROM items i WHERE i.ord = o.id\n  ORDER BY qty DESC LIMIT 1\n) t ON true;",
+           "answer": "3",
+           "why": "One row per order. LEFT ... ON true keeps order 3, whose subquery found nothing, with a NULL sku."}],
+ "fill": [{"code": "-- keep orders whose subquery finds nothing\nFROM orders o\nLEFT JOIN __ (SELECT 1) t ON true;",
+           "answer": "LATERAL", "accept": ["lateral"],
+           "hint": "the keyword that lets a subquery see the outer row"}],
+},
+{
+ "id": "s6-004", "topic": "s6", "name": "INTERSECT and EXCEPT in practice",
+ "summary": (
+  "The quickest way to diff two result sets is to run EXCEPT both ways round.\n\n"
+  "    SELECT id FROM expected EXCEPT SELECT id FROM actual;   -- missing\n"
+  "    SELECT id FROM actual EXCEPT SELECT id FROM expected;   -- extra\n\n"
+  "Both compare whole rows and both de-duplicate, so a row appearing twice on "
+  "one side and once on the other looks identical to them. EXCEPT ALL and "
+  "INTERSECT ALL keep the multiplicity if that matters.\n\n"
+  "They are null-safe, unlike IN and NOT IN, which is what makes them reliable "
+  "for a migration check on nullable columns.\n\n"
+  "The branches must line up by position, not by name: the first column of one "
+  "is compared with the first column of the other, whatever they are called."
+ ),
+ "fixture": EMP,
+ "rows": [{"code": "SELECT dept FROM employees\nEXCEPT\nSELECT id FROM departments;",
+           "answer": "1",
+           "why": "Employee departments are 10, 10, 20 and NULL. Removing 10, 20 and 30 leaves NULL — one row, because EXCEPT is null-safe and de-duplicates."}],
+ "predict": [{"code": "SELECT dept FROM employees\nINTERSECT\nSELECT id FROM departments\nORDER BY 1;",
+              "output": "10\n20",
+              "why": "Only the departments that both appear in employees and exist in departments. Legal (30) has no employees, and NULL matches nothing on the right."}],
+},
+{
+ "id": "s7-004", "topic": "s7", "name": "One snapshot for the whole statement",
+ "summary": (
+  "Every branch of a statement sees the database as it was when the statement "
+  "began. A data-modifying CTE therefore cannot see its own effects, and neither "
+  "can the query that reads from it.\n\n"
+  "    WITH gone AS (\n"
+  "      DELETE FROM items WHERE ord = 1\n"
+  "      RETURNING *\n"
+  "    )\n"
+  "    SELECT count(*) FROM items;\n\n"
+  "returns 4, not 1: the outer SELECT reads the snapshot from before the delete. "
+  "To count what survived, count from the CTE's RETURNING rows instead, or use "
+  "two statements.\n\n"
+  "This is not a quirk to work around so much as the rule that makes the whole "
+  "thing safe: with one snapshot, the order in which branches happen to run "
+  "cannot change the result."
+ ),
+ "fixture": ORD,
+ "predict": [{"code": "WITH gone AS (\n  DELETE FROM items WHERE ord = 1\n  RETURNING *\n)\nSELECT count(*) FROM items;",
+              "output": "4",
+              "why": "The outer SELECT reads the snapshot taken before the statement ran, so it still sees all four items. The delete does take effect afterwards."}],
+ "confusable": [{
+   "prompt": "A data-modifying CTE deletes rows. What does the outer SELECT from the same table see?",
+   "options": ["The rows as they were before the statement", "The rows after the delete",
+               "An error", "It depends on declaration order"],
+   "answer": 0,
+   "explain": "All branches share one snapshot taken at the start, so no branch sees another's changes."}],
+},
+{
+ "id": "s8-007", "topic": "s8", "name": "PARTITION BY keeps every row",
+ "summary": (
+  "A window function adds a column; it never removes a row. That is the whole "
+  "difference from GROUP BY, and the reason both exist.\n\n"
+  "    SELECT dept, count(*) FROM employees\nGROUP BY dept;\n"
+  "    -- 3 rows: one per department\n\n"
+  "    SELECT dept,\n"
+  "      count(*) OVER (PARTITION BY dept)\n"
+  "    FROM employees;\n"
+  "    -- 4 rows: every employee, with their department's size beside them\n\n"
+  "So the window form is what you want when the detail matters: each employee "
+  "next to their department average, each order next to its share of the day's "
+  "total.\n\n"
+  "A NULL partition key forms its own partition, exactly as it forms its own "
+  "GROUP BY group."
+ ),
+ "fixture": EMP,
+ "predict": [{"code": "SELECT count(*) OVER (PARTITION BY dept)\nFROM employees\nORDER BY id;",
+              "output": "2\n2\n1\n1",
+              "why": "Ada and Grace are both in a department of two; Linus is alone in 20; Barbara's NULL forms a partition of one."}],
+ "rows": [{"code": "SELECT dept,\n  count(*) OVER (PARTITION BY dept)\nFROM employees;",
+           "answer": "4",
+           "why": "One row per employee. GROUP BY dept would collapse them to three."}],
+},
+{
+ "id": "s10-005", "topic": "s10", "name": "round, trunc and casting",
+ "summary": (
+  "Casting to an integer rounds; truncating discards. They differ on exactly the "
+  "values you are most likely to test with.\n\n"
+  "    SELECT 2.5::int;        -- 3   (half away from zero)\n"
+  "    SELECT trunc(2.9);      -- 2\n"
+  "    SELECT round(2.5);      -- 3\n"
+  "    SELECT 5 / 2;           -- 2   (integer division truncates)\n\n"
+  "So integer division truncates while an integer cast rounds, which means "
+  "(5/2)::int and 5::numeric/2 give different answers from the same numbers.\n\n"
+  "round takes a second argument for decimal places, but only on numeric — "
+  "round(x, 2) on a double precision value is an error in Postgres, and casting "
+  "to numeric first is the fix. That error appears the first time real data "
+  "arrives as a float."
+ ),
+ "fixture": NO_TABLES,
+ "predict": [{"code": "SELECT 5 / 2, 5.0 / 2, 2.5::int;",
+              "output": "2|2.5000000000000000|3",
+              "accept": ["2 | 2.5000000000000000 | 3"],
+              "why": "Integer division truncates to 2; one numeric operand gives exact decimal; casting 2.5 to int rounds half away from zero, to 3."}],
+ "confusable": [{
+   "prompt": "Why does round(x, 2) sometimes fail in Postgres?",
+   "options": ["Two-argument round needs numeric, not double precision",
+               "round takes only one argument", "x must be positive",
+               "It needs an explicit locale"],
+   "answer": 0,
+   "explain": "There is no round(double precision, int). Cast to numeric first — which you want for money anyway."}],
+},
+{
+ "id": "s11-005", "topic": "s11", "name": "UPDATE ... FROM",
+ "summary": (
+  "Updating one table from another does not use a JOIN clause in Postgres. It "
+  "uses FROM, and the join condition goes in WHERE.\n\n"
+  "    UPDATE orders o\n"
+  "    SET total = total + i.qty\n"
+  "    FROM items i\n"
+  "    WHERE i.ord = o.id;\n\n"
+  "The trap is that if the FROM side matches a target row more than once, the "
+  "target is updated only ONCE, using an arbitrary one of the matching rows. No "
+  "error, no warning, no indication which one won.\n\n"
+  "So an update meant to add every item's quantity adds exactly one of them. "
+  "When the source can match more than once, aggregate it first:\n\n"
+  "    FROM (SELECT ord, sum(qty) q FROM items GROUP BY ord) i\n\n"
+  "This is a genuine dialect difference — MySQL writes UPDATE ... JOIN, and its "
+  "behaviour here is not the same."
+ ),
+ "fixture": ORD,
+ # Deliberately a rows question, not a predict. Which of the three matching
+ # items wins is genuinely arbitrary, so asking for the resulting total would
+ # be asking the learner to predict something undefined. How MANY rows are
+ # updated is defined, and is the actual lesson: one per target row, not one
+ # per match.
+ "rows": [{"code": "UPDATE orders o SET total = total + i.qty\nFROM items i WHERE i.ord = o.id\nRETURNING o.id, o.total;",
+           "answer": "2",
+           "why": "Orders 1 and 2 each update exactly once, even though order 1 matches three items — so the total gains one arbitrary quantity, not the sum. Order 3 matches nothing."}],
+ "confusable": [{
+   "prompt": "In UPDATE ... FROM, the source matches a target row three times. What happens?",
+   "options": ["The target is updated once, from an arbitrary match",
+               "It is updated three times, cumulatively", "Postgres raises an error",
+               "The target row is skipped"],
+   "answer": 0,
+   "explain": "One update per target row, using an unspecified matching source row. Aggregate the source when it can match more than once."}],
+},
+{
+ "id": "s12-004", "topic": "s12", "name": "Composite unique constraints",
+ "summary": (
+  "A unique constraint on two columns forbids duplicate PAIRS, not duplicate "
+  "values in either column.\n\n"
+  "    UNIQUE (ord, sku)\n\n"
+  "allows the same order many times and the same sku many times, and forbids the "
+  "same sku appearing twice on one order — which is usually exactly the rule you "
+  "want for a line-items table.\n\n"
+  "Like any unique constraint it is null-permissive: a row with a NULL sku "
+  "collides with nothing, so several NULL skus can sit on the same order.\n\n"
+  "It also creates an index on (ord, sku), which follows the leftmost-prefix "
+  "rule — so it can serve lookups by ord, and by ord and sku together, but not "
+  "by sku alone."
+ ),
+ "fixture": ORD,
+ "rows": [{"code": "SELECT ord, sku FROM items\nGROUP BY ord, sku HAVING count(*) > 1;",
+           "answer": "0",
+           "why": "No pair repeats, so UNIQUE (ord, sku) would be satisfiable. Sku A appears twice but on different orders, which the constraint permits."}],
+ "confusable": [{
+   "prompt": "A table has UNIQUE (a, b). Which insert is rejected?",
+   "options": ["A second row with the same a AND the same b",
+               "A second row with the same a", "A second row with the same b",
+               "Any row where a is NULL"],
+   "answer": 0,
+   "explain": "The constraint is on the pair. Either column may repeat freely as long as the combination does not."}],
+},
+{
+ "id": "s13-005", "topic": "s13", "name": "Reading your own writes",
+ "summary": (
+  "Inside a transaction you always see your own uncommitted changes, whatever "
+  "the isolation level. Isolation governs what you see of OTHER transactions.\n\n"
+  "    BEGIN;\n"
+  "    INSERT INTO t VALUES (1);\n"
+  "    SELECT count(*) FROM t;   -- 1, your own row is visible\n"
+  "    ROLLBACK;\n"
+  "    SELECT count(*) FROM t;   -- 0\n\n"
+  "This is why a test that inserts and then reads back inside one transaction "
+  "always passes, and tells you nothing about whether the data was committed.\n\n"
+  "The exception, from the CTE card, is within a single statement: branches of "
+  "one statement share a snapshot and do not see each other's writes. Between "
+  "statements in the same transaction, you do."
+ ),
+ "fixture": NO_TABLES,
+ "predict": [{"code": "CREATE TEMP TABLE t (n int);\nBEGIN;\nINSERT INTO t VALUES (1);\nSELECT count(*) FROM t;",
+              "output": "1",
+              "why": "A transaction always sees its own uncommitted writes. Isolation levels only control visibility of OTHER transactions."}],
+ "confusable": [{
+   "prompt": "Inside an uncommitted transaction, can you SELECT the rows you just inserted?",
+   "options": ["Yes, always", "Only at READ UNCOMMITTED", "Only after a savepoint",
+               "No, not until COMMIT"],
+   "answer": 0,
+   "explain": "Isolation controls what you see of other transactions. Your own writes are always visible to you."}],
+},
+{
+ "id": "s14-004", "topic": "s14", "name": "Partial and expression indexes",
+ "summary": (
+  "An index does not have to cover the whole table or store the column as-is.\n\n"
+  "    CREATE INDEX ON orders (cust) WHERE total > 100;\n"
+  "    CREATE INDEX ON users (lower(email));\n\n"
+  "A partial index only holds rows matching its WHERE, so it is smaller, faster "
+  "to scan and cheaper to maintain. The planner uses it only when it can prove "
+  "your query implies the index's condition — so a query for total > 200 can use "
+  "it, and one with no total predicate cannot.\n\n"
+  "An expression index stores the computed value, which is what makes "
+  "lower(email) = ... indexable at all. The expression in the query has to match "
+  "the one in the index exactly.\n\n"
+  "The common real use is indexing only the interesting rows: WHERE status = "
+  "'pending' on a table where almost everything is done."
+ ),
+ "confusable": [{
+   "prompt": "You have CREATE INDEX ON t (a) WHERE done = false. Which query can use it?",
+   "options": ["WHERE a = 1 AND done = false", "WHERE a = 1",
+               "WHERE done = true", "WHERE a = 1 OR done = false"],
+   "answer": 0,
+   "explain": "The planner uses a partial index only when the query provably implies its predicate. Without done = false it cannot know the index holds the needed rows."}],
+ "recall": [{"prompt": "Which kind of index makes lower(email) = ... fast?",
+             "answer": "an expression index",
+             "accept": ["expression index", "a functional index", "functional index",
+                        "an index on lower(email)"],
+             "why": "It stores the computed value, so the predicate matches what the index holds."}],
+},
+{
+ "id": "s14-005", "topic": "s14", "name": "Index-only scans",
+ "summary": (
+  "If an index contains every column a query needs, Postgres can answer from the "
+  "index alone and never touch the table. EXPLAIN calls that an Index Only Scan.\n\n"
+  "    CREATE INDEX ON orders (cust) INCLUDE (total);\n"
+  "    SELECT total FROM orders WHERE cust = 'Ada';\n\n"
+  "INCLUDE adds payload columns that are stored but not part of the sort key, so "
+  "they do not affect the leftmost-prefix rule and do not bloat the comparisons.\n\n"
+  "The catch is the visibility map. Postgres still has to know each row is "
+  "visible to your transaction, and that information lives in the table. On a "
+  "table that has not been vacuumed recently, an index-only scan degrades into "
+  "heap fetches — which EXPLAIN reports as Heap Fetches, and which is why an "
+  "index-only scan can be fast in testing and slow in production."
+ ),
+ "confusable": [{
+   "prompt": "An Index Only Scan is reporting many Heap Fetches. What is the usual cause?",
+   "options": ["The visibility map is stale — the table needs vacuuming",
+               "The index is missing a column", "Statistics are out of date",
+               "The query lacks an ORDER BY"],
+   "answer": 0,
+   "explain": "Visibility lives in the table, not the index. Until VACUUM marks pages all-visible, each row still needs a heap lookup."}],
+ "recall": [{"prompt": "Which index clause adds payload columns without making them part of the sort key?",
+             "answer": "INCLUDE", "accept": ["include", "the INCLUDE clause"],
+             "why": "They are stored for index-only scans but do not affect the leftmost-prefix rule."}],
 },
 ]

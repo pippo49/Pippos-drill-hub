@@ -7,8 +7,8 @@ script, never the generated HTML.
 
 Only five things are per-app: branding (title, logo, manifest, icon, service
 worker), PROG_KEY, MODE_LABELS, the predict prompt/label, and the deck. The
-engine JS is byte-identical to python-drill.html everywhere else -- which is the
-property `tools/check_engine_identical.py` exists to enforce.
+engine JS is byte-identical to python-drill.html everywhere else, which is what
+keeps a fix made in pyDrill flowing to both.
 
     python3 tools/make_drill.py            # builds both
     python3 tools/make_drill.py git        # just one
@@ -62,7 +62,9 @@ APPS = {
         "modes": SQL_MODES,
         "deck": "sql_deck.json",
         "prompt": "$ psql",
-        "predict_lbl": "The result rows, in order, one per line",
+        # The deck contains nulls and booleans, so the label has to state how
+        # psql prints them or the answer becomes a guess about formatting.
+        "predict_lbl": "Rows in order, one per line \u2014 | between columns, NULL, t/f",
     },
 }
 
