@@ -8,6 +8,7 @@ Apps in this repo:
 - `latin_trainer.html` + `vocab_la.json` — Latin→English, school years 1–2. Details: `HANDOFF_LA.md`
 - `italian_trainer.html` + `vocab_it.json` — Italian→English, A1–A2. Details: `HANDOFF_IT.md`
 - `french_trainer.html` + `vocab_fr.json` — French→English, A1–A2, **small-talk focused**. Details: `HANDOFF_FR.md`
+- `portuguese_trainer.html` + `vocab_pt.json` — **European Portuguese** with Brazilian forms marked and both accepted. Details: `HANDOFF_PT.md`
 - `medical_trainer.html` + `vocab_med.json` — **Latin & Greek medical terminology**, for medicine students. Details: `HANDOFF_MED.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
 
@@ -34,6 +35,41 @@ word not in them rather than guessing. Italian's `essere`/`stare` split is **not
 Spanish's `ser`/`estar` — `essere` covers location and temporary states
 (`sono a Roma`, `sono stanco`), with `stare` reserved for health, the progressive,
 `stare per`, and fixed expressions. See `HANDOFF_IT.md` before touching that bank.
+
+## Portuguese: generated from Spanish, with a variant axis
+
+`portuguese_trainer.html` is **generated from `spanish_trainer.html`** by
+`scripts/make_portuguese_trainer.py`; its deck comes from
+`scripts/build_portuguese_vocab.py` + `scripts/portuguese_morph.py`.
+
+European Portuguese is primary. An entry with a `br` field shows both forms in
+the reveal panel and **accepts both when typed** — that acceptance is a runtime
+property of `checkAnswer`, so `scripts/check_portuguese.py` tests it by running
+the app's own code over all 25 pairs.
+
+Five persons, not six: *vós* is archaic in both varieties, so the paradigm is
+eu / tu / ele·ela·você / nós / eles·elas·vocês.
+
+Three banks Spanish has no use for: **personal infinitive**, **future
+subjunctive** and **false friends against Spanish**. The first two are the
+valuable ones — the personal infinitive is regular for every verb (ser→sermos)
+while the future subjunctive uses the preterite stem (ser→formos), and for a
+regular verb they are the same word, which is exactly why they get confused.
+
+A **spelling oracle** (`pyspellchecker`, European Portuguese, allowlisted) runs
+over every generated form and caught four real bugs: the -ês plural dropping its
+accent, the -vel family taking -eis not -éis, -guer dropping only its u, and
+`hoje` mis-classified as a noun. `-ão` plurals are lexical and curated, exactly
+like Italian's -co/-go.
+
+**The bug worth remembering when scaffolding any app from another:**
+`enabledModes` is a second list of mode names as BARE object keys, so a
+quoted-string rename misses it. Left stale it enabled two modes that no longer
+existed and never enabled three new ones — five of twelve drill types dead,
+while `validate.py` still passed because every mode that could run did. It is
+now derived from `MODE_LABELS`, and `check_portuguese.py` fails on any offered
+drill type that generates nothing. The `<title>` and one `promptLabel` were
+missed the same way and only showed up in a browser screenshot.
 
 ## Medical terminology: a different drill set on the same engine
 
@@ -259,6 +295,13 @@ python3 scripts/validate.py polish_trainer.html
 ```
 
 **ALWAYS run rebuild + validate after any change to a vocab JSON or to the inline JS. Never hand back or commit an unvalidated build.**
+
+Generated apps (`medical_trainer.html`, `portuguese_trainer.html`) are rebuilt by
+their own scripts, never hand-edited:
+```
+python3 scripts/build_portuguese_vocab.py && python3 scripts/make_portuguese_trainer.py
+python3 scripts/validate.py portuguese_trainer.html && python3 scripts/check_portuguese.py
+```
 
 To edit engine JS/CSS: edit the `*.html` directly (everything before `const VOCAB_DATA` is head/CSS; everything after the data blob is the app JS), then validate.
 
