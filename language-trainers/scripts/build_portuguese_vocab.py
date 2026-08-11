@@ -48,6 +48,13 @@ SPELLING_OK = {
     "açougues": "plural of açougue (BR)",
     "sorvetes": "plural of sorvete (BR)",
     "abajur": "Brazilian for a table lamp; the dictionary is European",
+    "outonos": "regular plural of outono; the dictionary lacks the rare plural",
+    "méis": "correct plural of mel, like papel/papéis; rare, so absent",
+    "sangues": "sangue is a mass noun — the plural is regular but seldom used",
+    "raivas": "likewise a mass noun with a regular, rarely used plural",
+    "time": "Brazilian for a sports team, from English; the dictionary is European",
+    "garçom": "Brazilian for a waiter; the dictionary is European",
+    "mail": "half of the Brazilian e-mail, which the tokeniser splits on the hyphen",
     "ecrãs": "plural of ecrã; the dictionary lacks it",
     "telemóveis": "plural of telemóvel; the dictionary lacks it",
 }
@@ -203,6 +210,126 @@ NOUNS = [
     ("sonho", "m", "dream", "10"), ("vontade", "f", "will, desire", "10"),
     ("opinião", "f", "opinion", "10"), ("decisão", "f", "decision", "10"),
     ("mudança", "f", "change", "10"), ("motivo", "m", "reason, motive", "10"),
+
+    # --- deepening pass: nouns ------------------------------------------
+    # L1 people
+    ("neto", "m", "grandson", "1"), ("neta", "f", "granddaughter", "1"),
+    ("sobrinho", "m", "nephew", "1"), ("cunhado", "m", "brother-in-law", "1"),
+    ("namorado", "m", "boyfriend", "1"), ("namorada", "f", "girlfriend", "1"),
+    ("colega", "m", "colleague", "1"), ("chefe", "m", "boss", "1"),
+    ("adulto", "m", "adult", "1"), ("jovem", "m", "young person", "1"),
+    ("bebé", "m", "baby (PT)", "1"), ("casal", "m", "couple", "1"),
+    ("grupo", "m", "group", "1"), ("equipa", "f", "team (PT)", "1"),
+    # L2 house
+    ("corredor", "m", "corridor", "2"), ("varanda", "f", "balcony", "2"),
+    ("garagem", "f", "garage", "2"), ("telhado", "m", "roof", "2"),
+    ("tapete", "m", "carpet, rug", "2"), ("cortina", "f", "curtain", "2"),
+    ("almofada", "f", "cushion, pillow", "2"), ("lençol", "m", "sheet", "2"),
+    ("cobertor", "m", "blanket", "2"), ("gaveta", "f", "drawer", "2"),
+    ("estante", "f", "shelf, bookcase", "2"), ("fogão", "m", "cooker, stove", "2"),
+    ("forno", "m", "oven", "2"), ("frigorífico", "m", "fridge (PT)", "2"),
+    ("máquina", "f", "machine", "2"), ("lixo", "m", "rubbish", "2"),
+    ("sabão", "m", "soap", "2"), ("torneira", "f", "tap", "2"),
+    # L3 time
+    ("madrugada", "f", "early morning", "3"), ("meio-dia", "m", "midday", "3", "meios-dias"),
+    ("meia-noite", "f", "midnight", "3", "meias-noites"),
+    ("estação do ano", "f", "season", "3", "estações do ano"),
+    ("primavera", "f", "spring", "3"), ("verão", "m", "summer", "3"),
+    ("outono", "m", "autumn", "3"), ("inverno", "m", "winter", "3"),
+    ("segunda-feira", "f", "Monday", "3", "segundas-feiras"),
+    ("sábado", "m", "Saturday", "3"), ("domingo", "m", "Sunday", "3"),
+    ("data", "f", "date", "3"), ("prazo", "m", "deadline", "3"),
+    ("atraso", "m", "delay", "3"), ("vez", "f", "time, turn", "3"),
+    # L4 food
+    ("refeição", "f", "meal", "4"), ("lanche", "m", "snack", "4"),
+    ("prato do dia", "m", "dish of the day", "4", "pratos do dia"),
+    ("entrada", "f", "starter, entrance", "4"), ("salada", "f", "salad", "4"),
+    ("cebola", "f", "onion", "4"), ("alho", "m", "garlic", "4"),
+    ("tomate", "m", "tomato", "4"), ("cenoura", "f", "carrot", "4"),
+    ("feijão", "m", "bean", "4"), ("massa", "f", "pasta", "4"),
+    ("sandes", "f", "sandwich (PT)", "4", "sandes"),
+    ("bacalhau", "m", "salt cod", "4"), ("marisco", "m", "seafood", "4"),
+    ("gelado", "m", "ice cream (PT)", "4"), ("pastel", "m", "pastry", "4"),
+    ("bolacha", "f", "biscuit (PT)", "4"), ("chocolate", "m", "chocolate", "4"),
+    ("mel", "m", "honey", "4"), ("pimenta", "f", "pepper", "4"),
+    ("empregado", "m", "waiter, employee", "4"),
+    ("ementa", "f", "menu (PT)", "4"), ("gorjeta", "f", "tip", "4"),
+    # L5 town & travel
+    ("bairro", "m", "neighbourhood", "5"), ("centro", "m", "centre", "5"),
+    ("esquina", "f", "corner", "5"), ("passeio", "m", "pavement, walk (PT)", "5"),
+    ("semáforo", "m", "traffic light", "5"), ("cruzamento", "m", "crossroads", "5"),
+    ("paragem", "f", "stop (PT)", "5"), ("metro", "m", "underground", "5"),
+    ("elétrico", "m", "tram (PT)", "5"), ("táxi", "m", "taxi", "5"),
+    ("camião", "m", "lorry (PT)", "5"), ("mota", "f", "motorbike (PT)", "5"),
+    ("gasolina", "f", "petrol", "5"), ("condutor", "m", "driver (PT)", "5"),
+    ("polícia", "f", "police", "5"), ("bombeiro", "m", "firefighter", "5"),
+    ("farol", "m", "lighthouse, headlight", "5"), ("porto", "m", "port", "5"),
+    ("fronteira", "f", "border", "5"), ("passaporte", "m", "passport", "5"),
+    ("quarto duplo", "m", "double room", "5", "quartos duplos"),
+    ("reserva", "f", "booking", "5"), ("chegada", "f", "arrival", "5"),
+    ("partida", "f", "departure", "5"),
+    # L6 nature
+    ("nevoeiro", "m", "fog (PT)", "6"), ("trovoada", "f", "thunderstorm", "6"),
+    ("relâmpago", "m", "lightning", "6"), ("gelo", "m", "ice", "6"),
+    ("sombra", "f", "shade, shadow", "6"), ("luz", "f", "light", "6"),
+    ("ilha", "f", "island", "6"), ("lago", "m", "lake", "6"),
+    ("vale", "m", "valley", "6"), ("colina", "f", "hill", "6"),
+    ("areia", "f", "sand", "6"), ("onda", "f", "wave", "6"),
+    ("folha", "f", "leaf, sheet", "6"), ("raiz", "f", "root", "6"),
+    ("semente", "f", "seed", "6"), ("erva", "f", "grass, herb", "6"),
+    ("porco", "m", "pig", "6"), ("ovelha", "f", "sheep", "6"),
+    ("galinha", "f", "hen", "6"), ("rato", "m", "mouse, rat", "6"),
+    ("abelha", "f", "bee", "6"), ("mosca", "f", "fly", "6"),
+    # L7 body & health
+    ("pescoço", "m", "neck", "7"), ("ombro", "m", "shoulder", "7"),
+    ("joelho", "m", "knee", "7"), ("barriga", "f", "belly", "7"),
+    ("peito", "m", "chest", "7"), ("pele", "f", "skin", "7"),
+    ("osso", "m", "bone", "7"), ("sangue", "m", "blood", "7"),
+    ("cirurgia", "f", "surgery", "7"), ("consulta", "f", "appointment", "7"),
+    ("receita", "f", "prescription, recipe", "7"), ("comprimido", "m", "tablet", "7"),
+    ("vacina", "f", "vaccine", "7"), ("gripe", "f", "flu", "7"),
+    ("constipação", "f", "cold (PT)", "7"), ("tosse", "f", "cough", "7"),
+    ("ferida", "f", "wound", "7"), ("dentista", "m", "dentist", "7"),
+    # L8 work & study
+    ("carreira", "f", "career", "8"), ("cargo", "m", "post, position", "8"),
+    ("salário", "m", "salary", "8"), ("contrato", "m", "contract", "8"),
+    ("entrevista", "f", "interview", "8"), ("colega de trabalho", "m", "workmate", "8",
+     "colegas de trabalho"),
+    ("prazo de entrega", "m", "delivery deadline", "8", "prazos de entrega"),
+    ("relatório", "m", "report", "8"), ("apresentação", "f", "presentation", "8"),
+    ("formação", "f", "training", "8"), ("licenciatura", "f", "degree (PT)", "8"),
+    ("nota", "f", "mark, note", "8"), ("turma", "f", "class group", "8"),
+    ("biblioteca", "f", "library", "8"), ("dicionário", "m", "dictionary", "8"),
+    ("tradução", "f", "translation", "8"), ("erro", "m", "mistake", "8"),
+    ("exercício", "m", "exercise", "8"), ("regra", "f", "rule", "8"),
+    ("exemplo", "m", "example", "8"),
+    # L9 things & tech
+    ("teclado", "m", "keyboard", "9"), ("impressora", "f", "printer", "9"), ("carregador", "m", "charger", "9"),
+    ("bateria", "f", "battery", "9"), ("aplicação", "f", "app", "9"),
+    ("palavra-passe", "f", "password (PT)", "9", "palavras-passe"),
+    ("correio eletrónico", "m", "email (PT)", "9", "correios eletrónicos"),
+    ("rede", "f", "network", "9"), ("ligação", "f", "connection", "9"),
+    ("notícia", "f", "news item", "9"), ("anúncio", "m", "advertisement", "9"),
+    ("bilheteira", "f", "ticket office (PT)", "9"),
+    ("camisola", "f", "jumper (PT)", "9"), ("vestido", "m", "dress", "9"),
+    ("saia", "f", "skirt", "9"), ("meia", "f", "sock", "9"),
+    ("cinto", "m", "belt", "9"), ("óculos", "m", "glasses", "9", "óculos"),
+    ("anel", "m", "ring", "9"), ("carteira", "f", "wallet, handbag", "9"),
+    ("guarda-chuva", "m", "umbrella", "9", "guarda-chuvas"),
+    # L10 abstract
+    ("ódio", "m", "hatred", "10"), ("raiva", "f", "anger", "10"),
+    ("orgulho", "m", "pride", "10"), ("vergonha", "f", "shame", "10"),
+    ("ciúme", "m", "jealousy", "10"), ("surpresa", "f", "surprise", "10"),
+    ("desejo", "m", "wish", "10"), ("dúvida", "f", "doubt", "10"),
+    ("certeza", "f", "certainty", "10"), ("segredo", "m", "secret", "10"),
+    ("silêncio", "m", "silence", "10"), ("barulho", "m", "noise", "10"),
+    ("cuidado", "m", "care", "10"), ("perigo", "m", "danger", "10"),
+    ("risco", "m", "risk", "10"), ("erro humano", "m", "human error", "10",
+     "erros humanos"),
+    ("costume", "m", "custom, habit", "10"), ("cultura", "f", "culture", "10"),
+    ("sociedade", "f", "society", "10"), ("governo", "m", "government", "10"),
+    ("lei", "f", "law", "10"), ("imposto", "m", "tax", "10"),
+    ("preço justo", "m", "fair price", "10", "preços justos"),
 ]
 
 # ---------------------------------------------------------------------------
@@ -254,7 +381,61 @@ VERBS = [
     ("dançar", "to dance", "15"), ("viajar", "to travel", "15"),
     ("cozinhar", "to cook", "15"), ("limpar", "to clean", "15"),
     ("lavar", "to wash", "15"), ("dirigir", "to drive (BR), to direct", "15"),
-    ("conduzir_placeholder", "", ""),
+
+    # --- deepening pass: verbs ------------------------------------------
+    ("conduzir", "to drive (PT)", "13"), ("acontecer", "to happen", "14"),
+    ("existir", "to exist", "14"), ("tornar", "to make, to turn", "14"),
+    ("criar", "to create, to raise", "14"), ("nascer", "to be born", "14"),
+    ("morrer", "to die", "14"), ("crescer", "to grow", "14"),
+    ("mostrar", "to show", "12"), ("explicar", "to explain", "12"),
+    ("contar", "to tell, to count", "12"), ("repetir", "to repeat", "12"),
+    ("traduzir", "to translate", "12"), ("significar", "to mean", "12"),
+    ("chorar", "to cry", "14"), ("rir", "to laugh", "14"),
+    ("sorrir", "to smile", "14"), ("gritar", "to shout", "14"),
+    ("cumprimentar", "to greet", "14"), ("apresentar", "to introduce", "14"),
+    ("convidar", "to invite", "14"), ("agradecer", "to thank", "14"),
+    ("desculpar", "to forgive", "14"), ("prometer", "to promise", "14"),
+    ("decidir", "to decide", "15"), ("escolher", "to choose", "15"),
+    ("aceitar", "to accept", "15"), ("recusar", "to refuse", "15"),
+    ("permitir", "to allow", "15"), ("proibir", "to forbid", "15"),
+    ("obrigar", "to force", "15"), ("evitar", "to avoid", "15"),
+    ("melhorar", "to improve", "15"), ("piorar", "to get worse", "15"),
+    ("aumentar", "to increase", "15"), ("diminuir", "to decrease", "15"),
+    ("acrescentar", "to add", "15"), ("retirar", "to remove", "15"),
+    ("guardar", "to keep, to put away", "13"), ("arrumar", "to tidy", "13"),
+    ("emprestar", "to lend", "13"), ("devolver", "to give back", "13"),
+    ("receber", "to receive", "13"), ("enviar", "to send", "13"),
+    ("mandar", "to send, to order", "13"), ("entregar", "to deliver", "13"),
+    ("apanhar", "to catch, to pick up (PT)", "13"),
+    ("atirar", "to throw", "13"), ("empurrar", "to push", "13"),
+    ("puxar", "to pull", "13"), ("bater", "to hit, to knock", "13"),
+    ("cortar", "to cut", "13"), ("partir_quebrar", "", ""),
+    ("quebrar", "to break", "13"), ("consertar", "to repair", "13"),
+    ("construir", "to build", "13"), ("desenhar", "to draw", "13"),
+    ("pintar", "to paint", "13"), ("plantar", "to plant", "13"),
+    ("regar", "to water", "13"), ("varrer", "to sweep", "15"),
+    ("passear", "to go for a walk", "15"), ("nadar", "to swim", "15"),
+    ("saltar", "to jump", "15"), ("cair", "to fall", "15"),
+    ("levantar", "to lift, to get up", "15"), ("sentar", "to sit", "15"),
+    ("deitar", "to lie down", "15"), ("vestir_ph", "", ""),
+    ("calçar", "to put on (shoes)", "15"), ("despir", "to undress", "15"),
+    ("pentear", "to comb", "15"), ("barbear", "to shave", "15"),
+    ("descansar", "to rest", "15"), ("acordar_ph", "", ""),
+    ("sonhar", "to dream", "14"), ("imaginar", "to imagine", "14"),
+    ("duvidar", "to doubt", "14"), ("acreditar", "to believe", "14"),
+    ("confiar", "to trust", "14"), ("odiar", "to hate", "14"),
+    ("amar", "to love", "14"), ("adorar", "to adore, to love", "14"),
+    ("detestar", "to detest", "14"), ("interessar", "to interest", "14"),
+    ("importar", "to matter, to import", "14"),
+    ("valer", "to be worth", "15"), ("custar", "to cost", "15"),
+    ("gastar", "to spend", "15"), ("poupar", "to save", "15"),
+    ("alugar", "to rent", "15"), ("visitar", "to visit", "15"),
+    ("marcar", "to book, to score", "15"), ("cancelar", "to cancel", "15"),
+    ("assinar", "to sign", "15"), ("carregar", "to carry, to charge", "15"),
+    ("ligar", "to switch on, to phone", "9"), ("desligar", "to switch off", "9"),
+    ("apagar", "to turn off, to erase", "9"), ("gravar", "to record", "9"),
+    ("imprimir", "to print", "9"), ("descarregar", "to download (PT)", "9"),
+    ("pesquisar", "to search", "9"), ("clicar", "to click", "9"),
 ]
 VERBS = [v for v in VERBS if v[1]]
 
@@ -293,6 +474,46 @@ ADJECTIVES = [
     ("importante", "important", "18"), ("interessante", "interesting", "18"),
     ("possível", "possible", "18"), ("necessário", "necessary", "18"),
     ("económico", "economic, cheap (PT)", "18"),
+
+    # --- deepening pass: adjectives --------------------------------------
+    ("comprido", "long", "16"), ("estreito", "narrow", "16"),
+    ("fundo", "deep", "16"), ("redondo", "round", "16"),
+    ("liso", "smooth, straight", "16"), ("duro", "hard", "16"),
+    ("mole", "soft", "16"), ("pesado", "heavy", "16"),
+    ("leve", "light (weight)", "16"), ("claro", "light, clear", "16"),
+    ("escuro", "dark", "16"), ("brilhante", "bright, shiny", "16"),
+    ("simpático", "nice, friendly", "16"), ("antipático", "unfriendly", "16"),
+    ("educado", "polite", "16"), ("mal-educado", "rude", "16"),
+    ("generoso", "generous", "16"), ("egoísta", "selfish", "16"),
+    ("honesto", "honest", "16"), ("preguiçoso", "lazy", "16"),
+    ("inteligente", "intelligent", "16"), ("burro", "stupid", "16"),
+    ("calmo", "calm", "17"), ("nervoso", "nervous", "17"),
+    ("preocupado", "worried", "17"), ("assustado", "frightened", "17"),
+    ("zangado", "angry (PT)", "17"), ("aborrecido", "bored, annoying (PT)", "17"),
+    ("orgulhoso", "proud", "17"), ("envergonhado", "ashamed", "17"),
+    ("apaixonado", "in love", "17"), ("solteiro", "single", "17"),
+    ("casado", "married", "17"), ("ocupado", "busy", "17"),
+    ("livre", "free", "17"), ("pronto", "ready", "17"),
+    ("perdido", "lost", "17"), ("seguro", "safe, sure", "17"),
+    ("perigoso", "dangerous", "17"), ("saudável", "healthy", "17"),
+    ("fresco", "fresh, cool", "17"), ("maduro", "ripe, mature", "17"),
+    ("doce", "sweet", "17"), ("amargo", "bitter", "17"),
+    ("salgado", "salty", "17"), ("picante", "spicy", "17"),
+    ("delicioso", "delicious", "17"), ("nojento", "disgusting", "17"),
+    ("roxo", "purple", "18"), ("dourado", "golden", "18"),
+    ("italiano", "Italian", "18"), ("chinês", "Chinese", "18"),
+    ("japonês", "Japanese", "18"), ("americano", "American", "18"),
+    ("africano", "African", "18"), ("mundial", "worldwide", "18"),
+    ("nacional", "national", "18"), ("local", "local", "18"),
+    ("público", "public", "18"), ("privado", "private", "18"),
+    ("moderno", "modern", "18"), ("antigo", "old, ancient", "18"),
+    ("famoso", "famous", "18"), ("estranho", "strange", "18"),
+    ("esquisito", "odd, fussy (PT)", "18"), ("comum", "common", "18"),
+    ("raro", "rare", "18"), ("útil", "useful", "18"),
+    ("inútil", "useless", "18"), ("verdadeiro", "true", "18"),
+    ("falso", "false", "18"), ("último", "last", "18"),
+    ("próximo", "next, close", "18"), ("melhor", "better, best", "18"),
+    ("pior", "worse, worst", "18"),
 ]
 
 # ---------------------------------------------------------------------------
@@ -401,6 +622,16 @@ BR_VARIANTS = {
     # spelling: the 1990 agreement left the vowel accents alone
     "ténis": "tênis", "bebé": "bebê", "económico": "econômico",
     # grammar, carried as phrases
+    # more vocabulary splits
+    "frigorífico": "geladeira", "gelado": "sorvete", "camisola": "blusa",
+    "casa de banho": "banheiro", "paragem": "ponto", "elétrico": "bonde",
+    "camião": "caminhão", "mota": "moto", "condutor": "motorista",
+    "empregado": "garçom", "ementa": "cardápio", "bolacha": "biscoito",
+    "sandes": "sanduíche", "equipa": "time", "licenciatura": "graduação",
+    "correio eletrónico": "e-mail", "palavra-passe": "senha",
+    "descarregar": "baixar", "apanhar": "pegar", "constipação": "resfriado",
+    "aborrecido": "chato", "zangado": "bravo", "esquisito": "estranho",
+    "casaco": "jaqueta", "passeio": "calçada", "autocarro": "ônibus",
     "não percebo": "não entendo", "pode ajudar-me?": "pode me ajudar?",
     "chamo-me...": "me chamo...", "tenho de ir": "tenho que ir",
     "como estás?": "como você está?", "se calhar": "talvez",
@@ -515,6 +746,141 @@ CLOZE = {
     "comboio": [("Apanhei o {comboio} das oito.", "I caught the eight o'clock train.")],
     "autocarro": [("O {autocarro} está atrasado.", "The bus is late.")],
     "telemóvel": [("Esqueci-me do {telemóvel} em casa.", "I left my mobile at home.")],
+
+    # --- deepening pass: cloze -------------------------------------------
+    "pai": [("O meu {pai} trabalha num banco.", "My father works in a bank."),
+            ("Os {pais} dela vivem em Braga.", "Her parents live in Braga.")],
+    "mãe": [("A {mãe} do João é professora.", "João's mother is a teacher.")],
+    "filho": [("Temos dois {filhos}.", "We have two children."),
+              ("O {filho} mais velho estuda medicina.", "The eldest son studies medicine.")],
+    "amigo": [("Ele é o meu melhor {amigo}.", "He is my best friend."),
+              ("Convidei os meus {amigos} para jantar.", "I invited my friends to dinner.")],
+    "criança": [("A {criança} está a dormir.", "The child is sleeping."),
+                ("As {crianças} brincam no parque.", "The children play in the park.")],
+    "cão": [("O {cão} do vizinho ladra muito.", "The neighbour's dog barks a lot."),
+            ("Tenho dois {cães}.", "I have two dogs.")],
+    "jardim": [("O {jardim} está cheio de flores.", "The garden is full of flowers."),
+               ("Os {jardins} da cidade são bonitos.", "The city gardens are beautiful.")],
+    "flor": [("Comprei uma {flor} para ela.", "I bought her a flower."),
+             ("As {flores} cheiram bem.", "The flowers smell good.")],
+    "hora": [("Que {horas} são?", "What time is it?"),
+             ("Espero há uma {hora}.", "I have been waiting for an hour.")],
+    "semana": [("A {semana} passou depressa.", "The week went by quickly."),
+               ("Vou de férias em duas {semanas}.", "I'm going on holiday in two weeks.")],
+    "manhã": [("De {manhã} bebo café.", "In the morning I drink coffee.")],
+    "noite": [("Boa {noite}!", "Good night!"),
+              ("Trabalho às {noites}.", "I work nights.")],
+    "água": [("Quero um copo de {água}.", "I want a glass of water.")],
+    "café": [("Um {café}, por favor.", "A coffee, please."),
+             ("Bebemos dois {cafés}.", "We drank two coffees.")],
+    "vinho": [("Este {vinho} é do Douro.", "This wine is from the Douro.")],
+    "peixe": [("O {peixe} está muito fresco.", "The fish is very fresh."),
+              ("Comemos {peixes} grelhados.", "We ate grilled fish.")],
+    "batata": [("Quero {batatas} fritas.", "I want chips.")],
+    "conta": [("A {conta}, se faz favor.", "The bill, please.")],
+    "rua": [("Moro nesta {rua}.", "I live on this street."),
+            ("As {ruas} estão cheias.", "The streets are full.")],
+    "loja": [("A {loja} abre às nove.", "The shop opens at nine."),
+             ("As {lojas} fecham ao domingo.", "The shops close on Sundays.")],
+    "bilhete": [("Comprei um {bilhete} de ida e volta.", "I bought a return ticket."),
+                ("Os {bilhetes} estão esgotados.", "The tickets are sold out.")],
+    "viagem": [("A {viagem} demora três horas.", "The journey takes three hours."),
+               ("Fizemos duas {viagens} este ano.", "We took two trips this year.")],
+    "praia": [("Vamos à {praia} amanhã.", "We're going to the beach tomorrow.")],
+    "sol": [("Hoje está muito {sol}.", "It's very sunny today.")],
+    "chuva": [("A {chuva} não para.", "The rain doesn't stop.")],
+    "árvore": [("Aquela {árvore} é muito antiga.", "That tree is very old."),
+               ("As {árvores} perdem as folhas no outono.",
+                "The trees lose their leaves in autumn.")],
+    "cabeça": [("Dói-me a {cabeça}.", "My head hurts.")],
+    "olho": [("Ela tem os {olhos} verdes.", "She has green eyes.")],
+    "pé": [("Vou a {pé} para o trabalho.", "I walk to work."),
+           ("Tenho os {pés} frios.", "My feet are cold.")],
+    "médico": [("Tenho consulta com o {médico}.", "I have a doctor's appointment."),
+               ("Os {médicos} do hospital são bons.", "The hospital doctors are good.")],
+    "trabalho": [("O {trabalho} começa às nove.", "Work starts at nine.")],
+    "dinheiro": [("Não tenho {dinheiro} comigo.", "I don't have money on me.")],
+    "professor": [("O {professor} explicou tudo.", "The teacher explained everything."),
+                  ("Os {professores} estão em reunião.", "The teachers are in a meeting.")],
+    "livro": [("Este {livro} é interessante.", "This book is interesting."),
+              ("Li três {livros} este mês.", "I read three books this month.")],
+    "computador": [("O meu {computador} está lento.", "My computer is slow.")],
+    "música": [("Gosto desta {música}.", "I like this music.")],
+    "roupa": [("A {roupa} está a secar.", "The washing is drying.")],
+    "amor": [("O {amor} é cego.", "Love is blind.")],
+    "verdade": [("Diz-me a {verdade}.", "Tell me the truth.")],
+    "razão": [("Tens {razão}.", "You are right."),
+              ("Há várias {razões} para isso.", "There are several reasons for that.")],
+    # verbs
+    "viver": [("Eu {vivo} sozinho.", "I live alone."),
+              ("Eles {vivem} no campo.", "They live in the countryside.")],
+    "trabalhar": [("Eu {trabalho} numa escola.", "I work in a school."),
+                  ("Tu {trabalhas} demasiado.", "You work too much.")],
+    "estudar": [("Nós {estudamos} português.", "We study Portuguese.")],
+    "aprender": [("Eu {aprendo} depressa.", "I learn quickly.")],
+    "ler": [("Eu {leio} antes de dormir.", "I read before sleeping."),
+            ("Vocês {leem} muito.", "You read a lot.")],
+    "escrever": [("Eu {escrevo} um email.", "I'm writing an email.")],
+    "ouvir": [("Eu não {ouço} nada.", "I can't hear anything."),
+              ("Tu {ouves} música?", "Do you listen to music?")],
+    "beber": [("Eu {bebo} água.", "I drink water.")],
+    "abrir": [("A loja {abre} às dez.", "The shop opens at ten.")],
+    "comprar": [("Eu {compro} o pão de manhã.", "I buy the bread in the morning.")],
+    "pagar": [("Eu {pago} com cartão.", "I pay by card.")],
+    "chegar": [("O comboio {chega} às seis.", "The train arrives at six.")],
+    "voltar": [("Eu {volto} amanhã.", "I'll come back tomorrow.")],
+    "esperar": [("Eu {espero} aqui.", "I'll wait here.")],
+    "pensar": [("Eu {penso} que sim.", "I think so.")],
+    "ajudar": [("Podes {ajudar}-me?", "Can you help me?")],
+    "encontrar": [("Não {encontro} as chaves.", "I can't find the keys.")],
+    "conseguir": [("Eu não {consigo} abrir isto.", "I can't manage to open this.")],
+    "perder": [("Eu {perco} sempre o autocarro.", "I always miss the bus.")],
+    "vestir": [("Eu {visto} um casaco.", "I put on a coat.")],
+    "servir": [("Este prato {serve} duas pessoas.", "This dish serves two people.")],
+    "seguir": [("Eu {sigo} a estrada principal.", "I follow the main road.")],
+    "rir": [("Nós {rimos} muito ontem.", "We laughed a lot yesterday.")],
+    "conduzir": [("Ele {conduz} muito depressa.", "He drives very fast.")],
+    "traduzir": [("Eu {traduzo} do inglês.", "I translate from English.")],
+    "passear": [("Eu {passeio} no parque.", "I stroll in the park.")],
+    "proibir": [("A lei {proíbe} isso.", "The law forbids that.")],
+    "construir": [("Eles {constroem} uma casa.", "They are building a house.")],
+    "acreditar": [("Eu não {acredito} nisso.", "I don't believe that.")],
+    "escolher": [("Tu {escolhes} o restaurante.", "You choose the restaurant.")],
+    "custar": [("Quanto {custa}?", "How much does it cost?")],
+    "ligar": [("Eu {ligo} mais tarde.", "I'll call later.")],
+    # adjectives
+    "pequeno": [("A casa é {pequena}.", "The house is small."),
+                ("Os quartos são {pequenos}.", "The rooms are small.")],
+    "novo": [("Comprei um carro {novo}.", "I bought a new car."),
+             ("Ela é muito {nova}.", "She is very young.")],
+    "velho": [("Este livro é {velho}.", "This book is old.")],
+    "caro": [("O hotel é muito {caro}.", "The hotel is very expensive."),
+             ("As casas estão {caras}.", "Houses are expensive.")],
+    "cansado": [("Estou {cansado}.", "I'm tired."),
+                ("Ela está {cansada}.", "She is tired.")],
+    "contente": [("Fiquei muito {contente}.", "I was very pleased.")],
+    "aberto": [("A janela está {aberta}.", "The window is open.")],
+    "frio": [("A água está {fria}.", "The water is cold.")],
+    "difícil": [("O exame foi {difícil}.", "The exam was difficult."),
+                ("As perguntas são {difíceis}.", "The questions are difficult.")],
+    "simpático": [("A tua irmã é muito {simpática}.", "Your sister is very nice.")],
+    "ocupado": [("Estou {ocupado} agora.", "I'm busy now.")],
+    "pronto": [("Já estás {pronta}?", "Are you ready?")],
+    "espanhol": [("Ele é {espanhol}.", "He is Spanish."),
+                 ("Ela é {espanhola}.", "She is Spanish.")],
+    "inglês": [("O meu {inglês} não é bom.", "My English isn't good."),
+               ("Eles são {ingleses}.", "They are English.")],
+    "útil": [("Este livro é muito {útil}.", "This book is very useful."),
+             ("Dá conselhos {úteis}.", "He gives useful advice.")],
+    # invariables & phrases
+    "sempre": [("Ele chega {sempre} atrasado.", "He always arrives late.")],
+    "nunca": [("{Nunca} fui a Lisboa.", "I have never been to Lisbon.")],
+    "talvez": [("{Talvez} venha amanhã.", "Maybe he'll come tomorrow.")],
+    "depois": [("Falamos {depois}.", "We'll talk later.")],
+    "bem": [("Estou {bem}, obrigado.", "I'm well, thank you.")],
+    "por favor": [("Um café, {por favor}.", "A coffee, please.")],
+    "bom dia": [("{Bom dia}, como está?", "Good morning, how are you?")],
+    "tudo bem?": [("Olá! {Tudo bem?}", "Hi! How's it going?")],
 }
 
 # ---------------------------------------------------------------------------
@@ -652,6 +1018,81 @@ FALSE_FRIENDS = [
      "Spanish rato is a while; PT rato is a mouse"),
 ]
 
+SER_ESTAR += [
+    ("O bilhete {é} caro.", "The ticket is expensive.", "está",
+     "a lasting property of the thing → ser"),
+    ("A loja {fica} na esquina.", "The shop is on the corner.", "está",
+     "a fixed address → ficar"),
+    ("{Estamos} em maio.", "It is May.", "Somos", "the current month → estar em"),
+    ("Ele {é} muito alto.", "He is very tall.", "está", "physical trait → ser"),
+    ("A comida {está} pronta.", "The food is ready.", "é", "a state reached → estar"),
+    ("Nós {ficámos} muito contentes.", "We were very pleased.", "fomos",
+     "becoming pleased → ficar"),
+    ("O concerto {é} no sábado.", "The concert is on Saturday.", "está",
+     "when an event happens → ser"),
+    ("Os miúdos {estão} a brincar.", "The kids are playing.", "são",
+     "estar a + infinitive, the European progressive"),
+    ("Esta cadeira {é} de plástico.", "This chair is plastic.", "está",
+     "material → ser"),
+    ("A porta {fica} sempre aberta.", "The door is always left open.", "é",
+     "staying in a state → ficar"),
+]
+
+POR_PARA += [
+    ("Comprei isto {para} a minha mãe.", "I bought this for my mother.",
+     "recipient → para"),
+    ("Andámos {por} toda a cidade.", "We walked all over the city.",
+     "movement around → por"),
+    ("Este comboio vai {para} o Porto.", "This train goes to Porto.",
+     "destination → para"),
+    ("Fi-lo {por} ti.", "I did it for your sake.", "on someone's behalf → por"),
+    ("Saímos {para} apanhar ar.", "We went out to get some air.", "purpose → para"),
+    ("Foi escrito {por} um poeta.", "It was written by a poet.", "agent → por"),
+    ("Fica {para} a semana.", "Leave it for next week.", "deadline → para"),
+    ("Esperei {por} ti uma hora.", "I waited for you for an hour.",
+     "esperar por, and the duration → por"),
+]
+
+PERSONAL_INF += [
+    ("Antes de {partirmos}, telefona.", "Before we leave, call.", "partir", "nos",
+     "antes de + personal infinitive"),
+    ("É preciso {estudarem} mais.", "You need to study more.", "estudar",
+     "eles_elas_voces", "impersonal expression, subject vocês"),
+    ("Depois de {comermos}, saímos.", "After we eat, we'll go out.", "comer", "nos",
+     "depois de + personal infinitive"),
+    ("Para {viveres} bem, descansa.", "To live well, rest.", "viver", "tu",
+     "para + personal infinitive with an explicit subject"),
+    ("Foi bom {virem} cá.", "It was good that you came here.", "vir",
+     "eles_elas_voces", "vir is regular in the personal infinitive: virem"),
+    ("Sem {sabermos} a morada, é difícil.", "Without knowing the address it's hard.",
+     "saber", "nos", "sem + personal infinitive; saber is regular here — sabermos"),
+]
+
+FUT_SUBJ += [
+    ("Quando {vieres}, traz o livro.", "When you come, bring the book.", "vir", "tu",
+     "future subjunctive vieres, not the personal infinitive vires"),
+    ("Se {dermos} o nosso melhor, ganhamos.", "If we do our best, we'll win.",
+     "dar", "nos", "future subjunctive dermos, not darmos"),
+    ("Logo que {virem} o resultado, avisem.", "As soon as you see the result, tell us.",
+     "ver", "eles_elas_voces", "ver gives virem — identical in spelling to vir's, "
+     "which is why context decides"),
+    ("Se {trouxeres} o carro, conduzo eu.", "If you bring the car, I'll drive.",
+     "trazer", "tu", "future subjunctive trouxeres, not trazeres"),
+    ("Enquanto {houver} vida, há esperança.", "While there is life, there is hope.",
+     "haver", "ele_ela_voce", "future subjunctive houver, not haver"),
+]
+
+FALSE_FRIENDS += [
+    ("Ele ficou {constipado} com o frio.", "He caught a cold in the cold weather.",
+     "constipado_es", "PT constipado is a head cold; in Spanish it means the opposite end"),
+    ("Preciso de {tirar} férias.", "I need to take time off.", "tomar",
+     "PT uses tirar férias where Spanish uses tomar"),
+    ("O {escritório} fica no segundo andar.", "The office is on the second floor.",
+     "despacho", "PT despacho is a dispatch, not an office"),
+    ("Vou {apanhar} o autocarro.", "I'm going to catch the bus.", "coger",
+     "coger is Spanish; in Portuguese apanhar (PT) or pegar (BR)"),
+]
+
 # Braced cloze forms that are correct but outside the present-tense/plural
 # paradigms this generator produces. Each needs a reason, like SPELLING_OK.
 CLOZE_OK = {
@@ -676,7 +1117,11 @@ def build():
         e = {"pt": word, "en": en, "pos": pos, "lesson": lesson, "id": slug(n[0])}
         e.update({k: v for k, v in extra.items() if v})
         entries.append(e)
-        by_word.setdefault(word, e)
+        # Several headwords exist as more than one part of speech — frio and
+        # segundo are both noun and adjective, jovem both noun and adjective.
+        # Keying by word alone attached every cloze to whichever was added
+        # first, so a cloze wanting the feminine "fria" landed on the noun.
+        by_word.setdefault(word, []).append(e)
         return e
 
     for row in NOUNS + EXTRA_BR_NOUNS:
@@ -713,16 +1158,30 @@ def build():
 
     # --- cloze -------------------------------------------------------------
     for word, sentences in CLOZE.items():
-        e = by_word.get(word)
-        assert e, f"cloze for {word!r}, which is not an entry"
-        e["cloze"] = [{"pt": s, "en": t} for s, t in sentences]
+        candidates = by_word.get(word)
+        assert candidates, f"cloze for {word!r}, which is not an entry"
+        for sentence, gloss in sentences:
+            target = re.findall(r"\{([^}]+)\}", sentence)[0]
+            # attach to the entry that actually HAS this form, so a homograph
+            # cannot silently take another part of speech's sentence
+            # A sentence-initial target is the same word with a capital, so
+            # the comparison is case-folded rather than needing an exception
+            # per sentence.
+            low = target.lower()
+            owner = next((c for c in candidates
+                          if low in {f.lower() for f in all_forms(c)}
+                          or target in CLOZE_OK), None)
+            assert owner, (f"cloze target {target!r} is not a form of any "
+                           f"{word!r} entry ({len(candidates)} candidates)")
+            owner.setdefault("cloze", []).append({"pt": sentence, "en": gloss})
 
     # --- Brazilian variants ------------------------------------------------
     for pt, br in BR_VARIANTS.items():
-        e = by_word.get(pt)
-        assert e, f"BR variant for {pt!r}, which is not an entry"
+        candidates = by_word.get(pt)
+        assert candidates, f"BR variant for {pt!r}, which is not an entry"
         if pt != br:
-            e["br"] = br
+            for e in candidates:
+                e["br"] = br
 
     # --- special banks -----------------------------------------------------
     special = {
@@ -810,7 +1269,7 @@ def check_cloze(entries, warn):
             target = m[0]
             if target in CLOZE_OK:
                 continue
-            assert target in all_forms(e), (
+            assert target.lower() in {f.lower() for f in all_forms(e)}, (
                 f"{e['id']}: cloze target {target!r} is not a form of {e['pt']!r}; "
                 f"add it to CLOZE_OK with a reason if it is correct")
 

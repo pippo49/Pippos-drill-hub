@@ -68,6 +68,7 @@ PLURAL_ONLY = {
 INVARIABLE_S = {
     "lápis", "ônibus", "vírus", "atlas", "bônus", "campus", "oásis", "pires",
     "cais", "lápis", "tênis", "ténis", "simples", "alferes", "obus",
+    "sandes", "lápis", "ourives", "pêsames", "fezes",
 }
 
 IRREGULAR_PLURAL = {
@@ -143,7 +144,16 @@ def pluralize(word, gender=None):
         # the invariable ones are listed in INVARIABLE_S
         return word + "es"
 
-    if w[-1] in "rz":
+    if w[-1] == "z":
+        # A stressed i or u that follows another vowel is a HIATUS, and the
+        # plural has to keep the accent that marks it: raiz->raízes,
+        # juiz->juízes. Without a preceding vowel there is no hiatus and no
+        # accent: luz->luzes, feliz->felizes.
+        if len(w) >= 3 and w[-2] in "iu" and w[-3] in "aeiouáéíóú":
+            acc = {"i": "í", "u": "ú"}[w[-2]]
+            return word[:-2] + acc + "zes"
+        return word + "es"
+    if w[-1] == "r":
         return word + "es"
     if w[-1] in "n":
         return word + "es"
@@ -199,6 +209,7 @@ IRREGULAR_VERBS = {
     "valer":   ["valho", "vales", "vale", "valemos", "valem"],
     "caber":   ["caibo", "cabes", "cabe", "cabemos", "cabem"],
     "odiar":   ["odeio", "odeias", "odeia", "odiamos", "odeiam"],
+    "despir":  ["dispo", "despes", "despe", "despimos", "despem"],
     # -ir verbs raising e->i or o->u in the 1sg only
     "sentir":  ["sinto", "sentes", "sente", "sentimos", "sentem"],
     "servir":  ["sirvo", "serves", "serve", "servimos", "servem"],
@@ -210,6 +221,13 @@ IRREGULAR_VERBS = {
     "subir":   ["subo", "sobes", "sobe", "subimos", "sobem"],
     "fugir":   ["fujo", "foges", "foge", "fugimos", "fogem"],
     "construir": ["construo", "constróis", "constrói", "construímos", "constroem"],
+    # -uir verbs keep the u as a full vowel and take a hiatus accent in nós
+    "diminuir": ["diminuo", "diminuis", "diminui", "diminuímos", "diminuem"],
+    # monosyllabic -ir verbs in -rir: the stem keeps its i
+    "rir":     ["rio", "ris", "ri", "rimos", "riem"],
+    "sorrir":  ["sorrio", "sorris", "sorri", "sorrimos", "sorriem"],
+    # stressed i takes an accent where the stem is stressed (hiatus pro-í-bo)
+    "proibir": ["proíbo", "proíbes", "proíbe", "proibimos", "proíbem"],
     # compounds keep their base's irregularity
     "conseguir": ["consigo", "consegues", "consegue", "conseguimos", "conseguem"],
     "manter":  ["mantenho", "manténs", "mantém", "mantemos", "mantêm"],
@@ -250,6 +268,19 @@ def _spelling_fix(stem, ending, infinitive):
 
 def conjugate(infinitive):
     """Present indicative: {person: form}."""
+    # -ear verbs insert an i wherever the stem is stressed: passear -> passeio,
+    # passeias, passeia, but passeamos with the stress on the ending. A whole
+    # productive class, and the spelling oracle is what found it missing.
+    if infinitive.endswith("ear"):
+        stem = infinitive[:-2]                  # passe-
+        return dict(zip(PERSONS, [stem + "io", stem + "ias", stem + "ia",
+                                  infinitive[:-2] + "amos", stem + "iam"]))
+    # -zir verbs apocopate the third person singular: conduzir -> conduz, not
+    # conduze, exactly as dizer gives diz and fazer gives faz.
+    if infinitive.endswith("zir") and infinitive not in IRREGULAR_VERBS:
+        stem = infinitive[:-3]                  # condu-
+        return dict(zip(PERSONS, [stem + "zo", stem + "zes", stem + "z",
+                                  stem + "zimos", stem + "zem"]))
     if infinitive in IRREGULAR_VERBS:
         forms = IRREGULAR_VERBS[infinitive]
         assert len(forms) == len(PERSONS), f"{infinitive}: wrong number of forms"
@@ -325,6 +356,8 @@ def decline_adjective(masc_sg):
         fem = masc_sg + "a"                        # trabalhador -> trabalhadora
     elif w.endswith("o"):
         fem = masc_sg[:-1] + "a"
+    elif w.endswith("ol"):
+        fem = masc_sg + "a"                        # espanhol -> espanhola
     elif w.endswith("eu"):
         fem = masc_sg[:-2] + "eia"                 # europeu -> europeia
     else:
@@ -350,6 +383,8 @@ def _selfcheck():
         ("luz", "luzes"), ("país", "países"), ("lápis", "lápis"),
         # the accent goes when -ês/-ás pluralise, but stays on the -ís hiatus
         ("mês", "meses"), ("português", "portugueses"), ("ananás", "ananases"),
+        # a hiatus keeps its accent in the plural; a plain -z does not gain one
+        ("raiz", "raízes"), ("juiz", "juízes"), ("luz", "luzes"), ("feliz", "felizes"),
         ("férias", "férias"), ("óculos", "óculos"),   # plural-only nouns
         ("casa", "casas"), ("café", "cafés"),
     ]
@@ -365,6 +400,13 @@ def _selfcheck():
     assert conjugate("erguer")["eu"] == "ergo"
     assert conjugate("ser")["eu"] == "sou"
     assert conjugate("pôr")["ele_ela_voce"] == "põe"
+    # the -ear class: stressed stem takes an i, the nós form does not
+    assert conjugate("passear")["eu"] == "passeio"
+    assert conjugate("passear")["nos"] == "passeamos"
+    assert conjugate("pentear")["eles_elas_voces"] == "penteiam"
+    # -zir apocopates the third person singular
+    assert conjugate("conduzir")["ele_ela_voce"] == "conduz"
+    assert conjugate("traduzir")["eu"] == "traduzo"
 
     # regular verbs: the two forms coincide, which is why they get confused
     assert personal_infinitive("falar") == future_subjunctive("falar")
@@ -381,6 +423,8 @@ def _selfcheck():
     assert decline_adjective("trabalhador")["f_sg"] == "trabalhadora"
     assert decline_adjective("alemão")["f_sg"] == "alemã"
     assert decline_adjective("verde")["m_pl"] == "verdes"
+    assert decline_adjective("espanhol")["f_sg"] == "espanhola"
+    assert decline_adjective("espanhol")["m_pl"] == "espanhóis"
     print("portuguese_morph self-check passed")
 
 
