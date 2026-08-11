@@ -1,7 +1,8 @@
 # Portuguese trainer — handoff
 
 `portuguese_trainer.html` + `vocab_pt.json` — **European Portuguese** with the
-Brazilian forms marked. 547 entries, 24 lessons, 12 drill types, 5 special banks.
+Brazilian forms marked. 921 entries, 24 lessons, 12 drill types, 5 special banks
+(99 items), 223 cloze sentences, 49 marked variants.
 
 Modelled on the Spanish trainer, and **generated from it** by
 `scripts/make_portuguese_trainer.py`. Engine fixes made in Spanish flow here on
@@ -64,8 +65,21 @@ every generated form. It is **advisory with an allowlist**, not absolute: it doe
 not know `chãos`, `limões` or `sutis`, all of which are correct, so an unknown
 form must be listed in `SPELLING_OK` with a reason and anything else fails.
 
-It caught four real rule bugs while the deck was being written, which is the
-whole argument for having it:
+It has caught **ten** real rule bugs so far, which is the whole argument for
+having it. Every one was found by a form the generator produced being rejected,
+not by anyone reading the tables.
+
+Verb classes that were falling through to the regular endings:
+
+- **-ear inserts an i** wherever the stem is stressed: passear→passeio,
+  passeias, passeia, but passeamos.
+- **-zir apocopates the third person singular**: conduzir→conduz, not conduze,
+  exactly as dizer gives diz.
+- **rir/sorrir** keep the stem i (rio, ris, ri, rimos, riem), **proibir** takes
+  a hiatus accent where stressed (proíbo), **diminuir** keeps the u as a full
+  vowel (diminuo, diminuímos), and **despir** raises e to i (dispo).
+
+And in the nominal morphology:
 
 - **-ês loses its accent in the plural**: mês→meses, português→portugueses. The
   rule was missing entirely, and -ís is the exception (país→países, where the
@@ -74,8 +88,23 @@ whole argument for having it:
   carrying an accent is stressed earlier and needs no second one; the naive rule
   produced *possívéis*, which Portuguese never writes.
 - **-guer/-guir drops only the u**: erguer→ergo, not *ero*.
+- **raiz→raízes**, not raizes. A stressed i or u following another vowel is a
+  hiatus and keeps its accent in the plural, while luz→luzes and feliz→felizes
+  gain nothing.
+- **espanhol→espanhola**. Nationality adjectives in -ol take a feminine; the
+  rule was treating them as invariable, like azul.
 - **`hoje` was listed as a noun**, so the builder generated the plural *hojes*.
   A data error, caught by a spelling check.
+
+## Homographs own their own cloze
+
+Several headwords exist as more than one part of speech — *frio* and *segundo*
+are both noun and adjective, *jovem* both noun and adjective. Cloze was keyed by
+headword alone, so a sentence wanting the feminine *fria* attached to the noun
+and the check rejected it. A cloze sentence now attaches to the entry that
+actually **has** the braced form, which makes homographs self-resolving rather
+than silently wrong, and targets are compared case-folded so a sentence-initial
+capital needs no exception.
 
 `-ão` plurals are the lexical case, like Italian's amico/fuoco: coração→corações,
 pão→pães, irmão→irmãos descend from three different Latin endings and the
@@ -119,12 +148,11 @@ python3 scripts/check_portuguese.py            # variants, banks, dead modes
 
 ## Known gaps
 
-- **547 entries against Spanish's 1126.** Coverage is even across 24 lessons and
-  every drill type works, but it is roughly half the Spanish deck. Nouns are the
-  best served (270); verbs (88) and adjectives (61) would take the most benefit
-  from another pass.
-- **94 cloze sentences** across 47 headwords. The Spanish deck has them on most
-  entries; here they are concentrated on the high-frequency words.
+- **921 entries against Spanish's 1126** — 468 nouns, 189 verbs, 136 adjectives,
+  41 phrases. Close enough now that the remaining gap is breadth of topic rather
+  than any class being starved.
+- **223 cloze sentences** across ~120 headwords, still concentrated on the
+  high-frequency words rather than spread over every entry.
 - No antonym or synonym links yet, which is why those two drill types are absent
   rather than empty.
 - Only the present indicative is drilled, as in Spanish. The personal infinitive
