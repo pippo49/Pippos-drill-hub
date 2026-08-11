@@ -16,7 +16,7 @@ entry carries a `br` field, and three things follow:
 - the reveal panel shows **Portugal: comboio · Brasil: trem** side by side;
 - **both grade exact.** A learner who knows `trem` is not wrong because the
   deck's headword is `comboio`. `scripts/check_portuguese.py` runs the app's own
-  `checkAnswer` over all 25 pairs and fails if any is not accepted both ways;
+  `checkAnswer` over all 49 pairs and fails if any is not accepted both ways;
 - the difference is visible rather than hidden, which is the point — this is a
   deck for someone who will meet both.
 
