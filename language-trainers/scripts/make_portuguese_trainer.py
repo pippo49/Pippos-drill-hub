@@ -109,14 +109,17 @@ def build():
     # These run on head/engine_tail only — the deck sits behind a placeholder —
     # so replacing the bare word cannot touch entries like espanhol = "Spanish"
     # or the false-friend notes that mention Spanish on purpose.
-    for a, b in [("Spanish / English trainer", "Portuguese / English trainer"),
+    # Say WHICH Portuguese, everywhere it is named. The app shipped saying only
+    # "português", which is how a Brazilian learner ended up asking whether it
+    # was for them — it is not, and the label is the first place to say so.
+    for a, b in [("Spanish / English trainer", "European Portuguese / English trainer"),
                  ('promptLabel: "Spanish"', 'promptLabel: "Portuguese"'),
                  ('answerLabel: "Spanish"', 'answerLabel: "Portuguese"'),
                  ("(Spanish)", "(Portuguese)"),
                  ("Spanish Trainer", "Portuguese Trainer"),
                  ("Spanish/English", "Portuguese/English"),
                  ("Vocabulario", "Vocabulário"),
-                 ("español / english", "português / english"),
+                 ("español / english", "português de Portugal / english"),
                  ("Spanish trainer", "Portuguese trainer"),
                  ("Choose the Spanish", "Choose the Portuguese"),
                  ('answerLabel: plToDe ? "English" : "Spanish"',
