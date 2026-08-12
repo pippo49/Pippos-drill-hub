@@ -9,6 +9,7 @@ Apps in this repo:
 - `italian_trainer.html` + `vocab_it.json` — Italian→English, A1–A2. Details: `HANDOFF_IT.md`
 - `french_trainer.html` + `vocab_fr.json` — French→English, A1–A2, **small-talk focused**. Details: `HANDOFF_FR.md`
 - `portuguese_trainer.html` + `vocab_pt.json` — **European Portuguese** with Brazilian forms marked and both accepted. Details: `HANDOFF_PT.md`
+- `brazilian_trainer.html` + `vocab_br.json` — **Brazilian Portuguese**, four persons, same source deck re-slotted. Details: `HANDOFF_BR.md`
 - `medical_trainer.html` + `vocab_med.json` — **Latin & Greek medical terminology**, for medicine students. Details: `HANDOFF_MED.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
 
@@ -36,19 +37,27 @@ Spanish's `ser`/`estar` — `essere` covers location and temporary states
 (`sono a Roma`, `sono stanco`), with `stare` reserved for health, the progressive,
 `stare per`, and fixed expressions. See `HANDOFF_IT.md` before touching that bank.
 
-## Portuguese: generated from Spanish, with a variant axis
+## Portuguese: two apps, one source
 
-`portuguese_trainer.html` is **generated from `spanish_trainer.html`** by
-`scripts/make_portuguese_trainer.py`; its deck comes from
-`scripts/build_portuguese_vocab.py` + `scripts/portuguese_morph.py`.
+`portuguese_trainer.html` and `brazilian_trainer.html` are both **generated from
+`spanish_trainer.html`** by one run of `scripts/make_portuguese_trainer.py`, and
+their decks by one run of `scripts/build_portuguese_vocab.py` (+
+`scripts/portuguese_morph.py`). Same generator, same curated word list, so they
+cannot drift — and both get the sw.js, manifest and icon refs generated too.
 
-European Portuguese is primary. An entry with a `br` field shows both forms in
-the reveal panel and **accepts both when typed** — that acceptance is a runtime
-property of `checkAnswer`, so `scripts/check_portuguese.py` tests it by running
-the app's own code over all 25 pairs.
+Each deck marks the OTHER variety on the entry as `alt`, and **accepts it when
+typed** — a runtime property of `checkAnswer`, so `scripts/check_portuguese.py`
+tests it by running each app's own code over all 52 pairs, in both apps.
 
-Five persons, not six: *vós* is archaic in both varieties, so the paradigm is
-eu / tu / ele·ela·você / nós / eles·elas·vocês.
+Persons differ and this is real, not cosmetic: Portugal drills **five**
+(eu / tu / ele·ela·você / nós / eles·elas·vocês), Brazil **four** (você takes the
+third-person form, so tu has no column). *Vós* is archaic in both.
+`check_portuguese.py` asserts the count per app and fails if a verb carries a
+form under a key no pronoun label names.
+
+Everything derived is recomputed from a swapped headword — plural, feminine,
+paradigm and the `(PT)`/`(BR)` gloss marker. Skipping any of those had the
+decline drill asking for the feminine of `marrom` and answering `castanha`.
 
 Three banks Spanish has no use for: **personal infinitive**, **future
 subjunctive** and **false friends against Spanish**. The first two are the
@@ -69,7 +78,14 @@ existed and never enabled three new ones — five of twelve drill types dead,
 while `validate.py` still passed because every mode that could run did. It is
 now derived from `MODE_LABELS`, and `check_portuguese.py` fails on any offered
 drill type that generates nothing. The `<title>` and one `promptLabel` were
-missed the same way and only showed up in a browser screenshot.
+missed the same way and only showed up in a browser screenshot — as did
+`DECL_LABELS` still reading `fem. pl. (las ... )` in both Portuguese apps, and a
+shared diacritic map carrying Polish, German and Spanish letters but **none of
+Portuguese's own**, so `coracao` for `coração` graded plain wrong. Prose strings
+and shared tables are exactly what a field rename walks past.
+
+Home-screen icons have a recipe now: `scripts/make_icons.py <slug> <badge>
+<accent> <ink>`, checked against the shipped ones with `--check`.
 
 ## Medical terminology: a different drill set on the same engine
 
@@ -296,11 +312,13 @@ python3 scripts/validate.py polish_trainer.html
 
 **ALWAYS run rebuild + validate after any change to a vocab JSON or to the inline JS. Never hand back or commit an unvalidated build.**
 
-Generated apps (`medical_trainer.html`, `portuguese_trainer.html`) are rebuilt by
-their own scripts, never hand-edited:
+Generated apps (`medical_trainer.html`, `portuguese_trainer.html`,
+`brazilian_trainer.html`) are rebuilt by their own scripts, never hand-edited:
 ```
 python3 scripts/build_portuguese_vocab.py && python3 scripts/make_portuguese_trainer.py
-python3 scripts/validate.py portuguese_trainer.html && python3 scripts/check_portuguese.py
+python3 scripts/validate.py portuguese_trainer.html
+python3 scripts/validate.py brazilian_trainer.html
+python3 scripts/check_portuguese.py          # both apps
 ```
 
 To edit engine JS/CSS: edit the `*.html` directly (everything before `const VOCAB_DATA` is head/CSS; everything after the data blob is the app JS), then validate.

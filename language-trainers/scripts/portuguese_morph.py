@@ -28,6 +28,12 @@ Three things are specific to Portuguese and worth knowing before editing:
 
 PERSONS = ["eu", "tu", "ele_ela_voce", "nos", "eles_elas_voces"]
 
+# Brazil's paradigm is FOUR slots, not five. você is the ordinary second person
+# and takes third-person verb forms, so tu and ele collapse into one. Regions
+# that do say tu (the south, the northeast) very often use the ele form with it
+# anyway, so drilling "tu falas" would teach a shape most Brazilians do not use.
+PERSONS_BR = ["eu", "voce_ele_ela", "nos", "voces_eles_elas"]
+
 VOWELS = "aeiouáéíóúâêôãõà"
 
 # --------------------------------------------------------------- ARTICLES
@@ -366,6 +372,32 @@ def decline_adjective(masc_sg):
             "m_pl": pluralize(masc_sg), "f_pl": pluralize(fem)}
 
 
+def conjugate_br(infinitive):
+    """The same present tense, re-slotted for Brazil: tu drops out."""
+    full = conjugate(infinitive)
+    return {"eu": full["eu"],
+            "voce_ele_ela": full["ele_ela_voce"],
+            "nos": full["nos"],
+            "voces_eles_elas": full["eles_elas_voces"]}
+
+
+def personal_infinitive_br(infinitive):
+    full = personal_infinitive(infinitive)
+    return {"eu": full["eu"],
+            "voce_ele_ela": full["ele_ela_voce"],
+            "nos": full["nos"],
+            "voces_eles_elas": full["eles_elas_voces"]}
+
+
+def future_subjunctive_br(infinitive):
+    full = future_subjunctive(infinitive)
+    return {"eu": full["eu"],
+            "voce_ele_ela": full["ele_ela_voce"],
+            "nos": full["nos"],
+            "voces_eles_elas": full["eles_elas_voces"]}
+
+
+
 # --------------------------------------------------------------- SELF-CHECK
 
 def _selfcheck():
@@ -425,6 +457,13 @@ def _selfcheck():
     assert decline_adjective("verde")["m_pl"] == "verdes"
     assert decline_adjective("espanhol")["f_sg"] == "espanhola"
     assert decline_adjective("espanhol")["m_pl"] == "espanhóis"
+    # Brazil: four slots, and você takes the third-person form
+    br = conjugate_br("falar")
+    assert list(br) == PERSONS_BR
+    assert br["voce_ele_ela"] == "fala"
+    assert br["nos"] == "falamos"
+    assert conjugate_br("ser")["voce_ele_ela"] == "é"
+    assert future_subjunctive_br("ir")["nos"] == "formos"
     print("portuguese_morph self-check passed")
 
 

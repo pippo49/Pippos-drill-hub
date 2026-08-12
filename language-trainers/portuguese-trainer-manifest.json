@@ -1,6 +1,6 @@
 {
-  "name": "Vocabulário — Portuguese/English Trainer",
-  "short_name": "Portuguese Trainer",
+  "name": "Vocabulário — European Portuguese/English Trainer",
+  "short_name": "Português PT",
   "start_url": "./portuguese_trainer.html",
   "scope": "./",
   "display": "standalone",

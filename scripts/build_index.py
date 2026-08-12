@@ -29,7 +29,14 @@ LANGUAGE_APPS = [
     # European Portuguese with the Brazilian forms marked and both accepted —
     # see HANDOFF_PT.md. Modelled on the Spanish trainer, which is why it also
     # carries ser/estar and por/para banks.
-    ("portuguese_trainer.html", "vocab_pt.json", "Portuguese", "português de Portugal → english", "#0b6b3a", "#ffffff", "PT"),
+    ("portuguese_trainer.html", "vocab_pt.json", "Portuguese (Portugal)",
+     "português de Portugal → english", "#0b6b3a", "#ffffff", "PT"),
+    # Same curated source, re-slotted for Brazil: você instead of tu (four
+    # persons, not five), proclitic pronouns, the gerund progressive, and
+    # Brazilian headwords with the European form marked. A separate app rather
+    # than a toggle, because the two are learned separately.
+    ("brazilian_trainer.html", "vocab_br.json", "Portuguese (Brazil)",
+     "português do Brasil → english", "#f2c200", "#00512e", "BR"),
     ("italian_trainer.html", "vocab_it.json", "Italian", "italiano → english", "#0e5c3a", "#f4f1e4", "IT"),
     ("french_trainer.html",  "vocab_fr.json", "French",  "français → english", "#1f3a80", "#f5f2e8", "FR"),
     ("latin_trainer.html",   "vocab_la.json", "Latin",   "latina → english",   "#5c1f2e", "#f0d9a8", "LA"),

@@ -2,11 +2,17 @@
 
 `portuguese_trainer.html` + `vocab_pt.json` — **European Portuguese** with the
 Brazilian forms marked. 921 entries, 24 lessons, 12 drill types, 5 special banks
-(99 items), 223 cloze sentences, 49 marked variants.
+(99 items), 223 cloze sentences, 52 marked variants.
 
 Modelled on the Spanish trainer, and **generated from it** by
 `scripts/make_portuguese_trainer.py`. Engine fixes made in Spanish flow here on
 the next run — so edit the script, not the HTML.
+
+There is a **second app on the same source**: `brazilian_trainer.html` +
+`vocab_br.json`, built by the same two scripts in the same run, with Brazilian
+headwords and a four-person paradigm. See `HANDOFF_BR.md`. Anything you change
+here lands there too, which is the point — but it also means a change has to be
+checked in both, and `scripts/check_portuguese.py` runs over both.
 
 ## European primary, Brazilian marked — and both accepted
 
@@ -16,9 +22,12 @@ entry carries a `br` field, and three things follow:
 - the reveal panel shows **Portugal: comboio · Brasil: trem** side by side;
 - **both grade exact.** A learner who knows `trem` is not wrong because the
   deck's headword is `comboio`. `scripts/check_portuguese.py` runs the app's own
-  `checkAnswer` over all 49 pairs and fails if any is not accepted both ways;
+  `checkAnswer` over all 52 pairs and fails if any is not accepted both ways;
 - the difference is visible rather than hidden, which is the point — this is a
   deck for someone who will meet both.
+
+The field on the entry is `alt`, not `br` — it holds *the other variety's* form
+whichever deck is being built, which is what lets one engine serve both apps.
 
 Three kinds of difference are marked: **vocabulary** (comboio/trem,
 autocarro/ônibus, telemóvel/celular, pequeno-almoço/café da manhã), **spelling**
@@ -117,9 +126,9 @@ Five persons, not six: **eu / tu / ele·ela·você / nós / eles·elas·vocês**
 is archaic in both varieties — Portugal says *vocês* for plural you exactly as
 Brazil does — so including it would be a wasted slot in every conjugation drill.
 
-`tu` stays because this is the European deck; Brazil's default `você` takes the
-third-person forms, which the deck already teaches, and the phrase entries carry
-the usage difference.
+`tu` stays because this is the European deck. The Brazilian one folds it into
+`você` and drills **four** persons — a real re-slotting of every paradigm, not a
+relabelling, and `check_portuguese.py` asserts the count per app.
 
 ## The bug worth remembering
 
@@ -134,16 +143,19 @@ It is now derived from `MODE_LABELS`, and `check_portuguese.py` fails if any
 offered drill type generates nothing. Two more strings were missed the same way
 and caught in a browser: the `<title>` and the `promptLabel: "Spanish"` eyebrow.
 **Anything scaffolded from another app needs a rendered screenshot, not just a
-passing validator.**
+passing validator.** Two more turned up the same way, months of passing
+validation later: `DECL_LABELS` still read `fem. pl. (las ... )`, and the shared
+diacritic map had none of Portuguese's own accents, so `coracao` for `coração`
+graded plain wrong. Both are checked now.
 
 ## Commands
 
 ```
 python3 scripts/portuguese_morph.py            # paradigm self-check
-python3 scripts/build_portuguese_vocab.py      # regenerates vocab_pt.json
-python3 scripts/make_portuguese_trainer.py     # regenerates the HTML
+python3 scripts/build_portuguese_vocab.py      # writes vocab_pt.json AND vocab_br.json
+python3 scripts/make_portuguese_trainer.py     # writes both apps, SWs and manifests
 python3 scripts/validate.py portuguese_trainer.html
-python3 scripts/check_portuguese.py            # variants, banks, dead modes
+python3 scripts/check_portuguese.py            # runs over BOTH apps
 ```
 
 ## Known gaps

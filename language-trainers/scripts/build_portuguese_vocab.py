@@ -27,10 +27,13 @@ import json, os, sys, collections
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from portuguese_morph import (noun_forms, conjugate, decline_adjective, pluralize,
-                              personal_infinitive, future_subjunctive, PERSONS)
+                              personal_infinitive, future_subjunctive, PERSONS,
+                              conjugate_br, personal_infinitive_br,
+                              future_subjunctive_br, PERSONS_BR)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "vocab_pt.json")
+OUT_BR = os.path.join(HERE, "..", "vocab_br.json")
 
 # Words the oracle does not know but which are correct. Every one needs a
 # reason, so the list cannot quietly become a way of silencing the check.
@@ -55,6 +58,19 @@ SPELLING_OK = {
     "time": "Brazilian for a sports team, from English; the dictionary is European",
     "garçom": "Brazilian for a waiter; the dictionary is European",
     "mail": "half of the Brazilian e-mail, which the tokeniser splits on the hyphen",
+    # plurals of the Brazilian headwords, generated once the BR deck swaps them in
+    "bebês": "plural of bebê (BR)",
+    "abajures": "plural of abajur (BR)",
+    "times": "plural of time (BR)",
+    "garçons": "plural of garçom (BR); garçons is the usual written plural",
+    "mails": "from the split of e-mails",
+    "marrom": "Brazilian for brown, where Portugal says castanho",
+    "marrons": "plural of marrom (BR); it has no separate feminine",
+    "econômica": "Brazilian spelling of económica",
+    "econômicos": "Brazilian spelling of económicos",
+    "econômicas": "Brazilian spelling of económicas",
+    "bilheteria": "Brazilian spelling of bilheteira",
+    "bilheterias": "plural of bilheteria (BR)",
     "ecrãs": "plural of ecrã; the dictionary lacks it",
     "telemóveis": "plural of telemóvel; the dictionary lacks it",
 }
@@ -269,7 +285,7 @@ NOUNS = [
     ("reserva", "f", "booking", "5"), ("chegada", "f", "arrival", "5"),
     ("partida", "f", "departure", "5"),
     # L6 nature
-    ("nevoeiro", "m", "fog (PT)", "6"), ("trovoada", "f", "thunderstorm", "6"),
+    ("nevoeiro", "m", "fog", "6"), ("trovoada", "f", "thunderstorm", "6"),
     ("relâmpago", "m", "lightning", "6"), ("gelo", "m", "ice", "6"),
     ("sombra", "f", "shade, shadow", "6"), ("luz", "f", "light", "6"),
     ("ilha", "f", "island", "6"), ("lago", "m", "lake", "6"),
@@ -632,6 +648,7 @@ BR_VARIANTS = {
     "descarregar": "baixar", "apanhar": "pegar", "constipação": "resfriado",
     "aborrecido": "chato", "zangado": "bravo", "esquisito": "estranho",
     "casaco": "jaqueta", "passeio": "calçada", "autocarro": "ônibus",
+    "bilheteira": "bilheteria", "castanho": "marrom", "cinzento": "cinza",
     "não percebo": "não entendo", "pode ajudar-me?": "pode me ajudar?",
     "chamo-me...": "me chamo...", "tenho de ir": "tenho que ir",
     "como estás?": "como você está?", "se calhar": "talvez",
@@ -896,7 +913,7 @@ SER_ESTAR = [
     ("Hoje {é} segunda-feira.", "Today is Monday.", "está", "day and date → ser"),
     ("O café {está} quente.", "The coffee is hot.", "é", "current state → estar"),
     ("Lisboa {fica} em Portugal.", "Lisbon is in Portugal.", "é",
-     "permanent location → ficar (PT prefers it to estar here)"),
+     "permanent location → ficar (Portuguese prefers it to estar here)"),
     ("A casa {é} de madeira.", "The house is made of wood.", "está", "material → ser"),
     ("Eles {estão} em casa.", "They are at home.", "são", "where someone is now → estar"),
     ("O livro {é} meu.", "The book is mine.", "está", "possession → ser"),
@@ -906,7 +923,7 @@ SER_ESTAR = [
     ("A reunião {é} às três.", "The meeting is at three.", "está",
      "when an event takes place → ser"),
     ("{Estou} a aprender português.", "I am learning Portuguese.", "Sou",
-     "estar a + infinitive is the PT progressive"),
+     "estar a + infinitive is the Portuguese progressive"),
     ("Onde {fica} a estação?", "Where is the station?", "é",
      "asking where a fixed thing is → ficar"),
     ("A janela {está} suja.", "The window is dirty.", "é", "changeable state → estar"),
@@ -993,29 +1010,29 @@ FUT_SUBJ = [
 # coming from Spanish would reach for.
 FALSE_FRIENDS = [
     ("Este bolo tem um sabor {esquisito}.", "This cake has a strange taste.",
-     "exquisito", "Spanish exquisito means delicious; PT esquisito means odd"),
+     "exquisito", "Spanish exquisito means delicious; Portuguese esquisito means odd"),
     ("A minha irmã está {grávida}.", "My sister is pregnant.", "embaraçada",
-     "PT embaraçada means embarrassed, not pregnant"),
+     "Portuguese embaraçada means embarrassed, not pregnant"),
     ("Trabalho num {escritório} no centro.", "I work in an office in the centre.",
-     "oficina", "PT oficina is a workshop or garage"),
+     "oficina", "Portuguese oficina is a workshop or garage"),
     ("Deixei uma {gorjeta} ao empregado.", "I left the waiter a tip.", "propina",
-     "PT propina is a tuition fee"),
+     "Portuguese propina is a tuition fee"),
     ("A ponte é muito {comprida}.", "The bridge is very long.", "larga",
-     "PT largo means wide, not long"),
+     "Portuguese largo means wide, not long"),
     ("Há muito {pó} na estante.", "There is a lot of dust on the shelf.", "polvo",
-     "PT polvo is an octopus"),
+     "Portuguese polvo is an octopus"),
     ("A sopa está muito {salgada}.", "The soup is very salty.", "salada",
-     "PT salada is a salad"),
+     "Portuguese salada is a salad"),
     ("Vamos {jantar} às oito.", "We are having dinner at eight.", "cear",
-     "Spanish cena is dinner; PT cena is a scene"),
+     "Spanish cena is dinner; Portuguese cena is a scene"),
     ("Qual é o teu {apelido}?", "What is your surname?", "apellido",
      "one l in Portuguese, two in Spanish"),
     ("Ela ficou {embaraçada} com a pergunta.", "She was embarrassed by the question.",
      "grávida", "the same trap run the other way round"),
     ("Preciso de uma {borracha} para apagar isto.",
-     "I need an eraser to rub this out.", "goma", "PT borracha is rubber, an eraser"),
+     "I need an eraser to rub this out.", "goma", "Portuguese borracha is rubber, an eraser"),
     ("Esperei um {bocado} à porta.", "I waited a while at the door.", "rato",
-     "Spanish rato is a while; PT rato is a mouse"),
+     "Spanish rato is a while; Portuguese rato is a mouse"),
 ]
 
 SER_ESTAR += [
@@ -1084,13 +1101,201 @@ FUT_SUBJ += [
 
 FALSE_FRIENDS += [
     ("Ele ficou {constipado} com o frio.", "He caught a cold in the cold weather.",
-     "constipado_es", "PT constipado is a head cold; in Spanish it means the opposite end"),
+     "constipado_es", "Portuguese constipado is a head cold; in Spanish it means the opposite end"),
     ("Preciso de {tirar} férias.", "I need to take time off.", "tomar",
-     "PT uses tirar férias where Spanish uses tomar"),
+     "Portuguese uses tirar férias where Spanish uses tomar"),
     ("O {escritório} fica no segundo andar.", "The office is on the second floor.",
-     "despacho", "PT despacho is a dispatch, not an office"),
+     "despacho", "Portuguese despacho is a dispatch, not an office"),
     ("Vou {apanhar} o autocarro.", "I'm going to catch the bus.", "coger",
      "coger is Spanish; in Portuguese apanhar (PT) or pegar (BR)"),
+]
+
+# Multi-word Brazilian nouns, whose plural no single-word rule can produce.
+BR_COMPOUND_PLURALS = {
+    "café da manhã": "cafés da manhã",
+    "vaso sanitário": "vasos sanitários",
+    "e-mail": "e-mails",
+}
+
+# ---------------------------------------------------------------------------
+# BRAZILIAN SENTENCE VARIANTS
+# Three differences are not a word swap and need the sentence rewritten:
+#
+#   clitic placement  Portugal puts the pronoun after the verb (chamo-me),
+#                     Brazil before it (me chamo). Brazilian even starts a
+#                     sentence with it, which Portugal's grammar forbids.
+#   the progressive   estar a + infinitive (PT) vs the gerund (BR):
+#                     está a dormir / está dormindo.
+#   second person     tu with its own verb form (PT) vs você with the
+#                     third-person form (BR).
+#
+# Keyed by the European sentence, so a European sentence that has no entry here
+# is assumed to be identical in Brazil — and check_br_sentences() fails the
+# build if a European-only construction slips through unrewritten.
+# ---------------------------------------------------------------------------
+BR_SENTENCES = {
+    # clitic placement
+    "Dói-me a {cabeça}.": "Minha {cabeça} está doendo.",
+    "Dá-me a {mão}.": "Me dá a {mão}.",
+    "Esqueci-me do {telemóvel} em casa.": "Esqueci meu {celular} em casa.",
+    "Diz-me a {verdade}.": "Me diz a {verdade}.",
+    "chamo-me...": "me chamo...",
+    "pode ajudar-me?": "pode me ajudar?",
+    "Podes {ajudar}-me?": "Você pode me {ajudar}?",
+    "Lava as {mãos} antes de comer.": "Lave as {mãos} antes de comer.",
+    # the progressive
+    "Os {homens} estão a trabalhar.": "Os {homens} estão trabalhando.",
+    "A {criança} está a dormir.": "A {criança} está dormindo.",
+    "Este {mês} está a correr bem.": "Este {mês} está indo bem.",
+    "A {roupa} está a secar.": "A {roupa} está secando.",
+    "{Estou} a aprender português.": "{Estou} aprendendo português.",
+    "A água {está} a ferver.": "A água {está} fervendo.",
+    "Os {miúdos} estão a brincar.": "As crianças estão brincando.",
+    "Os miúdos {estão} a brincar.": "As crianças {estão} brincando.",
+    # tu -> você, with the third-person verb form
+    "Tu {és} muito simpático.": "Você {é} muito simpático.",
+    "Onde {estás}?": "Onde você {está}?",
+    "Tu {tens} razão.": "Você {tem} razão.",
+    "Tu {vais} de comboio?": "Você {vai} de trem?",
+    "O que {fazes} ao fim de semana?": "O que você {faz} no fim de semana?",
+    "Tu {sabes} cozinhar?": "Você {sabe} cozinhar?",
+    "Tu {conheces} o João?": "Você {conhece} o João?",
+    "Onde é que tu {moras}?": "Onde você {mora}?",
+    "Tu {trabalhas} demasiado.": "Você {trabalha} demais.",
+    "Tu {ouves} música?": "Você {ouve} música?",
+    "Tu {escolhes} o restaurante.": "Você {escolhe} o restaurante.",
+    "Já estás {pronta}?": "Você já está {pronta}?",
+    "como estás?": "como você está?",
+    "Vocês {leem} muito.": "Vocês {leem} muito.",
+    # vocabulary inside a sentence
+    "Apanhei o {comboio} das oito.": "Peguei o {trem} das oito.",
+    "O {autocarro} está atrasado.": "O {ônibus} está atrasado.",
+    "Eu {perco} sempre o autocarro.": "Eu sempre {perco} o ônibus.",
+    "De {manhã} bebo café.": "De {manhã} eu tomo café.",
+    "Quero {batatas} fritas.": "Quero {batatas} fritas.",
+    "A {conta}, se faz favor.": "A {conta}, por favor.",
+    "Um café, {por favor}.": "Um café, {por favor}.",
+    "O comboio {chega} às seis.": "O trem {chega} às seis.",
+    "Este comboio vai {para} o Porto.": "Este trem vai {para} o Porto.",
+    "No caso de {haver} problemas, liga-me.": "No caso de {haver} problemas, me liga.",
+    "Vou {apanhar} o autocarro.": "Vou {pegar} o ônibus.",
+    # tu-based bank items move to você, which changes the braced verb form too
+    "Se {puderes}, ajuda-me.": "Se você {puder}, me ajuda.",
+    "Quando {fizeres} os anos, vamos festejar.":
+        "Quando você {fizer} aniversário, vamos comemorar.",
+    "Se {tiveres} tempo, telefona.": "Se você {tiver} tempo, liga.",
+    "Quando {vieres}, traz o livro.": "Quando você {vier}, traz o livro.",
+    "Se {trouxeres} o carro, conduzo eu.": "Se você {trouxer} o carro, eu dirijo.",
+    "Para {seres} feliz, precisas de descansar.":
+        "Para você {ser} feliz, precisa descansar.",
+    "Trouxe o livro para {leres}.": "Trouxe o livro para você {ler}.",
+    "Antes de {comeres}, lava as mãos.": "Antes de você {comer}, lave as mãos.",
+    "Para {viveres} bem, descansa.": "Para você {viver} bem, descanse.",
+    "Comprei um {bilhete} de ida e volta.": "Comprei uma {passagem} de ida e volta.",
+    "Os {bilhetes} estão esgotados.": "As {passagens} estão esgotadas.",
+    "Não {encontro} as chaves.": "Não {encontro} as chaves.",
+    # the article before a possessive: Portugal keeps it, Brazil drops it
+    "Aquele {homem} é o meu pai.": "Aquele {homem} é meu pai.",
+    "O meu {pai} trabalha num banco.": "Meu {pai} trabalha num banco.",
+    "O meu {irmão} mora no Porto.": "Meu {irmão} mora em São Paulo.",
+    "Ele é o meu melhor {amigo}.": "Ele é meu melhor {amigo}.",
+    "Convidei os meus {amigos} para jantar.": "Convidei meus {amigos} para jantar.",
+    "A minha {casa} é pequena.": "Minha {casa} é pequena.",
+    "O meu {computador} está lento.": "Meu {computador} está lento.",
+    "O meu {inglês} não é bom.": "Meu {inglês} não é bom.",
+    "O meu vizinho é {alemão}.": "Meu vizinho é {alemão}.",
+    "A tua irmã é muito {simpática}.": "Sua irmã é muito {simpática}.",
+    "O meu irmão {é} médico.": "Meu irmão {é} médico.",
+    "A carta é {para} a minha mãe.": "A carta é {para} minha mãe.",
+    "Comprei isto {para} a minha mãe.": "Comprei isto {para} minha mãe.",
+    "Se {dermos} o nosso melhor, ganhamos.": "Se {dermos} nosso melhor, ganhamos.",
+    "A minha irmã está {grávida}.": "Minha irmã está {grávida}.",
+    # depressa is Portugal's; Brazil says rápido
+    "A {semana} passou depressa.": "A {semana} passou rápido.",
+    "O {coração} bate depressa.": "O {coração} bate rápido.",
+    "Eu {aprendo} depressa.": "Eu {aprendo} rápido.",
+    "Ele {conduz} muito depressa.": "Ele {conduz} a reunião com calma.",
+    "Saímos {para} apanhar ar.": "Saímos {para} tomar ar.",
+    "Deixei uma {gorjeta} ao empregado.": "Deixei uma {gorjeta} para o garçom.",
+    # apelido is the false friend twice over: Spanish apellido is a surname, and
+    # so is Portugal's apelido — but in Brazil an apelido is a NICKNAME, which
+    # makes the Brazilian card a sharper version of the same lesson.
+    "Qual é o teu {apelido}?": "Qual é o seu {sobrenome}?",
+}
+
+# A few bank items need their DISTRACTOR changed for Brazil as well, because
+# the trap itself is variety-specific. Keyed by item id.
+BR_WRONG = {
+    "ff009": "apelido",
+}
+
+# European-only constructions. If one of these survives into the Brazilian deck
+# the sentence was never rewritten, and the drill would teach Portugal's grammar
+# to a Brazilian learner — which is the whole reason this deck exists.
+import re as _re
+# BR_SENTENCES rewrites the sentence; the NOTE explaining it has to follow, or
+# the card shows `{Estou} aprendendo` above "estar a + infinitive is the
+# progressive" and teaches the construction it just replaced.
+BR_NOTES = {
+    "estar a + infinitive is the Portuguese progressive":
+        "estar + gerund is the Brazilian progressive",
+    "estar a + infinitive, the European progressive":
+        "estar + gerund, the Brazilian progressive",
+    # The sentence became "Antes de você {comer}" — você takes the bare form,
+    # so the note about the -es ending has nothing left to point at.
+    "the -es ending marks tu":
+        "você adds no ending, so the plural comerem is what marks a subject",
+    "one l in Portuguese, two in Spanish":
+        "Brazilian apelido is a NICKNAME; the surname is sobrenome",
+    "Spanish exquisito means delicious; Portuguese esquisito means odd":
+        "Spanish exquisito means delicious; in Brazil esquisito means odd or "
+        "off-tasting",
+    # conduzir keeps its "lead, conduct" sense in Brazil; driving is dirigir,
+    # which is why the sentence above stopped being about a car.
+    "conduzir → conduz, like dizer → diz": "conduzir → conduz; driving is dirigir",
+}
+
+# The European vocabulary pattern is DERIVED from BR_VARIANTS rather than
+# hand-listed, because a hand-listed one only catches the words someone
+# remembered: `Se falarmos devagar, ele percebe` sat in the future-subjunctive
+# bank with Portugal's verb in it, and the four words in the old list did not
+# include it. Every European headword the deck already knows a Brazilian
+# equivalent for is a word that must not appear in a Brazilian sentence.
+_EU_STEMS = sorted({w for w in BR_VARIANTS
+                    if " " not in w and "-" not in w and "?" not in w},
+                   key=len, reverse=True)
+# Words the derived pattern flags that are in fact current in Brazil. Each
+# needs a reason, like SPELLING_OK — the list is the argument, not the escape.
+EU_VOCAB_OK = {
+    "passeio": "a walk or outing in both varieties; only the pavement sense splits",
+    "bilhete": "current in Brazil for a ticket or note; passagem is air/coach travel",
+    "casaco": "current in Brazil for a coat",
+    "gelado": "the adjective (iced) is current in Brazil; only the noun splits",
+    "esquisito": "current in Brazil for odd or weird — which is the false friend",
+}
+
+# Whole texts the guard flags that are correct anyway, keyed by the id the
+# check reports. A false-friend note NAMES the European word on purpose, and
+# the article rule below is a tendency rather than an absolute: Brazil drops it
+# in "meu pai" but keeps it in "qual é o seu nome?".
+EU_TEXT_OK = {
+    "ff009": "qual é o seu X keeps the article in Brazil too",
+    "ff009 (note)": "names apelido on purpose — it is the Brazilian trap",
+    "ff001 (note)": "names esquisito on purpose — it is the false friend",
+    "ff016 (note)": "contrasts apanhar (PT) with pegar (BR) explicitly",
+}
+
+EU_ONLY = [
+    (_re.compile(r"\b\w+-(me|te|nos|lhe|lhes)\b"), "clitic after the verb"),
+    (_re.compile(r"\best(ou|ás|á|amos|ão)\s+a\s+\w+r\b"), "estar a + infinitive"),
+    (_re.compile(r"\bTu\b|\btu\b"), "tu as the second person"),
+    # Brazil drops the definite article before a possessive: "meu irmão", not
+    # "o meu irmão". Portugal keeps it, and every ser/estar sentence written
+    # for Portugal carried it straight into the Brazilian deck.
+    (_re.compile(r"\b[oa]s?\s+(meu|minha|teu|tua|seu|sua|nosso|nossa)s?\b",
+                 _re.IGNORECASE), "article before a possessive"),
+    (_re.compile(r"(?<![\w-])(" + "|".join(_EU_STEMS) + r")(s|es|a|as|os|o|es)?(?![\w-])",
+                 _re.IGNORECASE), "European vocabulary"),
 ]
 
 # Braced cloze forms that are correct but outside the present-tense/plural
@@ -1108,7 +1313,11 @@ def slug(i):
     return f"pt{i:04d}"
 
 
-def build():
+def build(variant="eu"):
+    """variant "eu" = European headwords with the Brazilian marked, and vice
+    versa. ONE curated source produces both decks, so they cannot drift: a word
+    added here appears in Portugal's and Brazil's trainer on the same run."""
+    br = variant == "br"
     entries, by_word, warn = [], {}, []
     n = [0]
 
@@ -1138,10 +1347,14 @@ def build():
             plural=forms["plural"], noun_decl=forms)
 
     for infinitive, en, lesson in VERBS:
-        conj = conjugate(infinitive)
-        add(infinitive, en, "verb", lesson, conjugation=conj,
-            personal_infinitive=personal_infinitive(infinitive),
-            future_subjunctive=future_subjunctive(infinitive))
+        # Brazil's paradigm has four slots: você takes the third-person form,
+        # so drilling "tu falas" would teach a shape most Brazilians never use.
+        add(infinitive, en, "verb", lesson,
+            conjugation=(conjugate_br if br else conjugate)(infinitive),
+            personal_infinitive=(personal_infinitive_br if br
+                                 else personal_infinitive)(infinitive),
+            future_subjunctive=(future_subjunctive_br if br
+                                else future_subjunctive)(infinitive))
 
     for row in ADJECTIVES:
         word, en, lesson = row[0], row[1], row[2]
@@ -1156,11 +1369,59 @@ def build():
     for word, en, lesson in PHRASES:
         add(word, en, "phrase", lesson)
 
+    # `alt` is the OTHER variety's form, whichever way round the deck is built,
+    # so one engine serves both apps and only the two labels change.
+    for eu_form, br_form in BR_VARIANTS.items():
+        candidates = by_word.get(eu_form)
+        assert candidates, f"variant pair for {eu_form!r}, which is not an entry"
+        if eu_form == br_form:
+            continue
+        for e in candidates:
+            if not br:
+                e["alt"] = br_form
+                continue
+            e["pt"], e["alt"] = br_form, eu_form
+            # The gloss carries a variety marker — "train (PT)" — which names
+            # the variety the HEADWORD belongs to. After the swap the headword
+            # is Brazil's, so the marker has to move with it, or the deck tells
+            # a Brazilian learner that `trem` is what Portugal says.
+            # \b, not "(PT)": the marker also appears mid-parenthesis, as in
+            # "how are you? (informal, PT)" and "my name is... (PT word order)".
+            e["en"] = re.sub(r"\bPT\b", "BR", e["en"])
+            # The Brazilian word has its own morphology, and EVERY derived form
+            # has to be recomputed from it — the plural (trem/trens, not
+            # comboios), the feminine (marrom is invariable where castanho has
+            # castanha) and the paradigm (baixar/baixo, not descarrego).
+            # Leaving the European forms attached had the decline drill asking
+            # for the feminine of `marrom` and answering `castanha`, which is
+            # both varieties' word for neither thing.
+            if e["pos"] == "adjective":
+                e["declension"] = decline_adjective(br_form)
+            elif e["pos"] == "verb":
+                e["conjugation"] = conjugate_br(br_form)
+                e["personal_infinitive"] = personal_infinitive_br(br_form)
+                e["future_subjunctive"] = future_subjunctive_br(br_form)
+            elif e["pos"] == "noun":
+                if " " in br_form or "-" in br_form:
+                    plural = BR_COMPOUND_PLURALS.get(br_form)
+                    assert plural, (f"{br_form!r}: multi-word Brazilian noun needs "
+                                    f"an entry in BR_COMPOUND_PLURALS")
+                    e["plural"] = plural
+                    e["noun_decl"] = {"article": e["noun_decl"]["article"],
+                                      "plural": plural}
+                else:
+                    forms = noun_forms(br_form, e.get("gender", "m"))
+                    e["plural"], e["noun_decl"] = forms["plural"], forms
+
     # --- cloze -------------------------------------------------------------
     for word, sentences in CLOZE.items():
         candidates = by_word.get(word)
         assert candidates, f"cloze for {word!r}, which is not an entry"
         for sentence, gloss in sentences:
+            # Rewrite for Brazil FIRST: the rewritten sentence may brace a
+            # different form (Tu és -> Você é), and it is that form which has to
+            # exist in the entry's Brazilian paradigm.
+            sentence = BR_SENTENCES.get(sentence, sentence) if br else sentence
             target = re.findall(r"\{([^}]+)\}", sentence)[0]
             # attach to the entry that actually HAS this form, so a homograph
             # cannot silently take another part of speech's sentence
@@ -1176,18 +1437,43 @@ def build():
             owner.setdefault("cloze", []).append({"pt": sentence, "en": gloss})
 
     # --- Brazilian variants ------------------------------------------------
-    for pt, br in BR_VARIANTS.items():
-        candidates = by_word.get(pt)
-        assert candidates, f"BR variant for {pt!r}, which is not an entry"
-        if pt != br:
-            for e in candidates:
-                e["br"] = br
-
     # --- special banks -----------------------------------------------------
+    def bsent(x):
+        return BR_SENTENCES.get(x, x) if br else x
+
+    def bnote(x):
+        return BR_NOTES.get(x, x) if br else x
+
+    def bwrong(ident, trap):
+        return BR_WRONG.get(ident, trap) if br else trap
+
+    # Everything below has to agree on WHICH paradigm and WHICH person, or the
+    # distractor is computed for Portugal and shipped to Brazil.
+    pers_inf = personal_infinitive_br if br else personal_infinitive
+    fut_sub = future_subjunctive_br if br else future_subjunctive
+    conj = conjugate_br if br else conjugate
+
+    def eff(p):
+        return PERSON_BR_MAP.get(p, p) if br else p
+
+    def pi_wrong(v, p):
+        """The plain infinitive — except in the third person singular, where the
+        personal infinitive already IS it, so the plural makes the contrast."""
+        p = eff(p)
+        return pers_inf(v)["voces_eles_elas" if br else "eles_elas_voces"] \
+            if pers_inf(v)[p] == v else v
+
+    def fs_wrong(v, p):
+        """The personal infinitive — except for a regular verb, where the two
+        coincide, so the present indicative carries the contrast instead."""
+        p = eff(p)
+        return conj(v)[p] if pers_inf(v)[p] == fut_sub(v)[p] else pers_inf(v)[p]
+
     special = {
-        "ser_estar": [{"id": f"se{i:03d}", "pt": s, "en": t, "wrong": w, "note": note}
+        "ser_estar": [{"id": f"se{i:03d}", "pt": bsent(s), "en": t,
+                       "wrong": w, "note": bnote(note)}
                       for i, (s, t, w, note) in enumerate(SER_ESTAR, 1)],
-        "por_para": [{"id": f"pp{i:03d}", "pt": s, "en": t, "note": note}
+        "por_para": [{"id": f"pp{i:03d}", "pt": bsent(s), "en": t, "note": bnote(note)}
                      for i, (s, t, note) in enumerate(POR_PARA, 1)],
         # The distractor is the plain infinitive: "antes de sair" is what a
         # learner writes when they have not met the personal infinitive.
@@ -1195,11 +1481,9 @@ def build():
         # so it already IS the plain infinitive and there would be nothing to
         # choose between. Those cards contrast the plural instead, which is the
         # same lesson from the other side: the ending is what marks the subject.
-        "personal_inf": [{"id": f"pi{i:03d}", "pt": s, "en": t, "verb": v,
-                          "person": p,
-                          "wrong": (personal_infinitive(v)["eles_elas_voces"]
-                                    if personal_infinitive(v)[p] == v else v),
-                          "note": note}
+        "personal_inf": [{"id": f"pi{i:03d}", "pt": bsent(s), "en": t, "verb": v,
+                          "person": eff(p), "wrong": pi_wrong(v, p),
+                          "note": bnote(note)}
                          for i, (s, t, v, p, note) in enumerate(PERSONAL_INF, 1)],
         # Here the distractor is the PERSONAL INFINITIVE, because that is the
         # form people substitute — se irmos for se formos.
@@ -1207,35 +1491,40 @@ def build():
         # card's point but leaves nothing to choose between. Those contrast the
         # present indicative instead — "se falamos" for "se falarmos" is the
         # mistake people actually make.
-        "fut_subj": [{"id": f"fs{i:03d}", "pt": s, "en": t, "verb": v,
-                      "person": p,
-                      "wrong": (conjugate(v)[p]
-                                if personal_infinitive(v)[p] == future_subjunctive(v)[p]
-                                else personal_infinitive(v)[p]),
-                      "note": note}
+        "fut_subj": [{"id": f"fs{i:03d}", "pt": bsent(s), "en": t, "verb": v,
+                      "person": eff(p), "wrong": fs_wrong(v, p),
+                      "note": bnote(note)}
                      for i, (s, t, v, p, note) in enumerate(FUT_SUBJ, 1)],
-        "false_friend": [{"id": f"ff{i:03d}", "pt": s, "en": t,
-                          "wrong": trap, "note": note}
+        "false_friend": [{"id": f"ff{i:03d}", "pt": bsent(s), "en": t,
+                          "wrong": bwrong(f"ff{i:03d}", trap), "note": bnote(note)}
                          for i, (s, t, trap, note) in enumerate(FALSE_FRIENDS, 1)],
     }
 
     check_ids(entries)
+    check_special(special, br)
     check_cloze(entries, warn)
-    check_special(special)
     check_spelling(entries, special, warn)
+    check_markers(entries, br)
 
-    deck = {"meta": {"version": "1.0", "language": "pt", "variant": "european",
+    if br:
+        check_br_sentences(entries, special)
+
+    deck = {"meta": {"version": "1.1", "language": "pt",
+                     "variant": "brazilian" if br else "european",
                      "reference_lang": "en", "level": "A1-A2",
                      "created": "2026-08-11"},
             "entries": entries, "special": special}
-    json.dump(deck, open(OUT, "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump(deck, open(OUT_BR if br else OUT, "w", encoding="utf-8"),
+              ensure_ascii=False)
 
     pos = collections.Counter(e["pos"] for e in entries)
     lessons = len({e["lesson"] for e in entries})
     cloze = sum(len(e.get("cloze", [])) for e in entries)
-    br = sum(1 for e in entries if e.get("br"))
-    print(f"vocab_pt.json: {len(entries)} entries, {lessons} lessons, "
-          f"{cloze} cloze sentences, {br} marked BR variants")
+    marked = sum(1 for e in entries if e.get("alt"))
+    name = "vocab_br.json" if br else "vocab_pt.json"
+    other = "European" if br else "Brazilian"
+    print(f"{name}: {len(entries)} entries, {lessons} lessons, "
+          f"{cloze} cloze sentences, {marked} marked {other} variants")
     print("  " + " · ".join(f"{v} {k}" for k, v in pos.most_common()))
     print("  special: " + " · ".join(f"{len(v)} {k}" for k, v in special.items()))
     for w in warn:
@@ -1274,7 +1563,13 @@ def check_cloze(entries, warn):
                 f"add it to CLOZE_OK with a reason if it is correct")
 
 
-def check_special(special):
+PERSON_BR_MAP = {"tu": "voce_ele_ela", "ele_ela_voce": "voce_ele_ela",
+                 "eles_elas_voces": "voces_eles_elas"}
+
+
+def check_special(special, br=False):
+    pers_inf = personal_infinitive_br if br else personal_infinitive
+    fut_sub = future_subjunctive_br if br else future_subjunctive
     import re
     for bank, items in special.items():
         for it in items:
@@ -1290,12 +1585,12 @@ def check_special(special):
     # the personal-infinitive and future-subjunctive banks must agree with the
     # generator, or the drill would teach a form the paradigm table denies
     for it in special["personal_inf"]:
-        want = personal_infinitive(it["verb"])[it["person"]]
+        want = pers_inf(it["verb"])[it["person"]]
         got = re.findall(r"\{([^}]+)\}", it["pt"])[0]
         assert got == want, (f"{it['id']}: sentence has {got!r} but the personal "
                              f"infinitive of {it['verb']} for {it['person']} is {want!r}")
     for it in special["fut_subj"]:
-        want = future_subjunctive(it["verb"])[it["person"]]
+        want = fut_sub(it["verb"])[it["person"]]
 
         got = re.findall(r"\{([^}]+)\}", it["pt"])[0]
         assert got == want, (f"{it['id']}: sentence has {got!r} but the future "
@@ -1327,5 +1622,64 @@ def check_spelling(entries, special, warn):
 
 import re  # used by the checks above
 
+def check_markers(entries, br):
+    """A "(PT)" or "(BR)" in a gloss names a variety, so it has to be true.
+
+    The markers were curated on the European headwords and the Brazilian deck
+    swapped the headword out from under them, leaving `trem — train (PT)`: the
+    deck telling a Brazilian learner that their own word is Portugal's. An
+    entry that carries the OTHER variety's form in `alt` is by definition its
+    own variety's word, so its marker can only be this deck's.
+    """
+    mine, theirs = ("BR", "PT") if br else ("PT", "BR")
+    bad = [f"{e['pt']} — {e['en']}" for e in entries
+           if e.get("alt") and re.search(rf"\b{theirs}\b", e["en"])]
+    assert not bad, ("gloss marks the wrong variety on a paired entry: "
+                     + "; ".join(bad[:6]))
+    # And the marker is only meaningful on a word that is variety-specific:
+    # every unpaired marker names a variety explicitly (conduzir/dirigir) and
+    # must still be one of the two.
+    for e in entries:
+        for m in re.findall(r"\b(PT|BR)\b", e["en"]):
+            assert m in (mine, theirs), e["en"]
+
+
+def check_br_sentences(entries, special):
+    """Nothing European-only may survive into the Brazilian deck."""
+    bad = []
+    texts = []
+    for e in entries:
+        if e["pos"] == "phrase":
+            texts.append((e["id"], e["pt"]))
+        for c in e.get("cloze", []):
+            texts.append((e["id"], c["pt"]))
+    for bank in special.values():
+        for it in bank:
+            if it.get("pt"):
+                texts.append((it["id"], it["pt"]))
+    # Notes are prose about the sentence, so a European-only construction in
+    # one is exactly as wrong as in the sentence itself.
+    for bank in special.values():
+        for it in bank:
+            if it.get("note"):
+                texts.append((it["id"] + " (note)", it["note"]))
+    for ident, text in texts:
+        for pattern, why in EU_ONLY:
+            m = pattern.search(text)
+            if not m:
+                continue
+            if ident in EU_TEXT_OK:
+                continue
+            if why == "European vocabulary" and m.group(1).lower() in EU_VOCAB_OK:
+                continue
+            bad.append(f"{ident}: {why} — {text!r}")
+    if bad:
+        raise AssertionError(
+            "European-only constructions left in the Brazilian deck; add a "
+            "rewrite to BR_SENTENCES for each:\n  " + "\n  ".join(bad[:25]) +
+            (f"\n  ... and {len(bad) - 25} more" if len(bad) > 25 else ""))
+
+
 if __name__ == "__main__":
-    build()
+    build("eu")
+    build("br")

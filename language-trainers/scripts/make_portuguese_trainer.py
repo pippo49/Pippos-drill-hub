@@ -37,8 +37,30 @@ import json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 LT = os.path.join(HERE, "..")
 SRC = os.path.join(LT, "spanish_trainer.html")
-OUT = os.path.join(LT, "portuguese_trainer.html")
-DECK = os.path.join(LT, "vocab_pt.json")
+# One generator, two apps. They differ in the deck, the person labels, the
+# branding and which variety the reveal panel calls primary — nothing else, so
+# an engine fix cannot land in one and miss the other.
+VARIANTS = {
+    "eu": dict(out="portuguese_trainer.html", deck="vocab_pt.json",
+               slug="portuguese-trainer", title="European Portuguese",
+               subtitle="português de Portugal / english",
+               primary="Portugal", other="Brasil",
+               # short_name is what fits under a home-screen icon, where
+               # "European Portuguese Trainer" is truncated to nothing useful
+               # and both apps would read the same
+               short="Português PT", key="portuguese_trainer",
+               persons={"eu": "eu", "tu": "tu", "ele_ela_voce": "ele / ela / você",
+                        "nos": "nós", "eles_elas_voces": "eles / elas / vocês"}),
+    "br": dict(out="brazilian_trainer.html", deck="vocab_br.json",
+               slug="brazilian-trainer", title="Brazilian Portuguese",
+               subtitle="português do Brasil / english",
+               primary="Brasil", other="Portugal",
+               short="Português BR", key="brazilian_trainer",
+               # four slots: você takes the third-person form, so tu does not
+               # get a column of its own
+               persons={"eu": "eu", "voce_ele_ela": "você / ele / ela",
+                        "nos": "nós", "voces_eles_elas": "vocês / eles / elas"}),
+}
 
 MODE_LABELS = [
     ("pt_en", "PT → EN"),
@@ -55,15 +77,19 @@ MODE_LABELS = [
     ("false_friend", "False friends"),
 ]
 
-PRONOUN_LABELS = {
-    "eu": "eu", "tu": "tu", "ele_ela_voce": "ele / ela / você",
-    "nos": "nós", "eles_elas_voces": "eles / elas / vocês",
-}
-
 LBL_OLD = ('promptLabel: mode === "ser_estar" ? "Ser vs estar — choose the form"'
            ' : "Por vs para — choose",')
 
 BANKS = ["ser_estar", "por_para", "personal_inf", "fut_subj", "false_friend"]
+
+ARTICLES_ES = '''  m_sg_nom: "masc. sg. (el ... )",
+  f_sg: "fem. sg. (la ... )",
+  m_pl: "masc. pl. (los ... )",
+  f_pl: "fem. pl. (las ... )"'''
+ARTICLES_PT = '''  m_sg_nom: "masc. sg. (o ... )",
+  f_sg: "fem. sg. (a ... )",
+  m_pl: "masc. pl. (os ... )",
+  f_pl: "fem. pl. (as ... )"'''
 
 
 def sub(src, old, new, count=1):
@@ -72,7 +98,7 @@ def sub(src, old, new, count=1):
     return src.replace(old, new)
 
 
-def build():
+def build(cfg):
     src = open(SRC, encoding="utf-8").read()
 
     # Split the data blob out behind a placeholder so the .es -> .pt rename
@@ -92,13 +118,13 @@ def build():
 
     # --- branding -----------------------------------------------------------
     pairs = [
-        ("spanish_trainer_progress", "portuguese_trainer_progress"),
-        ("spanish_trainer_lessons", "portuguese_trainer_lessons"),
-        ("spanish_trainer_pos", "portuguese_trainer_pos"),
-        ("spanish-trainer-sw.js", "portuguese-trainer-sw.js"),
-        ("spanish_trainer.html", "portuguese_trainer.html"),
-        ("spanish-trainer-manifest.json", "portuguese-trainer-manifest.json"),
-        ("spanish-trainer-icon-192.png", "portuguese-trainer-icon-192.png"),
+        ("spanish_trainer_progress", cfg["key"] + "_progress"),
+        ("spanish_trainer_lessons", cfg["key"] + "_lessons"),
+        ("spanish_trainer_pos", cfg["key"] + "_pos"),
+        ("spanish-trainer-sw.js", cfg["slug"] + "-sw.js"),
+        ("spanish_trainer.html", cfg["out"]),
+        ("spanish-trainer-manifest.json", cfg["slug"] + "-manifest.json"),
+        ("spanish-trainer-icon-192.png", cfg["slug"] + "-icon-192.png"),
     ]
     for a, b in pairs:
         head = head.replace(a, b)
@@ -112,14 +138,14 @@ def build():
     # Say WHICH Portuguese, everywhere it is named. The app shipped saying only
     # "português", which is how a Brazilian learner ended up asking whether it
     # was for them — it is not, and the label is the first place to say so.
-    for a, b in [("Spanish / English trainer", "European Portuguese / English trainer"),
+    for a, b in [("Spanish / English trainer", cfg["title"] + " / English trainer"),
                  ('promptLabel: "Spanish"', 'promptLabel: "Portuguese"'),
                  ('answerLabel: "Spanish"', 'answerLabel: "Portuguese"'),
                  ("(Spanish)", "(Portuguese)"),
                  ("Spanish Trainer", "Portuguese Trainer"),
                  ("Spanish/English", "Portuguese/English"),
                  ("Vocabulario", "Vocabulário"),
-                 ("español / english", "português de Portugal / english"),
+                 ("español / english", cfg["subtitle"]),
                  ("Spanish trainer", "Portuguese trainer"),
                  ("Choose the Spanish", "Choose the Portuguese"),
                  ('answerLabel: plToDe ? "English" : "Spanish"',
@@ -129,10 +155,29 @@ def build():
 
     src = head + "const VOCAB_DATA = __DECK_PLACEHOLDER__;\n" + engine_tail
 
+    # --- articles -----------------------------------------------------------
+    # Found in a browser, not by a validator: the form labels still showed
+    # Spanish articles, so the decline drill asked for `fem. pl. (las ... )` in
+    # a Portuguese app. They are prose, not field names, which is why the
+    # .es -> .pt rename walked straight past them.
+    src = sub(src, ARTICLES_ES, ARTICLES_PT)
+    src = sub(src, 'article: "definite article (el / la / los / las)",',
+              'article: "definite article (o / a / os / as)",')
+
+    # --- diacritics ---------------------------------------------------------
+    # The shared map covers Polish, German and Spanish; Portuguese's own marks
+    # were all missing. `coracao` for `coração` was therefore two edits away
+    # rather than a diacritic near-miss, and graded plain wrong — on the two
+    # accents the language uses most.
+    src = sub(src, '"á":"a","é":"e","í":"i","ú":"u","ñ":"n"\n};',
+              '"á":"a","é":"e","í":"i","ú":"u","ñ":"n",\n'
+              '  "ã":"a","õ":"o","â":"a","ê":"e","ô":"o","ç":"c","à":"a"\n};')
+    src = sub(src, "/[ąćęłńóśźżäöüßáéíúñ]/g", "/[ąćęłńóśźżäöüßáéíúñãõâêôçà]/g")
+
     # --- persons ------------------------------------------------------------
     old_pron = re.search(r"const PRONOUN_LABELS = \{.*?\};", src, re.S).group(0)
     new_pron = ("const PRONOUN_LABELS = {\n  " +
-                ",\n  ".join(f'{k}: "{v}"' for k, v in PRONOUN_LABELS.items()) +
+                ",\n  ".join(f'{k}: "{v}"' for k, v in cfg["persons"].items()) +
                 "\n};")
     src = sub(src, old_pron, new_pron)
 
@@ -174,6 +219,8 @@ def build():
     # MODE_LABELS instead, which is the list that already names them.
     src = sub(src, LBL_OLD, 'promptLabel: BANK_LABELS[mode] + " — choose",')
     src = sub(src, "let enabledModes = {",
+              f'const VARIANT_PRIMARY = {cfg["primary"]!r};\n'
+              f'const VARIANT_OTHER = {cfg["other"]!r};\n' +
               "const BANK_LABELS = " + json.dumps(
                   {m: lbl for m, lbl in MODE_LABELS if m in BANKS}, ensure_ascii=False) +
               ";\nlet enabledModes = {")
@@ -228,7 +275,6 @@ def build():
     # styling for the variant row
     src = sub(src, "  .conj-section {", VARIANT_CSS + "  .conj-section {")
 
-    open(OUT, "w", encoding="utf-8").write(src)
     return src
 
 
@@ -245,7 +291,7 @@ BR_HELPERS = '''
 // primary form rather than instead of it.
 function brVariant(entryId) {
   const e = byId[entryId];
-  return (e && e.br) ? e.br : null;
+  return (e && e.alt) ? e.alt : null;
 }
 
 function buildVariantSection() {
@@ -257,10 +303,10 @@ function buildVariantSection() {
   wrap.className = "variant-row";
   const pt = document.createElement("span");
   pt.className = "variant-pt";
-  pt.textContent = "Portugal: " + e.pt;
+  pt.textContent = VARIANT_PRIMARY + ": " + e.pt;
   const b = document.createElement("span");
   b.className = "variant-br";
-  b.textContent = "Brasil: " + br;
+  b.textContent = VARIANT_OTHER + ": " + br;
   wrap.appendChild(pt);
   wrap.appendChild(b);
   return wrap;
@@ -268,20 +314,44 @@ function buildVariantSection() {
 '''
 
 
-def splice_deck(src):
-    deck = json.load(open(DECK, encoding="utf-8"))
+def write_pwa(cfg):
+    """The service worker and manifest are generated too.
+
+    They were hand-copied for every earlier trainer, which is why a stale cache
+    name or a start_url still pointing at the parent app is the classic way one
+    of these ships broken. Deriving them from Spanish makes that impossible: the
+    only thing that differs is the slug and the display name.
+    """
+    for name, sw in [(cfg["slug"] + "-sw.js", True),
+                     (cfg["slug"] + "-manifest.json", False)]:
+        src_name = "spanish-trainer-sw.js" if sw else "spanish-trainer-manifest.json"
+        text = open(os.path.join(LT, src_name), encoding="utf-8").read()
+        text = (text.replace("spanish-trainer", cfg["slug"])
+                    .replace("spanish_trainer.html", cfg["out"])
+                    .replace("Vocabulario — Spanish/English Trainer",
+                             "Vocabulário — " + cfg["title"] + "/English Trainer")
+                    .replace("Spanish Trainer", cfg["short"]))
+        assert "spanish" not in text.lower(), f"{name} still mentions Spanish"
+        open(os.path.join(LT, name), "w", encoding="utf-8").write(text)
+
+
+def splice_deck(src, cfg):
+    deck = json.load(open(os.path.join(LT, cfg["deck"]), encoding="utf-8"))
     blob = json.dumps(deck, ensure_ascii=False, separators=(",", ":"))
     assert src.count("__DECK_PLACEHOLDER__") == 1, "placeholder missing"
     src = src.replace("__DECK_PLACEHOLDER__", blob)
-    open(OUT, "w", encoding="utf-8").write(src)
+    open(os.path.join(LT, cfg["out"]), "w", encoding="utf-8").write(src)
     return deck
 
 
 def main():
-    src = build()
-    deck = splice_deck(open(OUT, encoding="utf-8").read())
-    print(f"portuguese_trainer.html  {len(deck['entries'])} entries, "
-          f"{len(MODE_LABELS)} drill types, {len(deck['special'])} special banks")
+    for cfg in VARIANTS.values():
+        deck = splice_deck(build(cfg), cfg)
+        write_pwa(cfg)
+        print(f"{cfg['out']:26} {len(deck['entries'])} entries, "
+              f"{len(MODE_LABELS)} drill types, "
+              f"{len(deck['special'])} special banks, "
+              f"{len(cfg['persons'])} persons")
 
 
 if __name__ == "__main__":
