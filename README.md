@@ -6,8 +6,8 @@ It is generated — after changing a deck, re-run `python3 scripts/build_index.p
 
 ## Projects
 
-- **`language-trainers/`** — Polish→German, Spanish→English, Italian→English, French→English and Latin→English vocabulary trainers. See `language-trainers/CLAUDE.md`.
-- **`coding-drills/`** — pyDrill / bashDrill / cppDrill coding practice trainers. See `coding-drills/CLAUDE.md`.
+- **`language-trainers/`** — vocabulary trainers: Polish→German, Spanish, European Portuguese, Brazilian Portuguese, Italian, French and Latin→English, plus a Latin & Greek medical terminology deck. See `language-trainers/CLAUDE.md`.
+- **`coding-drills/`** — pyDrill / bashDrill / cppDrill / gitDrill / sqlDrill coding practice trainers. See `coding-drills/CLAUDE.md`.
 
 Each project directory has its own `CLAUDE.md` with build/validate commands and conventions — read it before making changes there.
 
