@@ -703,7 +703,7 @@ function generateQuestion(mode) {
     const sameP = entries.filter(function(x){ return x.fr.toLowerCase() === e.fr.toLowerCase() && x.en; });
     const accept = sameP.map(function(x){ return cleanGloss(x.en); });
     return { type: mode, entryId: e.id, prompt: e.fr, promptLabel: "French",
-             answerLabel: "English", target: cleanGloss(e.en),
+             answerIn: true, answerLabel: "English", target: cleanGloss(e.en),
              rawTarget: sameP.map(function(x){ return x.en; }).join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -738,7 +738,7 @@ function generateQuestion(mode) {
     accept.forEach(function(a){ widened = widened.concat(frenchQuestionVariants(a)); });
     accept = widened.filter(function(v, i, arr){ return v && arr.indexOf(v) === i; });
     return { type: mode, entryId: e.id, prompt: e.en, promptLabel: "English",
-             answerLabel: "French", target: e.fr,
+             answerIn: true, answerLabel: "French", target: e.fr,
              rawTarget: accept.join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -1723,7 +1723,13 @@ function renderCard(focusInput) {
   const input = document.createElement("input");
   input.type = "text";
   input.id = "answer-input";
-  input.placeholder = "Your answer in " + currentQ.answerLabel.toLowerCase() + "...";
+  // answerLabel is either a language ("Polish") or the kind of thing wanted
+  // ("Antonym", "Form", "Word"). Only a language takes "in": the shared line
+  // read "Your answer in synonym..." for four of this app's six labels, and
+  // for every one of the medical trainer's, which names no language at all.
+  input.placeholder = currentQ.answerIn
+    ? "Your answer in " + currentQ.answerLabel.toLowerCase() + "..."
+    : "Your " + currentQ.answerLabel.toLowerCase() + "...";
   input.setAttribute("autocomplete", "off");
   input.setAttribute("autocorrect", "off");
   input.setAttribute("autocapitalize", "none");

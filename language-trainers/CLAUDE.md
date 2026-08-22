@@ -192,6 +192,16 @@ patch script, never in a generated file:
   `cleanGloss`, and the comments around them name each app's own languages
   rather than Polish and German.
 
+- **`answerLabel` is two things at once** — a language ("Polish") or the kind of
+  thing wanted ("Antonym", "Form", "Word") — and one shared line wrote
+  `"Your answer in " + answerLabel.toLowerCase()` for both. It read "Your answer
+  in synonym…" for four of Polish's six labels and for **every one** of the
+  medical trainer's, which names no language at all. A question that wants a
+  language now says so with `answerIn: true` (the two translation modes), and
+  everything else reads "Your antonym…". `validate.py` decides which labels are
+  languages from the app's own output rather than a list — a translation mode
+  uses the language name as its `promptLabel` too — and fails either way round.
+
 `scripts/dom_stub.js` now **records** children, attributes and click listeners
 instead of discarding them, so a check can render a control and press it. While
 they were no-ops nothing could test what a button *does* — which is how the
@@ -279,6 +289,14 @@ and it now has them.
 
 4. **Curated synonyms** linked on an entry join its accept list, on top of the
    existing cross-entry rule (any entry sharing an English alternative).
+   **Except a Polish aspect partner.** Polish mirrors every `aspect_pair` link
+   into `synonyms`, so this rule would silently accept a perfective for an
+   imperfective prompt — a distinction the deck drills on purpose, and which
+   the Synonyms drill asks for explicitly, tagged `(pf.)`/`(impf.)`. It only
+   reaches the 6 of 24 pairs the deck glosses *differently* (`mówić`
+   "sprechen, reden" vs `powiedzieć` "sagen"); for the other 18 both verbs carry
+   the same German word and the cross-entry rule still accepts either, which is
+   right — the prompt genuinely translates to both.
 
 5. **A comma inside a phrase is not an alternative separator.** `gradeAnswer`
    splits the target on `,` and `/` — right for "town, city", wrong for

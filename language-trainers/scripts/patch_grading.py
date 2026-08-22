@@ -162,7 +162,18 @@ def patch_contractions(src, name):
 DEFAULT_EXAMPLE = '"big" is grand / grande / grands / grandes'
 
 
-def patch_adjectives(src, name, lang, example=DEFAULT_EXAMPLE, note=""):
+# Polish mirrors every aspect_pair link into `synonyms`, so the synonym widening
+# would quietly accept a perfective for an imperfective prompt and vice versa.
+# The aspect distinction is one of the things the deck drills -- the Synonyms
+# drill asks for the partner explicitly and tags it (pf.)/(impf.) -- so a bare
+# German infinitive must not silently take either. Owner's call, asked for.
+SKIP_ASPECT_JS = "if (id === x.aspect_pair) return;\n        "
+SKIP_ASPECT_NOTE = (" --\n      // except an aspect partner, which is a different verb the deck drills\n"
+                    "      // on purpose (the Synonyms drill asks for it, tagged pf./impf.)")
+
+
+def patch_adjectives(src, name, lang, example=DEFAULT_EXAMPLE, note="",
+                     skip_aspect="", syn_note=""):
     """Gloss->target: accept every gender/number form of an adjective.
 
     `example` names the shape in that language's own words, and `note` says why
@@ -182,9 +193,9 @@ def patch_adjectives(src, name, lang, example=DEFAULT_EXAMPLE, note=""):
           if (f && accept.indexOf(f) < 0) accept.push(f);
         }});
       }}
-      // curated synonyms are interchangeable for this gloss by construction
+      // curated synonyms are interchangeable for this gloss by construction{syn_note}
       (x.synonyms || []).forEach(function(id) {{
-        const s = byId[id];
+        {skip_aspect}const s = byId[id];
         if (s && s.{lang} && accept.indexOf(s.{lang}) < 0) accept.push(s.{lang});
       }});
     }});"""
@@ -258,7 +269,9 @@ def main():
         notes.append(f"whole-phrase targets {ft}")
         if lang not in ("la",):
             example, note = ADJECTIVE_COMMENT.get(lang, (DEFAULT_EXAMPLE, ""))
-            src, a = patch_adjectives(src, fname, lang, example, note)
+            skip = SKIP_ASPECT_JS if lang == "pl" else ""
+            syn_note = SKIP_ASPECT_NOTE if lang == "pl" else ""
+            src, a = patch_adjectives(src, fname, lang, example, note, skip, syn_note)
             notes.append(f"adjective+synonym accept {a}")
         src, g = patch_filler_guard(src, fname)
         notes.append(f"filler guard {g}")

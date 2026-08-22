@@ -670,7 +670,7 @@ function generateQuestion(mode) {
     const sameP = entries.filter(function(x){ return x.la.toLowerCase() === e.la.toLowerCase() && x.en; });
     const accept = sameP.map(function(x){ return cleanGloss(x.en); });
     return { type: mode, entryId: e.id, prompt: e.la, promptLabel: "Latin",
-             answerLabel: "English", target: cleanGloss(e.en),
+             answerIn: true, answerLabel: "English", target: cleanGloss(e.en),
              rawTarget: sameP.map(function(x){ return x.en; }).join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -699,7 +699,7 @@ function generateQuestion(mode) {
       (x.also_accept || []).forEach(function(a){ accept.push(a); });
     });
     return { type: mode, entryId: e.id, prompt: e.en, promptLabel: "English",
-             answerLabel: "Latin", target: e.la,
+             answerIn: true, answerLabel: "Latin", target: e.la,
              rawTarget: shown.join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -1668,7 +1668,13 @@ function renderCard(focusInput) {
   const input = document.createElement("input");
   input.type = "text";
   input.id = "answer-input";
-  input.placeholder = "Your answer in " + currentQ.answerLabel.toLowerCase() + "...";
+  // answerLabel is either a language ("Polish") or the kind of thing wanted
+  // ("Antonym", "Form", "Word"). Only a language takes "in": the shared line
+  // read "Your answer in synonym..." for four of this app's six labels, and
+  // for every one of the medical trainer's, which names no language at all.
+  input.placeholder = currentQ.answerIn
+    ? "Your answer in " + currentQ.answerLabel.toLowerCase() + "..."
+    : "Your " + currentQ.answerLabel.toLowerCase() + "...";
   input.setAttribute("autocomplete", "off");
   input.setAttribute("autocorrect", "off");
   input.setAttribute("autocapitalize", "none");

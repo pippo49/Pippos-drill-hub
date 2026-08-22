@@ -78,7 +78,20 @@ POLISH_PAIRS = [
 # DE->PL: a German prompt carries no gender or number, so every agreeing
 # nominative form answers it, and a curated synonym is interchangeable.
 # Safe for Polish because `declension` holds nominative forms only (unlike Latin).
-POLISH_HEADWORDS = ["duży", "mały", "dobry", "mówić", "iść"]
+POLISH_HEADWORDS = ["duży", "mały", "dobry", "iść"]
+
+# ...but NOT an aspect partner. Polish mirrors every aspect_pair link into
+# `synonyms`, so the widening above would silently accept a perfective for an
+# imperfective prompt. The deck drills that distinction on purpose — the
+# Synonyms drill asks for the partner explicitly and tags it (pf.)/(impf.) —
+# so a bare German infinitive must not take either.
+#
+# This only reaches pairs the deck glosses DIFFERENTLY (mówić "sprechen, reden"
+# vs powiedzieć "sagen") — 6 of the 24 pairs. For the other 18 both verbs carry
+# the same German word, and the older cross-entry rule accepts any entry sharing
+# a gloss; refusing one there would mark a correct answer wrong, since the
+# prompt genuinely translates to both. That rule is not what changed here.
+POLISH_ASPECT_PAIRS = ["mówić", "płacić", "słuchać"]
 
 
 def run(html, script):
@@ -210,6 +223,34 @@ console.log(JSON.stringify(res));
             if not ok:
                 fails += 1
             print(f"    {'ok ' if ok else 'FAIL'} {f:20} -> {grade}")
+
+    script = """
+const HEADS = %s;
+const res = [];
+HEADS.forEach(function(h) {
+  const e = VOCAB_DATA.entries.filter(function(x){ return x.pl === h; })[0];
+  if (!e || !e.aspect_pair || !byId[e.aspect_pair]) { res.push([h, null, null, null]); return; }
+  let q = null;
+  for (let i = 0; i < 40000 && !q; i++) {
+    const c = generateQuestion("de_pl");
+    if (c && c.entryId === e.id) q = c;
+  }
+  if (!q) { res.push([h, null, null, null]); return; }
+  const partner = byId[e.aspect_pair].pl;
+  res.push([h, q.prompt, partner, checkAnswer(q, partner)]);
+});
+console.log(JSON.stringify(res));
+""" % json.dumps(POLISH_ASPECT_PAIRS)
+    print("\nDE->PL does NOT accept an aspect partner")
+    for head, prompt, partner, grade in json.loads(run("polish_trainer.html", script)):
+        if prompt is None:
+            print(f"  FAIL no aspect-paired question found for {head!r}")
+            fails += 1
+            continue
+        ok = grade != "exact"
+        if not ok:
+            fails += 1
+        print(f"    {'ok ' if ok else 'FAIL'} {head} — prompt {prompt!r}: {partner} -> {grade}")
 
     print("\nFAILURES:" if fails else "\nall grading checks pass", fails or "")
     sys.exit(1 if fails else 0)

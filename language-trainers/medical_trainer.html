@@ -1732,7 +1732,13 @@ function renderCard(focusInput) {
   const input = document.createElement("input");
   input.type = "text";
   input.id = "answer-input";
-  input.placeholder = "Your answer in " + currentQ.answerLabel.toLowerCase() + "...";
+  // answerLabel is either a language ("Polish") or the kind of thing wanted
+  // ("Antonym", "Form", "Word"). Only a language takes "in": the shared line
+  // read "Your answer in synonym..." for four of this app's six labels, and
+  // for every one of the medical trainer's, which names no language at all.
+  input.placeholder = currentQ.answerIn
+    ? "Your answer in " + currentQ.answerLabel.toLowerCase() + "..."
+    : "Your " + currentQ.answerLabel.toLowerCase() + "...";
   input.setAttribute("autocomplete", "off");
   input.setAttribute("autocorrect", "off");
   input.setAttribute("autocapitalize", "none");

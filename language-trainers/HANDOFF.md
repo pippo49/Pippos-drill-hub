@@ -41,9 +41,11 @@ carries Polish in its job table so they are re-applied, not hand-held:
   but the headword scored a half-credit "typo"), and "sprechen, reden" takes
   `powiedzieć` via the curated synonym link. Safe for Polish because
   `declension` is nominative-only, unlike Latin's case-spanning one.
-  **Worth a look in use:** curated synonyms include aspect partners, so an
-  imperfective prompt now also accepts its perfective. Say if you want that
-  narrower.
+  **Aspect partners are excluded** (your call): `synonyms` mirrors every
+  `aspect_pair`, so without the exclusion "sprechen, reden" would have accepted
+  `powiedzieć`. It bites on the 6 of 24 pairs glossed differently; for the other
+  18 both verbs carry the same German word and the older cross-entry rule still
+  takes either — correctly, since the prompt does translate to both.
 
 `scripts/check_grading.py` now has a Polish section covering all of the above
 (it fails 14 checks against the pre-fix build). Run it after touching grading.
@@ -56,6 +58,9 @@ Two more, applied to every app:
 - **Progress exports no longer collide.** Every trainer wrote
   `polish-trainer-progress-<date>.json`; the filename now comes from
   `STORAGE_KEY`.
+- **The answer box no longer says "Your answer in synonym…".** `answerLabel` is
+  a language for the two translation drills and the kind of thing wanted for the
+  rest; only the former takes "in". `validate.py` fails on either mistake.
 
 ## Why the header said 2234 and 1126 at the same time
 Nothing was counting two different things. The stats line was computed from the

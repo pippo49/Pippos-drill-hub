@@ -612,7 +612,7 @@ function generateQuestion(mode) {
     const sameP = entries.filter(function(x){ return x.pl.toLowerCase() === e.pl.toLowerCase() && x.de; });
     const accept = sameP.map(function(x){ return cleanGloss(x.de); });
     return { type: mode, entryId: e.id, prompt: e.pl, promptLabel: "Polish",
-             answerLabel: "German", target: cleanGloss(e.de),
+             answerIn: true, answerLabel: "German", target: cleanGloss(e.de),
              rawTarget: sameP.map(function(x){ return x.de; }).join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -639,14 +639,17 @@ function generateQuestion(mode) {
           if (f && accept.indexOf(f) < 0) accept.push(f);
         });
       }
-      // curated synonyms are interchangeable for this gloss by construction
+      // curated synonyms are interchangeable for this gloss by construction --
+      // except an aspect partner, which is a different verb the deck drills
+      // on purpose (the Synonyms drill asks for it, tagged pf./impf.)
       (x.synonyms || []).forEach(function(id) {
+        if (id === x.aspect_pair) return;
         const s = byId[id];
         if (s && s.pl && accept.indexOf(s.pl) < 0) accept.push(s.pl);
       });
     });
     return { type: mode, entryId: e.id, prompt: e.de, promptLabel: "German",
-             answerLabel: "Polish", target: e.pl,
+             answerIn: true, answerLabel: "Polish", target: e.pl,
              rawTarget: accept.join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -1587,7 +1590,13 @@ function renderCard(focusInput) {
   const input = document.createElement("input");
   input.type = "text";
   input.id = "answer-input";
-  input.placeholder = "Your answer in " + currentQ.answerLabel.toLowerCase() + "...";
+  // answerLabel is either a language ("Polish") or the kind of thing wanted
+  // ("Antonym", "Form", "Word"). Only a language takes "in": the shared line
+  // read "Your answer in synonym..." for four of this app's six labels, and
+  // for every one of the medical trainer's, which names no language at all.
+  input.placeholder = currentQ.answerIn
+    ? "Your answer in " + currentQ.answerLabel.toLowerCase() + "..."
+    : "Your " + currentQ.answerLabel.toLowerCase() + "...";
   input.setAttribute("autocomplete", "off");
   input.setAttribute("autocorrect", "off");
   input.setAttribute("autocapitalize", "none");
