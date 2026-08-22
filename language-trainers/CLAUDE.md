@@ -183,6 +183,17 @@ Each app has a matching `<name>-sw.js` service worker + `<name>-manifest.json` m
 - `CACHE_NAME` is a manually-versioned string (e.g. `spanish-trainer-v1`); bump it whenever you want to force-purge old cached assets on next activation. Since the strategy is network-first, this is mostly a safety net — online users always get the latest file regardless.
 - Service workers require serving over HTTP(S), not `file://` — test with a local server (e.g. `python3 -m http.server`), not by opening the HTML file directly.
 
+## The header is computed, never written down
+
+The stats line and the deck summary under it (`#deck-meta`) are both rendered
+from `VOCAB_DATA` at load. Polish had them hardcoded as static HTML from when
+the deck held 1126 entries, so the shipped app advertised **half the deck**
+(`1126 entries · 598 nouns …` against a real 2234/1370) while the stats line
+right above it, being computed, said 2234. `vocab.json`'s `meta` block held the
+same stale snapshot and fed nothing; it now carries only the descriptive fields
+the other decks use. **Don't put a count in markup or in `meta`** — nothing
+recomputes them, and `validate.py` cannot see a wrong number in a string.
+
 ## Selection filters & repeat avoidance
 
 Three independent filters gate the question pool, each with its own `All`/`None` toggle row and its own localStorage key (`<app>_trainer_lessons` / `<app>_trainer_pos`; drill-type enablement isn't persisted): **Drill types** (`enabledModes`), **Lessons** (`enabledLessons`, `ALL_LESSONS`), and **Word forms / part of speech** (`enabledPos`, `ALL_POS`, derived from `entries.pos`, most-frequent-first). `buildPool()` ANDs all three; adding a fourth filter dimension means threading it through the same four spots: `buildPool`'s filter predicate, `selectionCanAsk`'s two call sites (`renderSelectionCount`, `selectionExhausted`), and the `renderCard` empty-state message chain.
@@ -199,6 +210,11 @@ Reported from real use: the apps were marking correct answers wrong. Fixed by
 `scripts/patch_grading.py` (re-runnable, idempotent) and locked down by
 `scripts/check_grading.py`, which fails if any of these regress.
 **Run `python3 scripts/check_grading.py` after touching grading.**
+
+The rules below are enforced through `patch_grading.py`'s job table — if an app
+is not in that table it does not have them. Polish was missing for a long time
+because it is glossed in German and rule 1 does not apply to it; rules 3–6 do,
+and it now has them.
 
 1. **English contractions, both directions.** Glosses are written as people speak
    them ("it's", "what's your name?"); a learner taught formal written English
@@ -219,10 +235,12 @@ Reported from real use: the apps were marking correct answers wrong. Fixed by
    cannot be known without parsing, so several candidate shapes are offered; the
    extra ones only widen acceptance.
 
-3. **Adjective agreement (fr/es/it, NOT Latin).** An EN→X prompt carries no
+3. **Adjective agreement (fr/es/it/pl, NOT Latin).** An EN→X prompt carries no
    gender or number, so every agreeing form answers it: "big" is
-   grand/grande/grands/grandes. Latin is excluded on purpose — its `declension`
-   spans cases, so accepting every form would accept a genitive plural for "good".
+   grand/grande/grands/grandes, "groß" is duży/duża/duże. Latin is excluded on
+   purpose — its `declension` spans cases, so accepting every form would accept
+   a genitive plural for "good". Polish is included because its `declension`
+   holds nominative forms only, so the same argument as Spanish applies.
 
 4. **Curated synonyms** linked on an entry join its accept list, on top of the
    existing cross-entry rule (any entry sharing an English alternative).
@@ -231,6 +249,17 @@ Reported from real use: the apps were marking correct answers wrong. Fixed by
    splits the target on `,` and `/` — right for "town, city", wrong for
    "I'm fine, thanks", which could therefore never match in full. The intact
    target is now always offered alongside the split parts.
+
+6. **Filler-stripping must never empty an answer.** `stripGermanFiller` drops
+   reflexive particles/articles from both sides so "sich entschuldigen" and
+   "entschuldigen" match. When the whole answer *is* one of those particles the
+   target became `""` and matched anything that also stripped to nothing —
+   German "sich" graded **exact** for the Polish headword `się` (pd0773,
+   glossed "man"). `return kept || s` falls back to the unstripped string.
+   Latin and French already had the guard; Polish now does. Spanish, Portuguese
+   and Brazilian still carry the unguarded one-liner — latent, because no entry
+   or cloze target in those decks is made only of their `FILLER` words, and
+   patching Spanish alone would desync the two generated Portuguese apps.
 
 Still not accepted: a synonym that is **not in the deck at all**. Cross-entry
 acceptance can only find words the deck knows; add the word as an entry whose

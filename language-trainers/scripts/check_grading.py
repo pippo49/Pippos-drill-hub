@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Regression test for the answer-acceptance fixes (see patch_grading.py).
+"""Regression test for the answer-acceptance rules (see patch_grading.py).
+
+Covers the French app (English contractions, question forms, agreement) and the
+Polish one, whose reference language is German and which therefore has no
+contraction handling but the same phrase/filler/agreement rules.
 
 Runs the trainer's own grading functions under node against the exact cases that
 were reported as wrongly marked, plus guard cases that must STILL be rejected so
@@ -48,6 +52,33 @@ FRENCH_ACCEPTS = [
 
 # EN->FR adjective: every agreeing form answers a prompt with no gender/number.
 ADJECTIVE_HEADWORDS = ["grand", "petit", "bon", "heureux"]
+
+# --- Polish (reference language German, so no contractions) ---------------
+# (input, target, expected grade) -- graded through the app's gradeAnswer.
+POLISH_PAIRS = [
+    # A comma inside a phrase is not an alternative separator: the intact target
+    # must be offered alongside the split parts, or a full answer can never match.
+    ("es kann sein, vielleicht", "es kann sein, vielleicht", "exact"),
+    ("auf polnische Art, auf Polnisch", "auf polnische Art, auf Polnisch", "exact"),
+    # ...while a real comma-separated alternatives list still accepts each part
+    ("sprechen", "sprechen, reden", "exact"),
+    ("reden", "sprechen, reden", "exact"),
+    # Reflexive particles stay interchangeable
+    ("sich entschuldigen", "entschuldigen", "exact"),
+    ("entschuldigen", "sich entschuldigen", "exact"),
+    # ...but stripping them must never empty an answer: "się" is itself a
+    # headword (pd0773, "man"), and an emptied target graded German "sich" exact.
+    ("się", "się", "exact"),
+    ("sich", "się", "wrong"),
+    # guards: genuinely wrong answers stay wrong
+    ("dobry", "zły", "wrong"),
+    ("dzień dobry", "dobranoc", "wrong"),
+]
+
+# DE->PL: a German prompt carries no gender or number, so every agreeing
+# nominative form answers it, and a curated synonym is interchangeable.
+# Safe for Polish because `declension` holds nominative forms only (unlike Latin).
+POLISH_HEADWORDS = ["duży", "mały", "dobry", "mówić", "iść"]
 
 
 def run(html, script):
@@ -128,6 +159,50 @@ console.log(JSON.stringify(res));
     for head, prompt, forms in json.loads(run("french_trainer.html", script)):
         if prompt is None:
             print(f"  (skipped {head}: not in deck)")
+            continue
+        print(f"  {head} — prompt {prompt!r}")
+        for f, grade in forms:
+            ok = grade == "exact"
+            if not ok:
+                fails += 1
+            print(f"    {'ok ' if ok else 'FAIL'} {f:20} -> {grade}")
+
+    script = """
+const PAIRS = %s;
+const out = PAIRS.map(function(p){ return [p[0], p[1], p[2], gradeAnswer(p[0], p[1])]; });
+console.log(JSON.stringify(out));
+""" % json.dumps(POLISH_PAIRS)
+    print("\nPolish gradeAnswer")
+    for inp, target, want, got in json.loads(run("polish_trainer.html", script)):
+        ok = got == want
+        if not ok:
+            fails += 1
+        print(f"  {'ok ' if ok else 'FAIL'} {inp:34} vs {target:24} -> {got} (want {want})")
+
+    script = """
+const HEADS = %s;
+const res = [];
+HEADS.forEach(function(h) {
+  const e = VOCAB_DATA.entries.filter(function(x){ return x.pl === h; })[0];
+  if (!e) { res.push([h, null, []]); return; }
+  let q = null;
+  for (let i = 0; i < 40000 && !q; i++) {
+    const c = generateQuestion("de_pl");
+    if (c && c.entryId === e.id) q = c;
+  }
+  if (!q) { res.push([h, null, []]); return; }
+  let forms = [];
+  if (e.declension) forms = Object.keys(e.declension).map(function(k){ return e.declension[k]; });
+  (e.synonyms || []).forEach(function(id) { if (byId[id]) forms.push(byId[id].pl); });
+  res.push([h, q.prompt, forms.map(function(f){ return [f, checkAnswer(q, f)]; })]);
+});
+console.log(JSON.stringify(res));
+""" % json.dumps(POLISH_HEADWORDS)
+    print("\nDE->PL agreement and curated synonyms")
+    for head, prompt, forms in json.loads(run("polish_trainer.html", script)):
+        if prompt is None:
+            print(f"  FAIL no question found for {head!r}")
+            fails += 1
             continue
         print(f"  {head} — prompt {prompt!r}")
         for f, grade in forms:

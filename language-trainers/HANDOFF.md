@@ -21,6 +21,33 @@ import shutil; shutil.copy('/mnt/user-data/uploads/vocab.json','vocab_v3.json')
 4. Extract JS: `html.split('<script>',1)[1].rsplit('</script>',1)[0]` → `check.js`; run `node --check check.js`.
 5. Runtime probe with a DOM stub (recreate a minimal `document`/`window`/`localStorage` stub, prepend to `check.js`, then call `generateQuestion("<mode>")` in a loop to verify pools/forms). Then `present_files`.
 
+## Engine parity fixes (latest session)
+The Polish app was the oldest and had missed four engine changes the other
+trainers picked up. All four are now applied, and `scripts/patch_grading.py`
+carries Polish in its job table so they are re-applied, not hand-held:
+- **Deck summary is computed** (`renderDeckMeta` → `#deck-meta`). It was static
+  HTML from the 1126-entry era, so the app advertised half the deck. `meta` in
+  `vocab.json` held the same stale snapshot and is now descriptive only —
+  **never write a count into markup or into `meta`.**
+- **A comma inside a phrase is not an alternative separator.** `gradeAnswer` now
+  offers the intact target alongside the comma/slash split, so a full answer
+  like "es kann sein, vielleicht" can match. The split still accepts each part
+  of a genuine list ("sprechen, reden").
+- **Filler-stripping can no longer empty an answer** (`return kept || s`). With
+  the old one-liner, `się` (pd0773, glossed "man") stripped to `""` and graded
+  German "sich" as **exact**.
+- **DE→PL accepts every agreeing form and any curated synonym.** A German prompt
+  carries no gender or number, so "groß" takes duży/duża/duże (previously all
+  but the headword scored a half-credit "typo"), and "sprechen, reden" takes
+  `powiedzieć` via the curated synonym link. Safe for Polish because
+  `declension` is nominative-only, unlike Latin's case-spanning one.
+  **Worth a look in use:** curated synonyms include aspect partners, so an
+  imperfective prompt now also accepts its perfective. Say if you want that
+  narrower.
+
+`scripts/check_grading.py` now has a Polish section covering all of the above
+(it fails 14 checks against the pre-fix build). Run it after touching grading.
+
 ## Data schema (`vocab.json` = `{entries:[...], meta:{}}`)
 Entry: `pl, de, pos, id, lesson`.
 - Verbs: `conjugation{ja,ty,on_ona_ono,my,wy,oni_one}`, `aspect`, `conjugation_label?`.

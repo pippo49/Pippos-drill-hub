@@ -1,4 +1,9 @@
 {
+ "meta": {
+  "language": "Polish",
+  "reference": "German",
+  "version": "v1"
+ },
  "entries": [
   {
    "pl": "pracować",
@@ -42556,20 +42561,5 @@
     "gen_pl": "życzeń"
    }
   }
- ],
- "meta": {
-  "total": 1126,
-  "by_pos": {
-   "verb": 156,
-   "conjunction": 9,
-   "adverb": 83,
-   "preposition": 12,
-   "adjective": 173,
-   "pronoun": 40,
-   "particle": 6,
-   "phrase": 18,
-   "noun": 598,
-   "number": 31
-  }
- }
+ ]
 }

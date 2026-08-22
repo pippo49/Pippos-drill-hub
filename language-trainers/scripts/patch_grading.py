@@ -19,10 +19,24 @@ Four separate complaints, all of them the app marking a correct answer wrong:
 
 4. Synonyms. Where the deck curates a synonym link, accept it too.
 
+5. Filler-stripping emptying an answer. Reflexive/article particles are dropped
+   from both sides so "sich entschuldigen" and "entschuldigen" match, but when
+   the whole answer IS such a particle the target became the empty string and
+   graded anything short as correct -- Polish "sie" (pd0773, glossed "man")
+   accepted German "sich" as exact. Fall back to the unstripped string.
+
 Scope: 1 and 3 are the same bug in every English-glossed deck, so they go to
 Spanish, Italian and French. 2 is French-only. Latin is deliberately excluded
 from 3 -- its `declension` spans cases, not just gender agreement, so accepting
 every form would accept a genitive plural for "good".
+
+Polish is glossed in German, so 1 does not apply to it; 3, 4 and 5 do. Its
+`declension` holds nominative forms only (m/f/n/non-virile), so like Spanish and
+unlike Latin it can accept every stored form for a bare gloss. 5 is applied to
+Polish only -- Spanish, Portuguese and Brazilian share the unguarded shape but
+have no entry or cloze target their FILLER can empty, so patching them would be
+a no-op today and would desync the two generated Portuguese apps from the
+Spanish source they are built from.
 
 Re-runnable: each patch checks whether it is already present.
 
@@ -144,15 +158,22 @@ def patch_contractions(src, name):
     return src, "patched"
 
 
-def patch_adjectives(src, name, lang):
-    """EN->target: accept every gender/number form of an adjective."""
+DEFAULT_EXAMPLE = '"big" is grand / grande / grands / grandes'
+
+
+def patch_adjectives(src, name, lang, example=DEFAULT_EXAMPLE, note=""):
+    """Gloss->target: accept every gender/number form of an adjective.
+
+    `example` names the shape in that language's own words, and `note` says why
+    the language's `declension` is safe to open up, because those comments are
+    the only thing telling the next reader why a Latin genitive is NOT accepted."""
     if "adjective agreement" in src:
         return src, "already present"
     old = f"""    const accept = matches.map(function(x){{ return x.{lang}; }});"""
-    assert src.count(old) == 1, f"{name}: en_{lang} accept list not found"
+    assert src.count(old) == 1, f"{name}: {lang} accept list not found"
     new = f"""    let accept = matches.map(function(x){{ return x.{lang}; }});
     // adjective agreement: the prompt carries no gender or number, so every
-    // agreeing form answers it -- "big" is grand / grande / grands / grandes.
+    // agreeing form answers it -- {example}.{note}
     matches.forEach(function(x) {{
       if (x.pos === "adjective" && x.declension) {{
         Object.keys(x.declension).forEach(function(k) {{
@@ -185,22 +206,62 @@ def patch_questions(src, name):
     return src.replace(old, new), "patched"
 
 
+def patch_filler_guard(src, name):
+    """Filler-stripping must never reduce an answer to nothing.
+
+    stripGermanFiller drops particles from both sides so "sich entschuldigen"
+    and "entschuldigen" match. When the entire answer is one of those particles
+    the target became "", and gradeOne then compared "" against "" -- so German
+    "sich" graded exact for the Polish headword "sie". Falling back to the
+    unstripped string keeps the interchangeability and loses the false accept."""
+    if "return kept || s" in src:
+        return src, "already present"
+    m = re.search(r'^const stripGermanFiller = \(s\) => (s\.split\(" "\).*?)\;$',
+                  src, re.M)
+    assert m, f"{name}: one-line stripGermanFiller not found"
+    body = m.group(1)
+    new = ('const stripGermanFiller = (s) => {\n'
+           f'  const kept = {body};\n'
+           '  return kept || s;   // never let filler-stripping empty an answer:\n'
+           '                      // the particle can itself be the headword\n'
+           '};')
+    return src[:m.start()] + new + src[m.end():], "patched"
+
+
+# Per-language wording for the adjective-agreement comment: (example, note).
+ADJECTIVE_COMMENT = {
+    "pl": ('"gro\u00df" is du\u017cy / du\u017ca / du\u017ce / duzi',
+           "\n    // Safe because Polish `declension` holds nominative forms only; it does\n"
+           "    // not span cases the way Latin's does."),
+}
+
+
 def main():
     jobs = [
         ("french_trainer.html", "fr", True),
         ("spanish_trainer.html", "es", False),
         ("italian_trainer.html", "it", False),
         ("latin_trainer.html", "la", False),   # contractions only; see module docstring
+        # Polish is glossed in German: no contractions, and it is the one app
+        # whose FILLER can swallow a whole answer, so it gets the guard.
+        ("polish_trainer.html", "pl", False),
     ]
     for fname, lang, is_french in jobs:
         path = os.path.join(LT, fname)
         src = read(path)
-        src, c = patch_contractions(src, fname)
+        notes = []
+        if lang != "pl":                       # German glosses, no contractions
+            src, c = patch_contractions(src, fname)
+            notes.append(f"contractions {c}")
         src, ft = patch_full_target(src, fname)
-        notes = [f"contractions {c}", f"whole-phrase targets {ft}"]
-        if lang != "la":
-            src, a = patch_adjectives(src, fname, lang)
+        notes.append(f"whole-phrase targets {ft}")
+        if lang not in ("la",):
+            example, note = ADJECTIVE_COMMENT.get(lang, (DEFAULT_EXAMPLE, ""))
+            src, a = patch_adjectives(src, fname, lang, example, note)
             notes.append(f"adjective+synonym accept {a}")
+        if lang == "pl":
+            src, g = patch_filler_guard(src, fname)
+            notes.append(f"filler guard {g}")
         if is_french:
             src, q = patch_questions(src, fname)
             notes.append(f"question forms {q}")
