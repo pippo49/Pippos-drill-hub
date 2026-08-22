@@ -191,7 +191,8 @@
   .export-msg { color: var(--green) !important; font-style: italic; margin-left: 8px; }
   .hardest-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
   .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
-    border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+  .btn-hardest.active{background:var(--ink);color:var(--paper)}
   .btn-hardest:disabled{opacity:.4;cursor:default}
   .hardest-note{font-size:12px;color:var(--muted)}
   .empty { padding: 36px; text-align: center; color: var(--muted) !important; font-style: italic; }
@@ -347,9 +348,9 @@ const tolerance = (len) => {
   return 2;
 };
 
-// Drop reflexive particles that don't change the semantic answer (German sich, Polish się).
-// Token-based because JS \b boundaries don't work with Polish characters like ę.
-const stripGermanFiller = (s) => {
+// Drop filler words that don't change the semantic answer — here German "sich", Polish "się".
+// Token-based because JS \b boundaries don't work with accented letters.
+const stripFiller = (s) => {
   const kept = s.split(" ").filter(function(w) { return w !== "sich" && w !== "się" && w !== "sie"; }).join(" ").trim();
   return kept || s;   // never let filler-stripping empty an answer:
                       // the particle can itself be the headword
@@ -360,8 +361,8 @@ const gradeOne = (input, target) => {
   let nt = normalize(target);
   if (!ni) return "wrong";
   // Make "sich entschuldigen" and "entschuldigen" interchangeable, both sides
-  ni = stripGermanFiller(ni);
-  nt = stripGermanFiller(nt);
+  ni = stripFiller(ni);
+  nt = stripFiller(nt);
   if (ni === nt) return "exact";
   if (stripDiacritics(ni) === stripDiacritics(nt)) return "diacritic";
   const d = editDistance(stripDiacritics(ni), stripDiacritics(nt));
@@ -381,8 +382,8 @@ const gradeAnswer = (input, target) => {
   return best;
 };
 
-// Remove parenthetical notes from German for matching ("gehen (um etwas)" → "gehen")
-const cleanGerman = (s) => s.replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+// Remove parenthetical notes from the German gloss for matching ("gehen (um etwas)" → "gehen")
+const cleanGloss = (s) => s.replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
 
 const PRONOUN_LABELS = {
   ja: "ja", ty: "ty", on_ona_ono: "on / ona / ono",
@@ -599,18 +600,19 @@ function generateQuestion(mode) {
 
   // German alternatives of an entry, cleaned and lowercased
   const deAlts = function(e) {
-    return cleanGerman(e.de).toLowerCase().split(/[,/]/).map(function(s){ return s.trim(); }).filter(Boolean);
+    return cleanGloss(e.de).toLowerCase().split(/[,/]/).map(function(s){ return s.trim(); }).filter(Boolean);
   };
 
   if (mode === "pl_de") {
     buildPool(e => e.pl && e.de);
     if (pool.length === 0) return null;
     const e = weightedPick(pool, weights);
-    // Accept the German of ANY entry with the same Polish headword (e.g. "to" has two senses)
+    // Accept the German of ANY entry with the same Polish headword
+    // (a headword with two senses is one right answer under either)
     const sameP = entries.filter(function(x){ return x.pl.toLowerCase() === e.pl.toLowerCase() && x.de; });
-    const accept = sameP.map(function(x){ return cleanGerman(x.de); });
+    const accept = sameP.map(function(x){ return cleanGloss(x.de); });
     return { type: mode, entryId: e.id, prompt: e.pl, promptLabel: "Polish",
-             answerLabel: "German", target: cleanGerman(e.de),
+             answerLabel: "German", target: cleanGloss(e.de),
              rawTarget: sameP.map(function(x){ return x.de; }).join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -618,8 +620,8 @@ function generateQuestion(mode) {
     buildPool(e => e.pl && e.de);
     if (pool.length === 0) return null;
     const e = weightedPick(pool, weights);
-    // Accept the Polish of ANY entry sharing at least one German alternative
-    // (e.g. "und" -> a / i / oraz are all correct)
+    // Accept the Polish of ANY entry sharing at least one German
+    // alternative — several headwords can translate the same gloss
     const myAlts = deAlts(e);
     const matches = entries.filter(function(x) {
       if (!x.de || !x.pl) return false;
@@ -1226,18 +1228,28 @@ function renderHardestButton() {
   while (row.firstChild) row.removeChild(row.firstChild);
   const rows = hardestRows();
   const ready = rows.length >= HARDEST_MIN_POOL;
+  // The button is a toggle, like every other selector on the page: dark means
+  // the round is running, and pressing it again leaves for an ordinary round.
+  // startNewRound already clears hardestMode/hardestIds and puts both header
+  // lines back to describing the filters, so it IS the "off" action.
+  // In the round the count comes from hardestIds, which is fixed at the start —
+  // hardestRows() keeps moving as you answer, and the label must not.
+  const size = hardestMode ? Object.keys(hardestIds || {}).length : rows.length;
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "btn-hardest";
-  btn.textContent = ready ? "Drill my hardest words (" + rows.length + ")"
+  btn.className = "btn-hardest" + (hardestMode ? " active" : "");
+  btn.setAttribute("aria-pressed", hardestMode ? "true" : "false");
+  btn.textContent = hardestMode ? "Drilling my hardest words (" + size + ")"
+                  : ready ? "Drill my hardest words (" + size + ")"
                           : "Drill my hardest words";
-  if (ready) btn.addEventListener("click", startHardestRound);
+  if (hardestMode) btn.addEventListener("click", startNewRound);
+  else if (ready) btn.addEventListener("click", startHardestRound);
   else btn.disabled = true;
   row.appendChild(btn);
   const note = document.createElement("span");
   note.className = "hardest-note";
   note.textContent = hardestMode
-    ? "hardest-words round in progress"
+    ? "tap again to leave the round and go back to the filters below"
     : ready ? "the " + rows.length + " you get wrong most often — ignores the filters below"
             : "unlocks once " + HARDEST_MIN_POOL + " different words have been missed (" +
               rows.length + " so far)";
@@ -1459,7 +1471,7 @@ function buildChoiceSection() {
 }
 
 function chooseOption(text) {
-  if (!currentQ || feedback || currentQ.type !== "multiple_choice") return;
+  if (!currentQ || feedback || !currentQ.choices) return;
   const grade = text === currentQ.correct ? "exact" : "wrong";
   feedback = { grade: grade, target: currentQ.rawTarget, userInput: text };
   recordAnswer(grade);
@@ -1559,7 +1571,7 @@ function renderCard(focusInput) {
     card.appendChild(sub);
   }
 
-  if (currentQ.type === "multiple_choice") {
+  if (currentQ.choices) {
     card.appendChild(buildChoiceSection());
     if (feedback) {
       card.appendChild(buildFeedbackEl());
@@ -1648,7 +1660,11 @@ function showMsg(text) {
 document.getElementById("btn-export").addEventListener("click", function() {
   const json = JSON.stringify(progress, null, 2);
   const date = new Date().toISOString().slice(0, 10);
-  const filename = "polish-trainer-progress-" + date + ".json";
+  // Derived from STORAGE_KEY, which every app already sets for itself. The
+  // slug used to be hardcoded and was copied unchanged into all eight apps,
+  // so every trainer exported "Polish-trainer-progress-<date>.json" and two
+  // backups landed on the same filename.
+  const filename = STORAGE_KEY.replace(/_progress$/, "").replace(/_/g, "-") + "-progress-" + date + ".json";
 
   // Try standard download approach
   try {
@@ -1726,7 +1742,7 @@ document.getElementById("btn-reset").addEventListener("click", function() {
 // (the input is disabled then, so its own keydown handler can't fire)
 document.addEventListener("keydown", function(e) {
   // Number keys pick a multiple-choice option (before answering)
-  if (currentQ && currentQ.type === "multiple_choice" && !feedback && !summaryShowing) {
+  if (currentQ && currentQ.choices && !feedback && !summaryShowing) {
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= (currentQ.choices || []).length) {
       e.preventDefault();

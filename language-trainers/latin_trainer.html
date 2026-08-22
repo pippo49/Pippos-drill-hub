@@ -191,7 +191,8 @@
   .export-msg { color: var(--green) !important; font-style: italic; margin-left: 8px; }
   .hardest-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
   .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
-    border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+  .btn-hardest.active{background:var(--ink);color:var(--paper)}
   .btn-hardest:disabled{opacity:.4;cursor:default}
   .hardest-note{font-size:12px;color:var(--muted)}
   .empty { padding: 36px; text-align: center; color: var(--muted) !important; font-style: italic; }
@@ -353,7 +354,7 @@ const tolerance = (len) => {
 // NB: the Spanish deck also strips me/te/se/nos/os (reflexives); Latin must NOT,
 // because nos, vos, me, te, se and os are all real Latin headwords.
 const FILLER = {to:1, a:1, an:1, the:1};
-const stripGermanFiller = (s) => {
+const stripFiller = (s) => {
   const kept = s.split(" ").filter(function(w) { return !FILLER[w]; }).join(" ").trim();
   return kept || s;   // never let filler-stripping reduce an answer to nothing
 };
@@ -389,8 +390,8 @@ const gradeOne = (input, target) => {
   let nt = normalize(target);
   if (!ni) return "wrong";
   // Make "sich entschuldigen" and "entschuldigen" interchangeable, both sides
-  ni = stripGermanFiller(ni);
-  nt = stripGermanFiller(nt);
+  ni = stripFiller(ni);
+  nt = stripFiller(nt);
   ni = expandContractions(ni);
   nt = expandContractions(nt);
   if (ni === nt) return "exact";
@@ -412,8 +413,8 @@ const gradeAnswer = (input, target) => {
   return best;
 };
 
-// Remove parenthetical notes from German for matching ("gehen (um etwas)" → "gehen")
-const cleanGerman = (s) => s.replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+// Remove parenthetical notes from the English gloss for matching ("to go (somewhere)" → "to go")
+const cleanGloss = (s) => s.replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
 
 const PRONOUN_LABELS = {
   s1: "ego (1st sg.)", s2: "tū (2nd sg.)", s3: "is / ea / id (3rd sg.)",
@@ -655,20 +656,21 @@ function generateQuestion(mode) {
     });
   };
 
-  // German alternatives of an entry, cleaned and lowercased
+  // English alternatives of an entry, cleaned and lowercased
   const deAlts = function(e) {
-    return cleanGerman(e.en).toLowerCase().split(/[,/]/).map(function(s){ return s.trim(); }).filter(Boolean);
+    return cleanGloss(e.en).toLowerCase().split(/[,/]/).map(function(s){ return s.trim(); }).filter(Boolean);
   };
 
   if (mode === "la_en") {
     buildPool(e => e.la && e.en);
     if (pool.length === 0) return null;
     const e = weightedPick(pool, weights);
-    // Accept the German of ANY entry with the same Polish headword (e.g. "to" has two senses)
+    // Accept the English of ANY entry with the same Latin headword
+    // (a headword with two senses is one right answer under either)
     const sameP = entries.filter(function(x){ return x.la.toLowerCase() === e.la.toLowerCase() && x.en; });
-    const accept = sameP.map(function(x){ return cleanGerman(x.en); });
+    const accept = sameP.map(function(x){ return cleanGloss(x.en); });
     return { type: mode, entryId: e.id, prompt: e.la, promptLabel: "Latin",
-             answerLabel: "English", target: cleanGerman(e.en),
+             answerLabel: "English", target: cleanGloss(e.en),
              rawTarget: sameP.map(function(x){ return x.en; }).join(" / "),
              acceptableAnswers: accept, posHint: e.pos };
   }
@@ -1299,18 +1301,28 @@ function renderHardestButton() {
   while (row.firstChild) row.removeChild(row.firstChild);
   const rows = hardestRows();
   const ready = rows.length >= HARDEST_MIN_POOL;
+  // The button is a toggle, like every other selector on the page: dark means
+  // the round is running, and pressing it again leaves for an ordinary round.
+  // startNewRound already clears hardestMode/hardestIds and puts both header
+  // lines back to describing the filters, so it IS the "off" action.
+  // In the round the count comes from hardestIds, which is fixed at the start —
+  // hardestRows() keeps moving as you answer, and the label must not.
+  const size = hardestMode ? Object.keys(hardestIds || {}).length : rows.length;
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = "btn-hardest";
-  btn.textContent = ready ? "Drill my hardest words (" + rows.length + ")"
+  btn.className = "btn-hardest" + (hardestMode ? " active" : "");
+  btn.setAttribute("aria-pressed", hardestMode ? "true" : "false");
+  btn.textContent = hardestMode ? "Drilling my hardest words (" + size + ")"
+                  : ready ? "Drill my hardest words (" + size + ")"
                           : "Drill my hardest words";
-  if (ready) btn.addEventListener("click", startHardestRound);
+  if (hardestMode) btn.addEventListener("click", startNewRound);
+  else if (ready) btn.addEventListener("click", startHardestRound);
   else btn.disabled = true;
   row.appendChild(btn);
   const note = document.createElement("span");
   note.className = "hardest-note";
   note.textContent = hardestMode
-    ? "hardest-words round in progress"
+    ? "tap again to leave the round and go back to the filters below"
     : ready ? "the " + rows.length + " you get wrong most often — ignores the filters below"
             : "unlocks once " + HARDEST_MIN_POOL + " different words have been missed (" +
               rows.length + " so far)";
@@ -1410,7 +1422,7 @@ function buildFeedbackEl() {
 // Expandable paradigm for the current question's word: conjugation for verbs,
 // full case table for adjectives/nouns. Hidden before answering in modes where
 // the table would reveal the answer (conjugate/decline: the form IS the answer;
-// en_la: the Polish word IS the answer).
+// en_la: the Latin word IS the answer).
 function buildConjSection() {
   if (!currentQ) return null;
   const e = byId[currentQ.entryId];
@@ -1729,7 +1741,11 @@ function showMsg(text) {
 document.getElementById("btn-export").addEventListener("click", function() {
   const json = JSON.stringify(progress, null, 2);
   const date = new Date().toISOString().slice(0, 10);
-  const filename = "polish-trainer-progress-" + date + ".json";
+  // Derived from STORAGE_KEY, which every app already sets for itself. The
+  // slug used to be hardcoded and was copied unchanged into all eight apps,
+  // so every trainer exported "Polish-trainer-progress-<date>.json" and two
+  // backups landed on the same filename.
+  const filename = STORAGE_KEY.replace(/_progress$/, "").replace(/_/g, "-") + "-progress-" + date + ".json";
 
   // Try standard download approach
   try {

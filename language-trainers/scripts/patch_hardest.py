@@ -96,6 +96,92 @@ function renderHardestButton() {
   while (row.firstChild) row.removeChild(row.firstChild);
   const rows = hardestRows();
   const ready = rows.length >= HARDEST_MIN_POOL;
+  // The button is a toggle, like every other selector on the page: dark means
+  // the round is running, and pressing it again leaves for an ordinary round.
+  // startNewRound already clears hardestMode/hardestIds and puts both header
+  // lines back to describing the filters, so it IS the "off" action.
+  // In the round the count comes from hardestIds, which is fixed at the start —
+  // hardestRows() keeps moving as you answer, and the label must not.
+  const size = hardestMode ? Object.keys(hardestIds || {}).length : rows.length;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-hardest" + (hardestMode ? " active" : "");
+  btn.setAttribute("aria-pressed", hardestMode ? "true" : "false");
+  btn.textContent = hardestMode ? "Drilling my hardest words (" + size + ")"
+                  : ready ? "Drill my hardest words (" + size + ")"
+                          : "Drill my hardest words";
+  if (hardestMode) btn.addEventListener("click", startNewRound);
+  else if (ready) btn.addEventListener("click", startHardestRound);
+  else btn.disabled = true;
+  row.appendChild(btn);
+  const note = document.createElement("span");
+  note.className = "hardest-note";
+  note.textContent = hardestMode
+    ? "tap again to leave the round and go back to the filters below"
+    : ready ? "the " + rows.length + " you get wrong most often — ignores the filters below"
+            : "unlocks once " + HARDEST_MIN_POOL + " different words have been missed (" +
+              rows.length + " so far)";
+  row.appendChild(note);
+}
+'''
+
+RENDER_JS = """function renderHardestButton() {
+  const row = document.getElementById("hardest-row");
+  if (!row) return;
+  while (row.firstChild) row.removeChild(row.firstChild);
+  const rows = hardestRows();
+  const ready = rows.length >= HARDEST_MIN_POOL;
+  // The button is a toggle, like every other selector on the page: dark means
+  // the round is running, and pressing it again leaves for an ordinary round.
+  // startNewRound already clears hardestMode/hardestIds and puts both header
+  // lines back to describing the filters, so it IS the "off" action.
+  // In the round the count comes from hardestIds, which is fixed at the start —
+  // hardestRows() keeps moving as you answer, and the label must not.
+  const size = hardestMode ? Object.keys(hardestIds || {}).length : rows.length;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-hardest" + (hardestMode ? " active" : "");
+  btn.setAttribute("aria-pressed", hardestMode ? "true" : "false");
+  btn.textContent = hardestMode ? "Drilling my hardest words (" + size + ")"
+                  : ready ? "Drill my hardest words (" + size + ")"
+                          : "Drill my hardest words";
+  if (hardestMode) btn.addEventListener("click", startNewRound);
+  else if (ready) btn.addEventListener("click", startHardestRound);
+  else btn.disabled = true;
+  row.appendChild(btn);
+  const note = document.createElement("span");
+  note.className = "hardest-note";
+  note.textContent = hardestMode
+    ? "tap again to leave the round and go back to the filters below"
+    : ready ? "the " + rows.length + " you get wrong most often — ignores the filters below"
+            : "unlocks once " + HARDEST_MIN_POOL + " different words have been missed (" +
+              rows.length + " so far)";
+  row.appendChild(note);
+}"""
+
+TOGGLE_CSS = """  .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+  .btn-hardest.active{background:var(--ink);color:var(--paper)}
+  .btn-hardest:disabled{opacity:.4;cursor:default}"""
+
+BUTTON_HTML = '''    <div class="hardest-row" id="hardest-row"></div>
+  </header>'''
+
+BUTTON_CSS = '''  .hardest-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+  .btn-hardest.active{background:var(--ink);color:var(--paper)}
+  .btn-hardest:disabled{opacity:.4;cursor:default}
+  .hardest-note{font-size:12px;color:var(--muted)}
+'''
+
+
+OLD_RENDER_JS = """function renderHardestButton() {
+  const row = document.getElementById("hardest-row");
+  if (!row) return;
+  while (row.firstChild) row.removeChild(row.firstChild);
+  const rows = hardestRows();
+  const ready = rows.length >= HARDEST_MIN_POOL;
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "btn-hardest";
@@ -112,18 +198,28 @@ function renderHardestButton() {
             : "unlocks once " + HARDEST_MIN_POOL + " different words have been missed (" +
               rows.length + " so far)";
   row.appendChild(note);
-}
-'''
+}"""
 
-BUTTON_HTML = '''    <div class="hardest-row" id="hardest-row"></div>
-  </header>'''
-
-BUTTON_CSS = '''  .hardest-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-  .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
+OLD_BUTTON_CSS = """  .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
     border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
-  .btn-hardest:disabled{opacity:.4;cursor:default}
-  .hardest-note{font-size:12px;color:var(--muted)}
-'''
+  .btn-hardest:disabled{opacity:.4;cursor:default}"""
+
+
+def patch_toggle(name, src):
+    """Make the round button a toggle.
+
+    It was one-way: pressing it in a round just restarted the same round, and
+    the only way out was to finish or reload. It also rendered permanently dark,
+    the same styling every other selector on the page uses for "selected", so it
+    read as on before it was. Now it carries `.active` only while the round is
+    running and its click leaves for an ordinary round.
+    """
+    if 'aria-pressed' in src:
+        return src, "already present"
+    assert src.count(OLD_RENDER_JS) == 1, f"{name}: renderHardestButton not found"
+    src = src.replace(OLD_RENDER_JS, RENDER_JS)
+    assert src.count(OLD_BUTTON_CSS) == 1, f"{name}: hardest button CSS not found"
+    return src.replace(OLD_BUTTON_CSS, TOGGLE_CSS), "patched"
 
 
 def read(p):
@@ -267,7 +363,10 @@ def patch(name):
 
 def main():
     for name in APPS:
-        print(f"{name}: {patch(name)}")
+        note = patch(name)
+        src, t = patch_toggle(name, read(name))
+        write(name, src)
+        print(f"{name}: {note} · toggle {t}")
 
 
 if __name__ == "__main__":

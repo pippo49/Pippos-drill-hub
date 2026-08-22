@@ -162,6 +162,41 @@ Known generator constraints (all fail loudly rather than silently):
 - Plural-only nouns (`castra`, `arma`, `thermae`) pass their genitive **plural** and
   set `plural_only=True`.
 
+## What a mechanical rename walks past (found by sweeping for it)
+
+The Portuguese section below describes this bug class; a sweep across all eight
+apps found four more live instances of it, all now fixed at the generator or
+patch script, never in a generated file:
+
+- **Every app exported its progress as `polish-trainer-progress-<date>.json`.**
+  The slug was hardcoded and copied through all eight scaffolds, so backing up
+  two trainers produced two files with the same name. It is now derived from
+  `STORAGE_KEY`, which each app already sets for itself.
+- **`selectionCanAsk` in both Portuguese apps gated on `enabledModes.es_en` /
+  `.en_es`** — names those apps do not have. Same bare-key blind spot as the
+  `enabledModes` initialiser, one function further on. The clause was therefore
+  always false: with only the two translation drills selected, both apps
+  reported **0 words in selection** and an empty state while `generateQuestion`
+  kept producing questions, which is why `validate.py` never saw it. It also
+  kept dead `antonym`/`synonym` clauses for drills those apps do not offer.
+  `check_portuguese.py` now compares every `enabledModes.<key>` reference in
+  `selectionCanAsk` against `MODE_LABELS` and fails on any that is not a real
+  drill type, and asserts a translation-only selection still counts its words.
+- **`make_medical_trainer.py` replaced `buildPool` with a copy that predated the
+  hardest-words round**, so regenerating the app silently reverted its round to
+  drilling the whole deck. `patch_hardest.py` cannot repair it — it sees
+  `hardestRows` already present and skips — so the generator carries the branch
+  itself. `check_hardest.py` is what caught it.
+- **`stripGermanFiller` / `cleanGerman`** are shared engine helpers with nothing
+  German about them outside the Polish app; they are now `stripFiller` /
+  `cleanGloss`, and the comments around them name each app's own languages
+  rather than Polish and German.
+
+`scripts/dom_stub.js` now **records** children, attributes and click listeners
+instead of discarding them, so a check can render a control and press it. While
+they were no-ops nothing could test what a button *does* — which is how the
+hardest-words button stayed one-way with every check passing.
+
 ## The on-page error box
 
 Each trainer shows a red diagnostic box for uncaught errors. It **ignores opaque
@@ -306,6 +341,14 @@ Design decisions, all made by the owner when asked:
 - **Shape is a separate round button**, not a drill type and not a fourth filter
   dimension — it reuses the existing round machinery and needs no threading
   through `selectionCanAsk`/empty-state.
+- **The button is a toggle** (`aria-pressed`, `.btn-hardest.active`): press it in
+  a round and it leaves for an ordinary one, because `startNewRound` already
+  clears `hardestMode`/`hardestIds` and both header lines. It shipped one-way —
+  its click handler was `startHardestRound` whatever the state, so pressing it
+  again restarted the same round and the only way out was to finish or reload —
+  and it rendered permanently dark, the same styling every other selector on the
+  page uses for "selected", so it read as on before it was. Its in-round label
+  counts `hardestIds`, not `hardestRows()`, which keeps moving as you answer.
 
 Size is `max(8, ceil(0.10 × words attempted))`, capped at the number of words
 with any mistake against them. Below 8 missed words the button is disabled and

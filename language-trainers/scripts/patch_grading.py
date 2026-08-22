@@ -32,11 +32,12 @@ every form would accept a genitive plural for "good".
 
 Polish is glossed in German, so 1 does not apply to it; 3, 4 and 5 do. Its
 `declension` holds nominative forms only (m/f/n/non-virile), so like Spanish and
-unlike Latin it can accept every stored form for a bare gloss. 5 is applied to
-Polish only -- Spanish, Portuguese and Brazilian share the unguarded shape but
-have no entry or cloze target their FILLER can empty, so patching them would be
-a no-op today and would desync the two generated Portuguese apps from the
-Spanish source they are built from.
+unlike Latin it can accept every stored form for a bare gloss. 5 goes to every
+app: Polish is the only deck that can trigger it today (no Spanish entry or
+cloze target is built only from its FILLER words), but "me"/"te"/"se"/"nos"/"os"
+are ordinary Spanish headwords and one added tomorrow would grade nonsense as
+exact with no test to catch it. The two Portuguese apps get it by being
+regenerated from the patched Spanish trainer, not by being patched.
 
 Re-runnable: each patch checks whether it is already present.
 
@@ -152,7 +153,7 @@ def patch_contractions(src, name):
     assert src.count(anchor) == 1, f"{name}: gradeOne not found"
     src = src.replace(anchor, CONTRACTIONS_JS.strip() + "\n\n" + anchor)
     # apply it right after the filler strip, so both sides get the same treatment
-    old = "  ni = stripGermanFiller(ni);\n  nt = stripGermanFiller(nt);"
+    old = "  ni = stripFiller(ni);\n  nt = stripFiller(nt);"
     assert src.count(old) == 1, f"{name}: filler-stripping lines not found"
     src = src.replace(old, old + "\n  ni = expandContractions(ni);\n  nt = expandContractions(nt);")
     return src, "patched"
@@ -209,18 +210,18 @@ def patch_questions(src, name):
 def patch_filler_guard(src, name):
     """Filler-stripping must never reduce an answer to nothing.
 
-    stripGermanFiller drops particles from both sides so "sich entschuldigen"
+    stripFiller drops particles from both sides so "sich entschuldigen"
     and "entschuldigen" match. When the entire answer is one of those particles
     the target became "", and gradeOne then compared "" against "" -- so German
     "sich" graded exact for the Polish headword "sie". Falling back to the
     unstripped string keeps the interchangeability and loses the false accept."""
     if "return kept || s" in src:
         return src, "already present"
-    m = re.search(r'^const stripGermanFiller = \(s\) => (s\.split\(" "\).*?)\;$',
+    m = re.search(r'^const stripFiller = \(s\) => (s\.split\(" "\).*?)\;$',
                   src, re.M)
-    assert m, f"{name}: one-line stripGermanFiller not found"
+    assert m, f"{name}: one-line stripFiller not found"
     body = m.group(1)
-    new = ('const stripGermanFiller = (s) => {\n'
+    new = ('const stripFiller = (s) => {\n'
            f'  const kept = {body};\n'
            '  return kept || s;   // never let filler-stripping empty an answer:\n'
            '                      // the particle can itself be the headword\n'
@@ -259,9 +260,8 @@ def main():
             example, note = ADJECTIVE_COMMENT.get(lang, (DEFAULT_EXAMPLE, ""))
             src, a = patch_adjectives(src, fname, lang, example, note)
             notes.append(f"adjective+synonym accept {a}")
-        if lang == "pl":
-            src, g = patch_filler_guard(src, fname)
-            notes.append(f"filler guard {g}")
+        src, g = patch_filler_guard(src, fname)
+        notes.append(f"filler guard {g}")
         if is_french:
             src, q = patch_questions(src, fname)
             notes.append(f"question forms {q}")

@@ -48,6 +48,23 @@ carries Polish in its job table so they are re-applied, not hand-held:
 `scripts/check_grading.py` now has a Polish section covering all of the above
 (it fails 14 checks against the pre-fix build). Run it after touching grading.
 
+Two more, applied to every app:
+- **The hardest-words button is a toggle.** Press it in a round and it leaves.
+  It was one-way, and rendered permanently dark — the styling every other
+  selector uses for "selected" — so it read as on before it was. Locked down by
+  `check_hardest.py`, which renders the button and clicks it.
+- **Progress exports no longer collide.** Every trainer wrote
+  `polish-trainer-progress-<date>.json`; the filename now comes from
+  `STORAGE_KEY`.
+
+## Why the header said 2234 and 1126 at the same time
+Nothing was counting two different things. The stats line was computed from the
+deck (2234, correct); the summary under it was a string typed into the HTML —
+and mirrored in `vocab.json`'s `meta` — back when the deck really did hold 1126
+entries, with a `by_pos` breakdown that sums to exactly that. Nothing ever
+recomputed either. The growth predates this repo's first commit, so the string
+was already stale on day one here. Both are computed now.
+
 ## Data schema (`vocab.json` = `{entries:[...], meta:{}}`)
 Entry: `pl, de, pos, id, lesson`.
 - Verbs: `conjugation{ja,ty,on_ona_ono,my,wy,oni_one}`, `aspect`, `conjugation_label?`.

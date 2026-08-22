@@ -148,12 +148,38 @@ def build(cfg):
                  ("español / english", cfg["subtitle"]),
                  ("Spanish trainer", "Portuguese trainer"),
                  ("Choose the Spanish", "Choose the Portuguese"),
-                 ('answerLabel: plToDe ? "English" : "Spanish"',
-                  'answerLabel: plToDe ? "English" : "Portuguese"')]:
+                 ('answerLabel: plToDe ? "English" : "Portuguese"',
+                  'answerLabel: plToDe ? "English" : "Portuguese"'),
+                 # selectionCanAsk gates on enabledModes members as BARE keys,
+                 # so the .es -> .pt field rename walked straight past them and
+                 # left it testing es_en/en_pt, which do not exist here. The
+                 # clause was therefore always false: with only the two
+                 # translation drills selected both apps reported "0 words in
+                 # selection" and an empty state, while generateQuestion kept
+                 # producing questions. Same bug class as the enabledModes
+                 # initialiser, in the one other place mode names appear unquoted.
+                 ("enabledModes.es_en", "enabledModes.pt_en"),
+                 ("enabledModes.en_es", "enabledModes.en_pt"),
+                 ("// en_es: the Spanish word IS the answer).",
+                  "// en_pt: the Portuguese word IS the answer)."),
+                 ("// Accept the English of ANY entry with the same Spanish headword",
+                  "// Accept the English of ANY entry with the same Portuguese headword"),
+                 ("// Accept the Spanish of ANY entry sharing at least one English",
+                  "// Accept the Portuguese of ANY entry sharing at least one English")]:
         head = head.replace(a, b)
         engine_tail = engine_tail.replace(a, b)
 
     src = head + "const VOCAB_DATA = __DECK_PLACEHOLDER__;\n" + engine_tail
+
+    # --- drills these apps do not offer --------------------------------------
+    # The antonym and synonym drills were dropped (neither deck links any), but
+    # selectionCanAsk kept gating on them. Harmless while the data is empty, and
+    # exactly the stale bare-key reference check_portuguese.py now rejects, so
+    # remove the clauses rather than allowlist them.
+    for dead in ("  if (enabledModes.antonym && e.antonyms && e.antonyms.length > 0) return true;\n",
+                 "  if (enabledModes.synonym && e.synonyms && e.synonyms.length > 0) return true;\n"):
+        assert src.count(dead) == 1, "dead selectionCanAsk clause not found"
+        src = src.replace(dead, "")
 
     # --- articles -----------------------------------------------------------
     # Found in a browser, not by a validator: the form labels still showed

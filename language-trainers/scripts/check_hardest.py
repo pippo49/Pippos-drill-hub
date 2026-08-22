@@ -65,6 +65,24 @@ const countEl = document.getElementById("selection-count");
 renderSelectionCount();
 const hardestCountLine = countEl.textContent;
 
+// The round button is a toggle: pressing it while the round runs must leave.
+// It used to be one-way -- the click handler was startHardestRound whatever the
+// state, so pressing it again restarted the same round with no way out.
+startHardestRound();
+renderHardestButton();
+const hardestBtn = document.getElementById("hardest-row").firstChild;
+const toggle = {
+  pressedInRound: hardestBtn.getAttribute("aria-pressed"),
+  activeInRound: hardestBtn.className.indexOf("active") >= 0,
+  labelInRound: hardestBtn.textContent
+};
+hardestBtn.click();                                 // the stub replays click listeners
+toggle.leftRound = hardestMode === false;
+renderHardestButton();
+const offBtn = document.getElementById("hardest-row").firstChild;
+toggle.pressedAfter = offBtn.getAttribute("aria-pressed");
+toggle.activeAfter = offBtn.className.indexOf("active") >= 0;
+
 // an ordinary round afterwards must go back to honouring the filters
 startNewRound();
 renderSelectionCount();
@@ -91,7 +109,8 @@ console.log(JSON.stringify({
   normalOutsideLesson: normalOutside,
   hardestCountLine: hardestCountLine,
   normalCountLine: normalCountLine,
-  hardestFlagCleared: hardestMode === false
+  hardestFlagCleared: hardestMode === false,
+  toggle: toggle
 }));
 """
 
@@ -130,6 +149,18 @@ def main():
              "hardest-words round" in res["hardestCountLine"]),
             ("count line back to selection",
              res["normalCountLine"].endswith("in selection")),
+            # The button is a toggle. It was one-way: its click handler was
+            # startHardestRound whatever the state, and it rendered permanently
+            # dark, which is the same styling every other selector uses for
+            # "selected" -- so it read as on before it was, and there was no way
+            # out of a round short of finishing it or reloading.
+            ("button marked pressed during the round",
+             res["toggle"]["pressedInRound"] == "true" and res["toggle"]["activeInRound"]),
+            ("button says the round is running",
+             res["toggle"]["labelInRound"].startswith("Drilling")),
+            ("pressing it again leaves the round", res["toggle"]["leftRound"]),
+            ("button unpressed once out",
+             res["toggle"]["pressedAfter"] == "false" and not res["toggle"]["activeAfter"]),
         ]
         bad = [n for n, ok in checks if not ok]
         status = "ok" if not bad else "FAIL: " + "; ".join(bad)

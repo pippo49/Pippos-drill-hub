@@ -67,7 +67,18 @@ function generateQuestion(mode) {
   let pool = [], weights = [];
 
   const buildPool = (filter) => {
-    pool = entries.filter(function(e){ return filter(e) && enabledLessons[e.lesson] && enabledPos[e.pos]; });
+    pool = entries.filter(function(e){
+      if (!filter(e)) return false;
+      // A hardest-words round is global on purpose: it ignores the lesson and
+      // word-form filters so it always drills the hardest words overall.
+      // This branch must stay in sync with patch_hardest.py: this generator
+      // REPLACES generateQuestion wholesale, so patch_hardest cannot reach the
+      // copy it writes -- it sees hardestRows() already present and skips.
+      // Dropping it left the round drilling the whole deck; check_hardest.py
+      // is what catches that.
+      if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
+      return enabledLessons[e.lesson] && enabledPos[e.pos];
+    });
     if (pool.length === 0) { weights = []; return; }
     if (pool.length > 1) {
       const last = recentIds[recentIds.length - 1];

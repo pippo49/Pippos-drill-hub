@@ -125,6 +125,28 @@ out.spanishLabels = [];
     out.bankBad.push("fut_subj " + it.id + ": distractor equals the answer");
 });
 
+// --- 7. every enabledModes key named in the engine must be a real drill type -
+// Bare object keys, so a field rename cannot be trusted to have reached them.
+out.modeKeys = MODE_LABELS.map(function(m){ return m[0]; });
+out.referencedModes = [];
+String(selectionCanAsk).replace(/enabledModes\.([A-Za-z_$][\w$]*)/g, function(_, k) {
+  if (out.referencedModes.indexOf(k) < 0) out.referencedModes.push(k);
+  return _;
+});
+
+// ...and a translation-only selection must still count its words. This is the
+// surface the stale keys actually broke: the count line, not question generation.
+(function() {
+  const saved = {};
+  Object.keys(enabledModes).forEach(function(k){ saved[k] = enabledModes[k]; enabledModes[k] = false; });
+  enabledModes.pt_en = true; enabledModes.en_pt = true;
+  out.translationOnlyAskable = VOCAB_DATA.entries.filter(function(e){ return selectionCanAsk(e); }).length;
+  let made = 0;
+  for (let i = 0; i < 50; i++) if (generateQuestion(i % 2 ? "pt_en" : "en_pt")) made++;
+  out.translationOnlyGenerated = made;
+  Object.keys(saved).forEach(function(k){ enabledModes[k] = saved[k]; });
+})();
+
 console.log(JSON.stringify(out));
 """
 
@@ -143,6 +165,19 @@ def run(app, want_persons):
     res = json.loads(r.stdout)
 
     fails = []
+    # `enabledModes` members are written as BARE keys in the initialiser AND in
+    # selectionCanAsk, so a quoted-string field rename walks past both. Left
+    # stale in selectionCanAsk, its translation clause tested es_en/en_es --
+    # names this app does not have -- so it was permanently false: selecting
+    # only the two translation drills reported "0 words in selection" and an
+    # empty state while generateQuestion still produced questions. Compare every
+    # bare reference against MODE_LABELS rather than trusting the rename.
+    known = set(res["modeKeys"])
+    for k in sorted(set(res["referencedModes"]) - known):
+        fails.append(f"selectionCanAsk gates on enabledModes.{k}, which no drill type defines")
+    if res["translationOnlyAskable"] == 0:
+        fails.append("translation-only selection counts 0 askable words "
+                     f"({res['translationOnlyGenerated']} questions still generate)")
     if len(res["persons"]) != want_persons:
         fails.append(f"{len(res['persons'])} persons in PRONOUN_LABELS, expected {want_persons}")
     fails += res["personMismatch"][:4]
