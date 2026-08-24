@@ -62,6 +62,34 @@ Two more, applied to every app:
   a language for the two translation drills and the kind of thing wanted for the
   rest; only the former takes "in". `validate.py` fails on either mistake.
 
+## Two more fixes (latest session)
+- **PL->DE now accepts both agreement forms of a possessive pronoun.** German
+  possessive determiners are a strong/weak pair -- bare for masc/neut singular
+  ("mein", "sein", "unser"...), +e for fem/plural ("meine", "seine",
+  "unsere"...) -- and 7 Polish headwords (jego, jej, mój, nasz, swój, wasz,
+  ich = "their") are used as a gender-free lemma, the same way an EN/DE prompt
+  carries no gender for an adjective. The deck named only one form; both are
+  now stored comma-joined (`vocab.json`: "sein" -> "sein, seine") and the
+  existing comma-alternatives grading picks up the other for free -- no engine
+  change needed. `moi` is excluded: it is specifically masc-personal PLURAL in
+  Polish, and the German plural possessive is always the +e form, so there is
+  no bare counterpart. Locked down in `check_grading.py`.
+- **Cloze now names the case it just tested.** "nie ma czystego {talerza}"
+  used to reveal only the word; it now reveals "talerza (Genitiv Singular)".
+  Matched against the entry's own `noun_decl` (or the bare headword for
+  nominative singular, which isn't stored there) -- not computed, so a case
+  this deck doesn't model (dative, locative, instrumental) is silently
+  untagged rather than mislabelled. Polish/Latin-only feature (case declension
+  doesn't apply to the other decks); not backported to Latin unless you want it.
+
+**Flagged, not applied:** "gdzie" (wo, location) marked wrong against typed
+"woher" (from where). The deck has a separate entry, `skąd` -> "woher", so this
+looks like a genuine three-way distinction the deck is teaching on purpose
+(wo/wohin/woher = gdzie/dokąd/skąd), not a grading bug -- unlike the possessive
+pronouns, there's no missing-agreement-form pattern here to point to. Left
+alone; say if you want "gdzie" to accept "woher" and I'll add it as a straight
+data change to `vocab.json`.
+
 ## Why the header said 2234 and 1126 at the same time
 Nothing was counting two different things. The stats line was computed from the
 deck (2234, correct); the summary under it was a string typed into the HTML —

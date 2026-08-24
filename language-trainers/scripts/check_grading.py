@@ -80,6 +80,19 @@ POLISH_PAIRS = [
 # Safe for Polish because `declension` holds nominative forms only (unlike Latin).
 POLISH_HEADWORDS = ["duży", "mały", "dobry", "iść"]
 
+# PL->DE: the mirror case for possessive pronouns. A Polish lemma like "moj"
+# carries no gender of its own -- it agrees with whatever noun it possesses --
+# but German "mein"/"seine"/... is a strong/weak pair (bare for masc/neut sg,
+# +e for fem/plural), and the deck names only one of the two as the headword.
+# "moi" is excluded on purpose: it is specifically masc-personal PLURAL in
+# Polish, and the German plural possessive is always the +e form, so there is
+# no bare counterpart to accept.
+POLISH_POSSESSIVES = {
+    "jego": ("sein", "seine"), "jej": ("ihr", "ihre"), "mój": ("mein", "meine"),
+    "nasz": ("unser", "unsere"), "swój": ("eigen", "eigene"),
+    "wasz": ("euer", "eure"), "ich": ("ihr", "ihre"),
+}
+
 # ...but NOT an aspect partner. Polish mirrors every aspect_pair link into
 # `synonyms`, so the widening above would silently accept a perfective for an
 # imperfective prompt. The deck drills that distinction on purpose — the
@@ -251,6 +264,35 @@ console.log(JSON.stringify(res));
         if not ok:
             fails += 1
         print(f"    {'ok ' if ok else 'FAIL'} {head} — prompt {prompt!r}: {partner} -> {grade}")
+
+    script = """
+const HEADS = %s;
+const res = [];
+Object.keys(HEADS).forEach(function(h) {
+  const e = VOCAB_DATA.entries.filter(function(x){ return x.pl === h; })[0];
+  if (!e) { res.push([h, null, null]); return; }
+  let q = null;
+  for (let i = 0; i < 40000 && !q; i++) {
+    const c = generateQuestion("pl_de");
+    if (c && c.entryId === e.id) q = c;
+  }
+  if (!q) { res.push([h, null, null]); return; }
+  res.push([h, q.prompt, [checkAnswer(q, HEADS[h][0]), checkAnswer(q, HEADS[h][1])]]);
+});
+console.log(JSON.stringify(res));
+""" % json.dumps(POLISH_POSSESSIVES)
+    print("\nPL->DE accepts both possessive agreement forms")
+    for head, prompt, grades in json.loads(run("polish_trainer.html", script)):
+        if prompt is None:
+            print(f"  FAIL no question found for {head!r}")
+            fails += 1
+            continue
+        bare, weak = POLISH_POSSESSIVES[head]
+        ok = grades == ["exact", "exact"]
+        if not ok:
+            fails += 1
+        print(f"    {'ok ' if ok else 'FAIL'} {head} — prompt {prompt!r}: "
+              f"{bare} -> {grades[0]}, {weak} -> {grades[1]}")
 
     print("\nFAILURES:" if fails else "\nall grading checks pass", fails or "")
     sys.exit(1 if fails else 0)

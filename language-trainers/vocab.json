@@ -3621,7 +3621,7 @@
   },
   {
    "pl": "ich",
-   "de": "ihre",
+   "de": "ihr, ihre",
    "pos": "pronoun",
    "id": "p042",
    "lesson": "3"
@@ -3787,14 +3787,14 @@
   },
   {
    "pl": "jego",
-   "de": "sein",
+   "de": "sein, seine",
    "pos": "pronoun",
    "id": "p049",
    "lesson": "3"
   },
   {
    "pl": "jej",
-   "de": "ihr",
+   "de": "ihr, ihre",
    "pos": "pronoun",
    "id": "p050",
    "lesson": "3"
@@ -4336,7 +4336,7 @@
   },
   {
    "pl": "mój",
-   "de": "meine",
+   "de": "mein, meine",
    "pos": "pronoun",
    "id": "p074",
    "lesson": "2"
@@ -4517,7 +4517,7 @@
   },
   {
    "pl": "nasz",
-   "de": "unser",
+   "de": "unser, unsere",
    "pos": "pronoun",
    "id": "p083",
    "lesson": "3"
@@ -6087,7 +6087,7 @@
   },
   {
    "pl": "swój",
-   "de": "eigen",
+   "de": "eigen, eigene",
    "pos": "pronoun",
    "id": "p140",
    "lesson": "8"
@@ -6391,7 +6391,7 @@
   },
   {
    "pl": "wasz",
-   "de": "euer",
+   "de": "euer, eure",
    "pos": "pronoun",
    "id": "p161",
    "lesson": "3"
