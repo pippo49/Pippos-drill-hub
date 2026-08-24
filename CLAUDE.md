@@ -42,3 +42,16 @@ why the tricky parts are the way they are. This file is only the map.
 
 5. **Deployment is a push to `main`.** Committing an updated `*.html` there is
    the release — there is no build step and no staging.
+
+6. **A change is not delivered until it is on `main` and the Pages build is
+   green.** A feature branch is work in progress, not a release: pushing one
+   changes nothing on my phone. So finish the job — commit, fast-forward
+   `main`, push it, and confirm the "pages build and deployment" run succeeded
+   for that commit — and don't stop at the branch and report "pushed", which
+   reads as "live" and is not. Do this without asking; ask only if the merge
+   is not a clean fast-forward, or a check is failing.
+
+   If a session is configured to develop on a named branch, that governs where
+   the *work* happens, not whether it ships. Say so at the first commit — "this
+   is on a branch, it goes live when it reaches `main`" — and get the go-ahead
+   once, not per change.
