@@ -311,7 +311,14 @@ VOCAB_DATA.entries.forEach(e => { byId[e.id] = e; });
 // Punctuation is never part of an answer: Spanish opening ¡ ¿ are stripped
 // alongside the closing marks, so "hola" grades exact against "¡hola!".
 // Apostrophes are deliberately NOT stripped — Italian l' / un' are word forms.
-const normalize = (s) => (s || "").trim().toLowerCase().replace(/[.,!?;:¡¿…«»–—“”]/g, "").replace(/\s+/g, " ");
+// A TRAILING hyphen is stripped too: ~45 adjective entries whose German gloss
+// is a bare noun used as a compound-forming element ("renesansowy" ->
+// "Renaissance-", "jabłkowy" -> "Apfel-") mark that with the convention's
+// trailing "-", which is typographic, not part of the word to type -- typing
+// "Renaissance" was graded a near-miss instead of exact. Only the trailing
+// hyphen goes: an internal one (e-mail, T-Shirt, USB-Stick) still separates
+// two real word-parts and is left alone.
+const normalize = (s) => (s || "").trim().toLowerCase().replace(/[.,!?;:¡¿…«»–—“”]/g, "").replace(/-+$/, "").replace(/\s+/g, " ").trim();
 
 const DIACRITIC_MAP = {
   "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ź":"z","ż":"z",
@@ -545,7 +552,13 @@ let session = { count: 0, results: [] };
 let summaryShowing = false;
 let reviewMode = false;   // round that re-drills the previous round's mistakes
 let reviewQueue = [];     // exact question objects still to re-ask
-let reviewOrigin = [];    // the original mistake batch that began this review chain
+// Every question asked in the round that started the CURRENT review chain
+// (correct answers included, not just the mistakes) -- captured once, when
+// that round's own summary first spawns a review, so a review that clears to
+// 100% can offer a full retest of everything, not just the words that were
+// once wrong. Cleared by startNewRound; untouched by further review passes,
+// so it keeps naming the original round through repeated "re-drill mistakes".
+let fullRoundQuestions = null;
 let summaryPrimaryAction = null;  // what Enter triggers on the summary screen
 let roundAsked = new Set();        // distinct entry ids asked this round (for selection coverage)
 let breakShown = false;            // whether the "selection complete" break has been offered this round
@@ -1121,6 +1134,15 @@ function showSummary() {
   card.appendChild(head);
 
   const mistakes = results.filter(function(r){ return r.grade === "wrong" || r.grade === "typo"; });
+  // Snapshot the full round (right/wrong both) the FIRST time it spawns a
+  // review chain -- before session gets reset for that review -- so a review
+  // that later clears to 100% can offer to retest everything, not just the
+  // words that were once wrong. A later pass through this same chain
+  // (reviewMode already true) must not overwrite it with the smaller
+  // review-only set, or "full round" would shrink every pass.
+  if (mistakes.length > 0 && !reviewMode) {
+    fullRoundQuestions = results.map(function(r){ return r.q; });
+  }
   if (mistakes.length === 0 && results.length > 0) {
     const perfect = document.createElement("div");
     perfect.className = "summary-head";
@@ -1180,8 +1202,25 @@ function showSummary() {
       hard.addEventListener("click", startHardestRound);
       actions.appendChild(hard);
     }
+  } else if (reviewMode && fullRoundQuestions && fullRoundQuestions.length > 0) {
+    // The review chain just cleared: every word that was once wrong has now
+    // been answered right. Offer to retest the WHOLE round it came from --
+    // right answers included -- since that is the only way to see what is
+    // actually retained rather than just freshly re-corrected.
+    const retestFn = function() { startReviewRound(fullRoundQuestions); };
+    summaryPrimaryAction = retestFn;
+    const retest = document.createElement("button");
+    retest.type = "button"; retest.className = "btn-primary";
+    retest.textContent = "Redrill the full round (" + fullRoundQuestions.length + ") (Enter)";
+    retest.addEventListener("click", retestFn);
+    actions.appendChild(retest);
+    const next = document.createElement("button");
+    next.type = "button"; next.className = "btn-ghost";
+    next.textContent = "Start next round";
+    next.addEventListener("click", startNewRound);
+    actions.appendChild(next);
   } else {
-    // Perfect round, or the review chain is fully cleared: cycle ends here.
+    // Perfect round, or a review with no full-round snapshot to offer: cycle ends here.
     summaryPrimaryAction = startNewRound;
     const next = document.createElement("button");
     next.type = "button"; next.className = "btn-primary";
@@ -1239,7 +1278,7 @@ function startHardestRound() {
   summaryShowing = false;
   reviewMode = false;
   reviewQueue = [];
-  reviewOrigin = [];
+  fullRoundQuestions = null;
   roundAsked = new Set();
   breakShown = false;
   hardestMode = true;
@@ -1289,7 +1328,7 @@ function startNewRound() {
   hardestMode = false;
   hardestIds = null;
   reviewQueue = [];
-  reviewOrigin = [];
+  fullRoundQuestions = null;
   roundAsked = new Set();
   breakShown = false;
   pickQuestion();
@@ -1297,15 +1336,11 @@ function startNewRound() {
   renderSelectionCount();
 }
 
-// origin: the batch this review chain springs from. Pass the original set to
-// preserve it through repeated passes; pass null to anchor a fresh chain on
-// the questions being drilled now.
-function startReviewRound(questions, origin) {
+function startReviewRound(questions) {
   session = { count: 0, results: [] };
   summaryShowing = false;
   reviewMode = true;
   reviewQueue = shuffle(questions.slice());
-  reviewOrigin = (origin || questions).slice();
   pickQuestion();
 }
 

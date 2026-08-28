@@ -90,6 +90,26 @@ pronouns, there's no missing-agreement-form pattern here to point to. Left
 alone; say if you want "gdzie" to accept "woher" and I'll add it as a straight
 data change to `vocab.json`.
 
+## Two more fixes (this session)
+- **A trailing German hyphen no longer has to be typed.** ~45 adjective
+  entries gloss to a bare noun used as a compound-forming element
+  ("renesansowy" -> "Renaissance-", "jabłkowy" -> "Apfel-"); the trailing "-"
+  is a typographic convention, not part of the word, but it wasn't stripped
+  before grading, so "renaissance" scored a near-miss instead of exact.
+  `normalize()` now strips a TRAILING hyphen only -- an internal one
+  (`e-mail`, `T-Shirt`, `USB-Stick`) still separates two real word-parts and
+  is untouched. Verified against all ~49 affected entries plus 4 internal-
+  hyphen ones that must stay as they were.
+- **A perfectly-cleared review round can now retest the whole thing.**
+  Previously the only option once every mistake was corrected was "Start next
+  round" (a fresh weighted pick from the whole deck) -- there was no way to
+  ask "how much of THIS round do I actually remember", right answers
+  included. `fullRoundQuestions` snapshots every question from the round that
+  first spawned the review chain (captured once, before more passes can
+  shrink it) and a "Redrill the full round (N)" button replays it. Replaces
+  `reviewOrigin`, which was declared, assigned, and never once read -- dead
+  code for a similar idea that was never finished.
+
 ## Why the header said 2234 and 1126 at the same time
 Nothing was counting two different things. The stats line was computed from the
 deck (2234, correct); the summary under it was a string typed into the HTML —
