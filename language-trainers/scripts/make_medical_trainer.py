@@ -32,6 +32,26 @@ MODE_LABELS = '''const MODE_LABELS = [
   ["cloze", "Clinical context"],
 ];
 
+// Whether a given drill type CAN ask a given entry at all, independent of
+// whether that mode is currently enabled. Mirrors each mode's own buildPool
+// filter in generateQuestion exactly -- kept as one table so the two can't
+// drift apart -- and is what per-(term, drill type) round coverage is
+// measured against in selectionExhausted (inherited unchanged from Latin;
+// this generator never touches it, only generateQuestion/MODE_LABELS).
+const MODE_ELIGIBLE = {
+  element_meaning: (e) => ELEMENT_POS[e.pos] && e.en,
+  meaning_element: (e) => ELEMENT_POS[e.pos] && e.en,
+  term_meaning: (e) => e.pos === "term" && e.en,
+  build: (e) => e.pos === "term" && e.parts && e.parts.length,
+  analyse: (e) => e.pos === "term" && e.parts && e.parts.length > 1,
+  doublet: (e) => !!e.counterpart,
+  plural: (e) => e.pos === "plural" && e.plural,
+  confusable: (e) => e.pos === "confusable" && e.pair_term,
+  abbreviation: (e) => e.pos === "abbreviation" && e.latin,
+  multiple_choice: (e) => e.term && e.en && e.pos !== "confusable",
+  cloze: (e) => e.cloze && e.cloze.length,
+};
+
 // The three element kinds that behave alike in the element drills.
 const ELEMENT_POS = { prefix: 1, suffix: 1, root: 1 };
 
@@ -79,6 +99,12 @@ function generateQuestion(mode) {
       if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
       return enabledLessons[e.lesson] && enabledPos[e.pos];
     });
+    if (pool.length === 0) { weights = []; return; }
+    // Hard stop: never repeat the same (term, drill type) pair within a round
+    // -- same rule as every other trainer's buildPool, and what
+    // selectionExhausted (inherited from Latin) checks against via
+    // MODE_ELIGIBLE before it will end the round.
+    pool = pool.filter(function(e){ return !roundAsked.has(e.id + "|" + mode); });
     if (pool.length === 0) { weights = []; return; }
     if (pool.length > 1) {
       const last = recentIds[recentIds.length - 1];

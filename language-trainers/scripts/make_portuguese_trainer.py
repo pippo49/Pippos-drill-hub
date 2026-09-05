@@ -165,7 +165,16 @@ def build(cfg):
                  ("// Accept the English of ANY entry with the same Spanish headword",
                   "// Accept the English of ANY entry with the same Portuguese headword"),
                  ("// Accept the Spanish of ANY entry sharing at least one English",
-                  "// Accept the Portuguese of ANY entry sharing at least one English")]:
+                  "// Accept the Portuguese of ANY entry sharing at least one English"),
+                 # MODE_ELIGIBLE (round-coverage tracking) is the SAME bare-key
+                 # trap as enabledModes above, in a table added after this
+                 # generator's other bare-key fixes -- the .es -> .pt rename
+                 # turns the VALUES (e.es -> e.pt) but not the KEYS, so without
+                 # this a round with only translation drills enabled would
+                 # never detect itself as exhausted (MODE_ELIGIBLE.pt_en would
+                 # not exist) and never stop.
+                 ("es_en: (e) => e.pt && e.en,", "pt_en: (e) => e.pt && e.en,"),
+                 ("en_es: (e) => e.pt && e.en,", "en_pt: (e) => e.pt && e.en,")]:
         head = head.replace(a, b)
         engine_tail = engine_tail.replace(a, b)
 
@@ -231,6 +240,13 @@ def build(cfg):
     # --- the three extra banks join the existing branch ---------------------
     src = sub(src, 'if (mode === "ser_estar" || mode === "por_para") {',
               'if (' + " || ".join(f'mode === "{b}"' for b in BANKS) + ") {")
+    # SPECIAL_MODES is what round-coverage tracking (selectionExhausted, and
+    # the bank's own per-item hard exclusion) iterates to know which enabled
+    # modes draw from VOCAB_DATA.special rather than entries. Spanish only
+    # has ser_estar/por_para; extend it to all five banks here, or a round
+    # with only personal_inf enabled would never detect itself as exhausted.
+    src = sub(src, 'const SPECIAL_MODES = ["ser_estar", "por_para"];',
+              "const SPECIAL_MODES = [" + ", ".join(f'"{b}"' for b in BANKS) + "];")
     src = sub(src, '''  if (type === "ser_estar") return !!enabledPos.verb;
   if (type === "por_para") return !!enabledPos.preposition;''',
               '''  if (type === "ser_estar") return !!enabledPos.verb;

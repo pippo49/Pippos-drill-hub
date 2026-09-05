@@ -245,24 +245,47 @@ Three independent filters gate the question pool, each with its own `All`/`None`
 
 **Gotcha**: `enabledPos` only filters things drawn from `entries` — Spanish's `ser_estar`/`por_para` special-bank modes have no `.pos` field to check (caught after shipping: selecting only "Numbers" still surfaced random Ser vs estar questions). Fixed via `specialModeAllowed(type)`, which hand-maps `ser_estar`→`enabledPos.verb` and `por_para`→`enabledPos.preposition` and is checked both in `generateQuestion` (gates whether the mode can fire at all) and in the Word-forms toggle handler (so a *currently displayed* special question gets replaced immediately if its pos is unchecked mid-question, not just on the next pick). Any future special/curated-bank drill mode needs the same explicit pos mapping — it won't fall out of the `entries`-based filtering for free.
 
-Repeat avoidance is two-layered, in `buildPool` (and, for Spanish only, mirrored in the `ser_estar`/`por_para` special-bank branch since those draw from `VOCAB_DATA.special` instead of `entries`):
-1. **Hard floor** — `NO_REPEAT_WINDOW` (8): a word can't resurface within the last 8 questions *of its own pool*, as long as the pool is big enough to still leave a choice (`Math.min(recentIds.length, pool.length - 1, NO_REPEAT_WINDOW)`). This is the part that actually matters for small pools (a single lesson, or one part-of-speech filter) — a soft multiplier alone doesn't reliably prevent short gaps once you check it against a synthetic gap simulation, because the *average* revisit gap for a fixed pool size trends toward the pool size regardless of weighting shape; only a hard exclusion moves the *minimum* gap.
-2. **Soft recency decay** on top, for pools bigger than the hard window: `w *= recency / (recency + 12)` over a `recentIds` lookback capped at 40 (was `+6` / cap 20 before this was widened).
+A round asks every (word, enabled drill type) pair in the selection exactly
+once, then stops straight into the summary — no repeats, no pause to ask
+"keep going?". `buildPool` hard-excludes anything already in `roundAsked`
+(reset each round), keyed `"entryId|mode"` rather than just the entry, so
+coverage is by **word AND drill type**: a word with `pl_de`/`es_en`/etc.,
+the reverse direction and `conjugate` all enabled gets all three asked, not
+just one, before it stops offering itself. `MODE_ELIGIBLE` names, once,
+which mode can ask which kind of entry, mirroring each mode's own `buildPool`
+filter so the two can't drift apart; `selectionExhausted` walks every (entry,
+enabled mode) pair the selection can produce rather than every entry, and
+ends the round the moment none remain uncovered. The old interstitial
+(`showSelectionBreak`, `breakShown`) is gone from every app.
 
-**Polish only, so far**: a third, stricter layer sits in front of both —
-`buildPool` hard-excludes anything already in `roundAsked` (reset each round),
-keyed `"entryId|mode"` rather than just the entry, so coverage is by **word
-AND drill type**: a word with `pl_de`, `de_pl` and `conjugate` all enabled
-gets all three asked, not just one, before it stops offering itself.
-`MODE_ELIGIBLE` names, once, which mode can ask which kind of entry, mirroring
-each mode's own `buildPool` filter so the two can't drift apart; `selectionExhausted`
-walks every (entry, enabled mode) pair the selection can produce rather than
-every entry. Once none remain uncovered, it ends the round straight into the
-summary rather than pausing to ask "keep going?" — that interstitial
-(`showSelectionBreak`, `breakShown`) is gone. The other seven apps still rely
-on layers 1–2 alone (repeats are rare, not impossible, within an open-ended
-round). See `HANDOFF.md` before porting this;
-it wasn't asked for elsewhere yet.
+Spanish, Italian and French additionally have curated sentence banks
+(`ser_estar`/`por_para`, `essere_stare`/`avere_essere`, `tu_vous`/`avoir_etre`;
+Portuguese/Brazilian have five) that draw from `VOCAB_DATA.special` rather
+than `entries` and have no `.pos` to check via `MODE_ELIGIBLE`. Each such app
+lists its own bank-mode names in a `SPECIAL_MODES` array; `selectionExhausted`
+walks it as a second loop (an item's coverage key is `"itemId|mode"`, its own
+namespace, so it can't collide with a vocab entry's), and the bank's own
+generation code gets the identical hard exclusion `buildPool` has — inserted
+BEFORE the existing last-id/no-repeat-window narrowing, which must narrow the
+already-excluded list rather than re-deriving from the raw bank, or the hard
+exclusion is silently discarded the moment something narrows after it. Latin
+and Polish have no such banks and skip both the array and the loop entirely.
+
+Medical's `generateQuestion`/`buildPool`/`MODE_LABELS` are wholesale-replaced
+by `make_medical_trainer.py` (see below), so its round-coverage additions —
+its own `MODE_ELIGIBLE` and the hard exclusion in its own `buildPool` — live
+in that generator, in Python, not here. `selectionExhausted`, `pickQuestion`
+and `roundAsked` itself are NOT among the regions that generator swaps, so
+medical inherits Latin's (already-fixed) versions of those unchanged on every
+regeneration — only the domain-specific pieces need their own copy.
+
+Applied via `scripts/patch_no_repeat_round.py` for Spanish/Italian/French/Latin
+(re-runnable, idempotent, mirrors `patch_grading.py`'s shape); Polish was
+patched by hand first to prove the design out, then this script generalised
+it. See `HANDOFF.md` for the fuller history of the design (why coverage is
+per word-and-mode, not just per word) and how the bank-narrowing bug above
+was actually found: a scripted round that recorded every (id, mode) it was
+asked and asserted zero duplicates, not just that the round eventually ended.
 
 ## Answer acceptance: what counts as correct
 

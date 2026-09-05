@@ -554,6 +554,9 @@ function specialModeAllowed(type) {
   if (type === "false_friend") return !!(enabledPos.noun || enabledPos.adjective);
   return true;
 }
+// Every curated-sentence-bank mode this app has, so selectionExhausted
+// and the bank's own hard exclusion can find them generically.
+const SPECIAL_MODES = ["ser_estar", "por_para", "personal_inf", "fut_subj", "false_friend"];
 const POS_KEY = "brazilian_trainer_pos";
 function loadPos() {
   if (!LS_AVAILABLE) return null;
@@ -582,8 +585,10 @@ let reviewMode = false;   // round that re-drills the previous round's mistakes
 let reviewQueue = [];     // exact question objects still to re-ask
 let reviewOrigin = [];    // the original mistake batch that began this review chain
 let summaryPrimaryAction = null;  // what Enter triggers on the summary screen
-let roundAsked = new Set();        // distinct entry ids asked this round (for selection coverage)
-let breakShown = false;            // whether the "selection complete" break has been offered this round
+// "entryId|mode" pairs asked this round -- coverage is by WORD AND DRILL
+// TYPE, not just word: a word with both translation directions and cloze
+// enabled needs all three asked before it stops offering itself, not one.
+let roundAsked = new Set();
 
 // Cloze is hard by default each question; user can reveal the hint per word.
 let clozeHintShown = false;
@@ -603,6 +608,23 @@ const MODE_LABELS = [
   ["false_friend", "False friends"],
 ];
 
+// Whether a given drill type CAN ask a given entry at all, independent of
+// whether that mode is currently enabled. Mirrors each mode's own buildPool
+// filter in generateQuestion exactly -- kept as one table so the two can't
+// drift apart -- and is what per-(word, drill type) round coverage is
+// measured against in selectionExhausted.
+const MODE_ELIGIBLE = {
+  pt_en: (e) => e.pt && e.en,
+  en_pt: (e) => e.pt && e.en,
+  multiple_choice: (e) => e.pt && e.en,
+  conjugate: (e) => e.pos === "verb" && e.conjugation,
+  decline: (e) => e.pos === "adjective" && e.declension,
+  noun_case: (e) => e.pos === "noun" && e.noun_decl,
+  cloze: (e) => e.cloze && e.cloze.length,
+  antonym: (e) => e.antonyms && e.antonyms.length > 0,
+  synonym: (e) => e.synonyms && e.synonyms.length > 0,
+};
+
 // === QUESTION GENERATORS ===
 function generateQuestion(mode) {
   const entries = VOCAB_DATA.entries;
@@ -617,14 +639,25 @@ function generateQuestion(mode) {
       return enabledLessons[e.lesson] && enabledPos[e.pos];
     });
     if (pool.length === 0) { weights = []; return; }
+    // Hard stop: never repeat the same (word, drill type) pair within a round.
+    // A word with pl_de, de_pl and cloze all enabled needs all three asked
+    // before IT stops offering itself in any of them -- coverage is tracked
+    // per mode, not just per word. Once every enabled-and-eligible pair for
+    // the whole selection is covered, pickQuestion ends the round (see
+    // selectionExhausted) instead of relying on this to run dry -- by the time
+    // buildPool empties out for one mode, some other enabled mode still has an
+    // uncovered pair, unless the whole round is genuinely done.
+    pool = pool.filter(function(e){ return !roundAsked.has(e.id + "|" + mode); });
+    if (pool.length === 0) { weights = []; return; }
     // Never ask the same word twice in a row, as long as there's an alternative
     if (pool.length > 1) {
       const last = recentIds[recentIds.length - 1];
       const trimmed = pool.filter(function(e){ return e.id !== last; });
       if (trimmed.length > 0) pool = trimmed;
     }
-    // Hard floor: also exclude anything asked in the last NO_REPEAT_WINDOW turns,
-    // as long as the current selection is big enough to still leave a choice.
+    // Hard floor: also exclude anything asked in the last NO_REPEAT_WINDOW turns.
+    // recentIds is never reset between rounds, so this is what stops a new round
+    // from immediately re-opening with the previous round's last few words.
     if (pool.length > 1 && recentIds.length > 0) {
       const noRepeatWindow = Math.min(recentIds.length, pool.length - 1, NO_REPEAT_WINDOW);
       if (noRepeatWindow > 0) {
@@ -636,10 +669,8 @@ function generateQuestion(mode) {
     }
     weights = pool.map(function(e) {
       var w = weightFor(progress.stats, e.id);
-      // Within this round, strongly prefer words not yet asked, so a round walks
-      // through the whole selection once before repeating.
-      if (!roundAsked.has(e.id)) w *= 6;
-      // Soft penalty for recently asked words so they resurface much less often
+      // Soft penalty for a word from the tail of the previous round, so it
+      // doesn't open the new one too -- same carry-over as the filter above.
       var idx = recentIds.lastIndexOf(e.id);
       if (idx >= 0) {
         var recency = recentIds.length - idx; // 1 = most recently asked
@@ -738,9 +769,17 @@ function generateQuestion(mode) {
     const bank = (VOCAB_DATA.special && VOCAB_DATA.special[mode]) || [];
     if (bank.length === 0) return null;
     let items = bank;
-    if (bank.length > 1) {
+    // Same hard stop as the vocab pool: never repeat a bank item within a
+    // round (see buildPool's roundAsked exclusion). Must run BEFORE the
+    // last-id/no-repeat-window narrowing below, and those must narrow
+    // `items` (not re-derive from `bank`), or this gets silently discarded --
+    // the two used to be interchangeable because nothing had narrowed `items`
+    // yet at that point; that stopped being true the moment this was added.
+    items = items.filter(function(x){ return !roundAsked.has(x.id + "|" + mode); });
+    if (items.length === 0) return null;
+    if (items.length > 1) {
       const last = recentIds[recentIds.length - 1];
-      const trimmed = bank.filter(function(x){ return x.id !== last; });
+      const trimmed = items.filter(function(x){ return x.id !== last; });
       if (trimmed.length > 0) items = trimmed;
     }
     // Same hard no-repeat floor as the vocab pools, scoped to this bank's own ids.
@@ -896,7 +935,7 @@ function recordAnswer(grade) {
   saveProgress(progress);
   // Session tracking for the end-of-round summary (q kept for re-drilling)
   session.count++;
-  roundAsked.add(currentQ.entryId);
+  roundAsked.add(currentQ.entryId + "|" + currentQ.type);
   session.results.push({
     q: currentQ,
     userInput: (feedback && feedback.userInput) || "",
@@ -951,7 +990,6 @@ function renderModes() {
 
 
   renderSelectionCount();
-  breakShown = false;
 }
 
 function lessonLabel(l) {
@@ -995,7 +1033,6 @@ function renderLessons() {
     container.appendChild(btn);
   });
   renderSelectionCount();
-  breakShown = false;
 }
 
 function setAllPos(v) {
@@ -1035,7 +1072,6 @@ function renderPosFilter() {
     container.appendChild(btn);
   });
   renderSelectionCount();
-  breakShown = false;
 }
 
 function selectionCanAsk(e) {
@@ -1088,10 +1124,12 @@ function pickQuestion(focusInput) {
     renderCard();
     return;
   }
-  // Once every word in the current selection has been asked this round, pause
-  // and let the user choose to stop (and review) or keep going.
-  if (!breakShown && session.count > 0 && selectionExhausted()) {
-    showSelectionBreak();
+  // Once every word in the current selection has had a turn this round, the
+  // round is over: no repeats before then (see buildPool), and none after --
+  // go straight to the summary, where "Re-drill mistakes" and, once those
+  // clear, "Redrill the full round" carry on from here.
+  if (session.count > 0 && selectionExhausted()) {
+    showSummary();
     return;
   }
   // Try every enabled mode, in random order. Some modes cannot serve some
@@ -1115,56 +1153,40 @@ function pickQuestion(focusInput) {
 }
 
 function selectionExhausted() {
-  const selIds = VOCAB_DATA.entries
-    .filter(function(e){
-      if (hardestMode) return !!(hardestIds && hardestIds[e.id]) && selectionCanAsk(e);
-      return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
-    })
-    .map(function(e){ return e.id; });
-  if (selIds.length === 0) return false;
-  for (let i = 0; i < selIds.length; i++) {
-    if (!roundAsked.has(selIds[i])) return false;
+  const sel = VOCAB_DATA.entries.filter(function(e){
+    if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
+    return enabledLessons[e.lesson] && enabledPos[e.pos];
+  });
+  const enabled = Object.keys(enabledModes).filter(function(m){ return enabledModes[m]; });
+  // Exhausted means every (word, enabled drill type) pair the selection can
+  // actually produce has been asked -- not just every word in SOME mode.
+  // `any` guards the case where the selection has nothing askable at all
+  // (matches the old selectionCanAsk-based check: nothing to ask is not the
+  // same as everything asked).
+  let any = false;
+  for (let i = 0; i < sel.length; i++) {
+    const e = sel[i];
+    for (let j = 0; j < enabled.length; j++) {
+      const m = enabled[j];
+      if (!MODE_ELIGIBLE[m]) continue;
+      if (!MODE_ELIGIBLE[m](e)) continue;
+      any = true;
+      if (!roundAsked.has(e.id + "|" + m)) return false;
+    }
   }
-  return true;
-}
-
-function showSelectionBreak() {
-  summaryShowing = false;
-  currentQ = null;
-  feedback = null;
-  const area = document.getElementById("card-area");
-  area.innerHTML = "";
-  const card = document.createElement("div");
-  card.className = "card";
-
-  const headRow = document.createElement("div");
-  headRow.className = "card-head";
-  const label = document.createElement("div");
-  label.className = "prompt-label";
-  label.textContent = "Selection complete";
-  headRow.appendChild(label);
-  card.appendChild(headRow);
-
-  const msg = document.createElement("div");
-  msg.className = "prompt";
-  msg.textContent = "You've been through every word in this selection. Stop and review, or keep going?";
-  card.appendChild(msg);
-
-  const actions = document.createElement("div");
-  actions.className = "actions";
-  const end = document.createElement("button");
-  end.type = "button"; end.className = "btn-primary";
-  end.textContent = "End & show summary";
-  end.addEventListener("click", showSummary);
-  actions.appendChild(end);
-  const cont = document.createElement("button");
-  cont.type = "button"; cont.className = "btn-ghost";
-  cont.textContent = "Keep going";
-  cont.addEventListener("click", function() { breakShown = true; pickQuestion(false); });
-  actions.appendChild(cont);
-  card.appendChild(actions);
-
-  area.appendChild(card);
+  // Curated sentence banks (VOCAB_DATA.special) are a separate, non-lesson-
+  // scoped pool with their own coverage requirement: every item in an
+  // enabled, pos-allowed bank must be asked too before the round is done.
+  for (let i = 0; i < SPECIAL_MODES.length; i++) {
+    const m = SPECIAL_MODES[i];
+    if (!enabledModes[m] || !specialModeAllowed(m)) continue;
+    const bank = (VOCAB_DATA.special && VOCAB_DATA.special[m]) || [];
+    for (let k = 0; k < bank.length; k++) {
+      any = true;
+      if (!roundAsked.has(bank[k].id + "|" + m)) return false;
+    }
+  }
+  return any;
 }
 
 function showSummary() {
@@ -1317,7 +1339,6 @@ function startHardestRound() {
   reviewQueue = [];
   reviewOrigin = [];
   roundAsked = new Set();
-  breakShown = false;
   hardestMode = true;
   pickQuestion();
   renderHardestButton();
@@ -1367,7 +1388,6 @@ function startNewRound() {
   reviewQueue = [];
   reviewOrigin = [];
   roundAsked = new Set();
-  breakShown = false;
   pickQuestion();
   renderHardestButton();
   renderSelectionCount();

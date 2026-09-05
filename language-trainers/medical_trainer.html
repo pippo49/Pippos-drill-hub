@@ -600,8 +600,10 @@ let reviewMode = false;   // round that re-drills the previous round's mistakes
 let reviewQueue = [];     // exact question objects still to re-ask
 let reviewOrigin = [];    // the original mistake batch that began this review chain
 let summaryPrimaryAction = null;  // what Enter triggers on the summary screen
-let roundAsked = new Set();        // distinct entry ids asked this round (for selection coverage)
-let breakShown = false;            // whether the "selection complete" break has been offered this round
+// "entryId|mode" pairs asked this round -- coverage is by WORD AND DRILL
+// TYPE, not just word: a word with both translation directions and cloze
+// enabled needs all three asked before it stops offering itself, not one.
+let roundAsked = new Set();
 
 // Cloze is hard by default each question; user can reveal the hint per word.
 let clozeHintShown = false;
@@ -619,6 +621,26 @@ const MODE_LABELS = [
   ["multiple_choice", "Multiple choice"],
   ["cloze", "Clinical context"],
 ];
+
+// Whether a given drill type CAN ask a given entry at all, independent of
+// whether that mode is currently enabled. Mirrors each mode's own buildPool
+// filter in generateQuestion exactly -- kept as one table so the two can't
+// drift apart -- and is what per-(term, drill type) round coverage is
+// measured against in selectionExhausted (inherited unchanged from Latin;
+// this generator never touches it, only generateQuestion/MODE_LABELS).
+const MODE_ELIGIBLE = {
+  element_meaning: (e) => ELEMENT_POS[e.pos] && e.en,
+  meaning_element: (e) => ELEMENT_POS[e.pos] && e.en,
+  term_meaning: (e) => e.pos === "term" && e.en,
+  build: (e) => e.pos === "term" && e.parts && e.parts.length,
+  analyse: (e) => e.pos === "term" && e.parts && e.parts.length > 1,
+  doublet: (e) => !!e.counterpart,
+  plural: (e) => e.pos === "plural" && e.plural,
+  confusable: (e) => e.pos === "confusable" && e.pair_term,
+  abbreviation: (e) => e.pos === "abbreviation" && e.latin,
+  multiple_choice: (e) => e.term && e.en && e.pos !== "confusable",
+  cloze: (e) => e.cloze && e.cloze.length,
+};
 
 // The three element kinds that behave alike in the element drills.
 const ELEMENT_POS = { prefix: 1, suffix: 1, root: 1 };
@@ -667,6 +689,12 @@ function generateQuestion(mode) {
       if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
       return enabledLessons[e.lesson] && enabledPos[e.pos];
     });
+    if (pool.length === 0) { weights = []; return; }
+    // Hard stop: never repeat the same (term, drill type) pair within a round
+    // -- same rule as every other trainer's buildPool, and what
+    // selectionExhausted (inherited from Latin) checks against via
+    // MODE_ELIGIBLE before it will end the round.
+    pool = pool.filter(function(e){ return !roundAsked.has(e.id + "|" + mode); });
     if (pool.length === 0) { weights = []; return; }
     if (pool.length > 1) {
       const last = recentIds[recentIds.length - 1];
@@ -897,7 +925,7 @@ function recordAnswer(grade) {
   saveProgress(progress);
   // Session tracking for the end-of-round summary (q kept for re-drilling)
   session.count++;
-  roundAsked.add(currentQ.entryId);
+  roundAsked.add(currentQ.entryId + "|" + currentQ.type);
   session.results.push({
     q: currentQ,
     userInput: (feedback && feedback.userInput) || "",
@@ -952,7 +980,6 @@ function renderModes() {
 
 
   renderSelectionCount();
-  breakShown = false;
 }
 
 function lessonLabel(l) {
@@ -996,7 +1023,6 @@ function renderLessons() {
     container.appendChild(btn);
   });
   renderSelectionCount();
-  breakShown = false;
 }
 
 function setAllPos(v) {
@@ -1036,7 +1062,6 @@ function renderPosFilter() {
     container.appendChild(btn);
   });
   renderSelectionCount();
-  breakShown = false;
 }
 
 function selectionCanAsk(e) {
@@ -1095,10 +1120,12 @@ function pickQuestion(focusInput) {
     renderCard();
     return;
   }
-  // Once every word in the current selection has been asked this round, pause
-  // and let the user choose to stop (and review) or keep going.
-  if (!breakShown && session.count > 0 && selectionExhausted()) {
-    showSelectionBreak();
+  // Once every word in the current selection has had a turn this round, the
+  // round is over: no repeats before then (see buildPool), and none after --
+  // go straight to the summary, where "Re-drill mistakes" and, once those
+  // clear, "Redrill the full round" carry on from here.
+  if (session.count > 0 && selectionExhausted()) {
+    showSummary();
     return;
   }
   // Try every enabled mode, in random order. Some modes cannot serve some
@@ -1122,56 +1149,28 @@ function pickQuestion(focusInput) {
 }
 
 function selectionExhausted() {
-  const selIds = VOCAB_DATA.entries
-    .filter(function(e){
-      if (hardestMode) return !!(hardestIds && hardestIds[e.id]) && selectionCanAsk(e);
-      return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
-    })
-    .map(function(e){ return e.id; });
-  if (selIds.length === 0) return false;
-  for (let i = 0; i < selIds.length; i++) {
-    if (!roundAsked.has(selIds[i])) return false;
+  const sel = VOCAB_DATA.entries.filter(function(e){
+    if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
+    return enabledLessons[e.lesson] && enabledPos[e.pos];
+  });
+  const enabled = Object.keys(enabledModes).filter(function(m){ return enabledModes[m]; });
+  // Exhausted means every (word, enabled drill type) pair the selection can
+  // actually produce has been asked -- not just every word in SOME mode.
+  // `any` guards the case where the selection has nothing askable at all
+  // (matches the old selectionCanAsk-based check: nothing to ask is not the
+  // same as everything asked).
+  let any = false;
+  for (let i = 0; i < sel.length; i++) {
+    const e = sel[i];
+    for (let j = 0; j < enabled.length; j++) {
+      const m = enabled[j];
+      if (!MODE_ELIGIBLE[m]) continue;
+      if (!MODE_ELIGIBLE[m](e)) continue;
+      any = true;
+      if (!roundAsked.has(e.id + "|" + m)) return false;
+    }
   }
-  return true;
-}
-
-function showSelectionBreak() {
-  summaryShowing = false;
-  currentQ = null;
-  feedback = null;
-  const area = document.getElementById("card-area");
-  area.innerHTML = "";
-  const card = document.createElement("div");
-  card.className = "card";
-
-  const headRow = document.createElement("div");
-  headRow.className = "card-head";
-  const label = document.createElement("div");
-  label.className = "prompt-label";
-  label.textContent = "Selection complete";
-  headRow.appendChild(label);
-  card.appendChild(headRow);
-
-  const msg = document.createElement("div");
-  msg.className = "prompt";
-  msg.textContent = "You've been through every word in this selection. Stop and review, or keep going?";
-  card.appendChild(msg);
-
-  const actions = document.createElement("div");
-  actions.className = "actions";
-  const end = document.createElement("button");
-  end.type = "button"; end.className = "btn-primary";
-  end.textContent = "End & show summary";
-  end.addEventListener("click", showSummary);
-  actions.appendChild(end);
-  const cont = document.createElement("button");
-  cont.type = "button"; cont.className = "btn-ghost";
-  cont.textContent = "Keep going";
-  cont.addEventListener("click", function() { breakShown = true; pickQuestion(false); });
-  actions.appendChild(cont);
-  card.appendChild(actions);
-
-  area.appendChild(card);
+  return any;
 }
 
 function showSummary() {
@@ -1324,7 +1323,6 @@ function startHardestRound() {
   reviewQueue = [];
   reviewOrigin = [];
   roundAsked = new Set();
-  breakShown = false;
   hardestMode = true;
   pickQuestion();
   renderHardestButton();
@@ -1374,7 +1372,6 @@ function startNewRound() {
   reviewQueue = [];
   reviewOrigin = [];
   roundAsked = new Set();
-  breakShown = false;
   pickQuestion();
   renderHardestButton();
   renderSelectionCount();
