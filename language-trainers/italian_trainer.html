@@ -1065,17 +1065,45 @@ function renderSelectionCount() {
   if (!anyLesson) { el.textContent = "no lessons selected"; return; }
   if (!anyPos) { el.textContent = "no word forms selected"; return; }
   if (!anyMode) { el.textContent = "no drill types selected"; return; }
+  const enabledModeList = Object.keys(enabledModes).filter(function(m){ return enabledModes[m]; });
+  // Every (word, drill type) pair a round would actually ask, plus every item
+  // of a curated sentence bank whose mode is enabled and pos-allowed (apps
+  // with no SPECIAL_MODES array simply contribute none) -- the same tally
+  // selectionExhausted measures round coverage against, just without the
+  // roundAsked filter, so this is the whole round's size, not what's left.
+  const countQuestions = function(sel) {
+    let q = 0;
+    for (let i = 0; i < sel.length; i++) {
+      for (let j = 0; j < enabledModeList.length; j++) {
+        const m = enabledModeList[j];
+        if (MODE_ELIGIBLE[m] && MODE_ELIGIBLE[m](sel[i])) q++;
+      }
+    }
+    if (typeof SPECIAL_MODES !== "undefined") {
+      SPECIAL_MODES.forEach(function(m){
+        if (!enabledModes[m] || !specialModeAllowed(m)) return;
+        q += ((VOCAB_DATA.special && VOCAB_DATA.special[m]) || []).length;
+      });
+    }
+    return q;
+  };
   if (hardestMode && hardestIds) {
-    const h = VOCAB_DATA.entries.filter(function(e){
+    const sel = VOCAB_DATA.entries.filter(function(e){
       return hardestIds[e.id] && selectionCanAsk(e);
-    }).length;
-    el.textContent = h + (h === 1 ? " word" : " words") + " in this hardest-words round";
+    });
+    const h = sel.length;
+    const q = countQuestions(sel);
+    el.textContent = h + (h === 1 ? " word" : " words") + " \u00b7 " +
+      q + (q === 1 ? " question" : " questions") + " in this hardest-words round";
     return;
   }
-  const n = VOCAB_DATA.entries.filter(function(e){
+  const sel = VOCAB_DATA.entries.filter(function(e){
     return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
-  }).length;
-  el.textContent = n + (n === 1 ? " word" : " words") + " in selection";
+  });
+  const n = sel.length;
+  const q = countQuestions(sel);
+  el.textContent = n + (n === 1 ? " word" : " words") + " \u00b7 " +
+    q + (q === 1 ? " question" : " questions") + " in selection";
 }
 
 function pickQuestion(focusInput) {

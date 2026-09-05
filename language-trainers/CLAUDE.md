@@ -287,6 +287,19 @@ per word-and-mode, not just per word) and how the bank-narrowing bug above
 was actually found: a scripted round that recorded every (id, mode) it was
 asked and asserted zero duplicates, not just that the round eventually ended.
 
+`renderSelectionCount`'s "N words in selection" line predates all of this and
+undercounts what a round now actually asks — a selection with two translation
+directions and `conjugate` all enabled produces close to three questions per
+word, not one. It now also shows "· Q questions", computed the same way
+`selectionExhausted` measures coverage (`MODE_ELIGIBLE` + `SPECIAL_MODES`
+where present) but without the `roundAsked` filter, so it's the round's whole
+size rather than what's left of it. `scripts/patch_question_count.py` applies
+it to Polish/Spanish/Italian/French/Latin (`renderSelectionCount` was
+byte-identical across all five); Medical and the two Portuguese apps need no
+generator change at all — the function sits outside every region their
+generators swap, so they inherit the patched version verbatim and it resolves
+against each app's own `MODE_ELIGIBLE`/`SPECIAL_MODES` automatically.
+
 ## Answer acceptance: what counts as correct
 
 Reported from real use: the apps were marking correct answers wrong. Fixed by
