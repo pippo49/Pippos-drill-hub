@@ -110,6 +110,24 @@ data change to `vocab.json`.
   `reviewOrigin`, which was declared, assigned, and never once read -- dead
   code for a similar idea that was never finished.
 
+## A round no longer repeats a word, and stops the moment it's done
+Previously a round was open-ended: `roundAsked` only gave an unasked word a
+soft ×6 weight boost, so the SAME word could resurface before every word in
+the selection had a turn, and once the selection WAS fully covered the app
+paused with "Stop and review, or keep going?" rather than actually stopping.
+Changed on request: `buildPool` now hard-excludes anything in `roundAsked`
+(no repeats within a round, full stop), and reaching full coverage goes
+straight to the round summary -- no interstitial, no "keep going". From there
+the existing flow is unchanged: **Re-drill mistakes** re-asks exactly what was
+missed, and once that clears, **Redrill the full round** (above) retests
+everything. `recentIds` (the cross-round recency log, never reset) still
+softly discourages the last few words of the PREVIOUS round from opening the
+next one -- that's a different job from `roundAsked` and was kept as-is.
+Verified with a scripted round over a narrowed selection (40/40 nouns from
+lesson 1, zero duplicates, stopped exactly at coverage) and the same for a
+hardest-words round (8/8). The now-unreachable "Selection complete" screen and
+its `breakShown` flag were deleted rather than left dead.
+
 ## Why the header said 2234 and 1126 at the same time
 Nothing was counting two different things. The stats line was computed from the
 deck (2234, correct); the summary under it was a string typed into the HTML —
