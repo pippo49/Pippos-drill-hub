@@ -250,13 +250,18 @@ Repeat avoidance is two-layered, in `buildPool` (and, for Spanish only, mirrored
 2. **Soft recency decay** on top, for pools bigger than the hard window: `w *= recency / (recency + 12)` over a `recentIds` lookback capped at 40 (was `+6` / cap 20 before this was widened).
 
 **Polish only, so far**: a third, stricter layer sits in front of both —
-`buildPool` hard-excludes anything in `roundAsked` (this round's own coverage
-set, reset each round), so a word cannot repeat at all until every askable
-word in the current selection has had a turn. Once it has, `selectionExhausted`
-ends the round straight into the summary rather than pausing to ask
-"keep going?" — that interstitial (`showSelectionBreak`, `breakShown`) is gone.
-The other seven apps still rely on layers 1–2 alone (repeats are rare, not
-impossible, within an open-ended round). See `HANDOFF.md` before porting this;
+`buildPool` hard-excludes anything already in `roundAsked` (reset each round),
+keyed `"entryId|mode"` rather than just the entry, so coverage is by **word
+AND drill type**: a word with `pl_de`, `de_pl` and `conjugate` all enabled
+gets all three asked, not just one, before it stops offering itself.
+`MODE_ELIGIBLE` names, once, which mode can ask which kind of entry, mirroring
+each mode's own `buildPool` filter so the two can't drift apart; `selectionExhausted`
+walks every (entry, enabled mode) pair the selection can produce rather than
+every entry. Once none remain uncovered, it ends the round straight into the
+summary rather than pausing to ask "keep going?" — that interstitial
+(`showSelectionBreak`, `breakShown`) is gone. The other seven apps still rely
+on layers 1–2 alone (repeats are rare, not impossible, within an open-ended
+round). See `HANDOFF.md` before porting this;
 it wasn't asked for elsewhere yet.
 
 ## Answer acceptance: what counts as correct

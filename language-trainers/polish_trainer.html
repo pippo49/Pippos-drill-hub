@@ -560,7 +560,10 @@ let reviewQueue = [];     // exact question objects still to re-ask
 // so it keeps naming the original round through repeated "re-drill mistakes".
 let fullRoundQuestions = null;
 let summaryPrimaryAction = null;  // what Enter triggers on the summary screen
-let roundAsked = new Set();        // distinct entry ids asked this round (for selection coverage)
+// "entryId|mode" pairs asked this round -- coverage is by WORD AND DRILL TYPE,
+// not just word: with pl_de, de_pl and cloze all enabled, a word needs all
+// three asked before it stops offering itself, not just one of them.
+let roundAsked = new Set();
 
 // Cloze is hard by default each question; user can reveal the hint per word.
 let clozeHintShown = false;
@@ -577,6 +580,23 @@ const MODE_LABELS = [
   ["cloze", "Cloze"],
 ];
 
+// Whether a given drill type CAN ask a given entry at all, independent of
+// whether that mode is currently enabled. Mirrors each mode's own buildPool
+// filter in generateQuestion exactly -- kept as one table so the two can't
+// drift apart -- and is what per-(word, drill type) round coverage is
+// measured against in selectionExhausted.
+const MODE_ELIGIBLE = {
+  pl_de: (e) => e.pl && e.de,
+  de_pl: (e) => e.pl && e.de,
+  multiple_choice: (e) => e.pl && e.de,
+  conjugate: (e) => e.pos === "verb" && e.conjugation,
+  decline: (e) => e.pos === "adjective" && e.declension,
+  noun_case: (e) => e.pos === "noun" && e.noun_decl,
+  cloze: (e) => e.cloze && e.cloze.length,
+  antonym: (e) => e.antonyms && e.antonyms.length > 0,
+  synonym: (e) => e.synonyms && e.synonyms.length > 0,
+};
+
 // === QUESTION GENERATORS ===
 function generateQuestion(mode) {
   const entries = VOCAB_DATA.entries;
@@ -591,12 +611,15 @@ function generateQuestion(mode) {
       return enabledLessons[e.lesson] && enabledPos[e.pos];
     });
     if (pool.length === 0) { weights = []; return; }
-    // Hard stop: never repeat a word within the same round. Once every askable
-    // word in the current selection has had a turn, pickQuestion ends the round
-    // (see selectionExhausted) instead of relying on this to run dry -- by the
-    // time buildPool empties out for ONE mode's filter, some other enabled mode
-    // still has an unasked word, unless the whole round is genuinely done.
-    pool = pool.filter(function(e){ return !roundAsked.has(e.id); });
+    // Hard stop: never repeat the same (word, drill type) pair within a round.
+    // A word with pl_de, de_pl and cloze all enabled needs all three asked
+    // before IT stops offering itself in any of them -- coverage is tracked
+    // per mode, not just per word. Once every enabled-and-eligible pair for
+    // the whole selection is covered, pickQuestion ends the round (see
+    // selectionExhausted) instead of relying on this to run dry -- by the time
+    // buildPool empties out for one mode, some other enabled mode still has an
+    // uncovered pair, unless the whole round is genuinely done.
+    pool = pool.filter(function(e){ return !roundAsked.has(e.id + "|" + mode); });
     if (pool.length === 0) { weights = []; return; }
     // Never ask the same word twice in a row, as long as there's an alternative
     if (pool.length > 1) {
@@ -837,7 +860,7 @@ function recordAnswer(grade) {
   saveProgress(progress);
   // Session tracking for the end-of-round summary (q kept for re-drilling)
   session.count++;
-  roundAsked.add(currentQ.entryId);
+  roundAsked.add(currentQ.entryId + "|" + currentQ.type);
   session.results.push({
     q: currentQ,
     userInput: (feedback && feedback.userInput) || "",
@@ -1056,17 +1079,27 @@ function pickQuestion(focusInput) {
 }
 
 function selectionExhausted() {
-  const selIds = VOCAB_DATA.entries
-    .filter(function(e){
-      if (hardestMode) return !!(hardestIds && hardestIds[e.id]) && selectionCanAsk(e);
-      return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
-    })
-    .map(function(e){ return e.id; });
-  if (selIds.length === 0) return false;
-  for (let i = 0; i < selIds.length; i++) {
-    if (!roundAsked.has(selIds[i])) return false;
+  const sel = VOCAB_DATA.entries.filter(function(e){
+    if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
+    return enabledLessons[e.lesson] && enabledPos[e.pos];
+  });
+  const enabled = Object.keys(enabledModes).filter(function(m){ return enabledModes[m]; });
+  // Exhausted means every (word, enabled drill type) pair the selection can
+  // actually produce has been asked -- not just every word in SOME mode.
+  // `any` guards the case where the selection has nothing askable at all
+  // (matches the old selectionCanAsk-based check: nothing to ask is not the
+  // same as everything asked).
+  let any = false;
+  for (let i = 0; i < sel.length; i++) {
+    const e = sel[i];
+    for (let j = 0; j < enabled.length; j++) {
+      const m = enabled[j];
+      if (!MODE_ELIGIBLE[m](e)) continue;
+      any = true;
+      if (!roundAsked.has(e.id + "|" + m)) return false;
+    }
   }
-  return true;
+  return any;
 }
 
 function showSummary() {

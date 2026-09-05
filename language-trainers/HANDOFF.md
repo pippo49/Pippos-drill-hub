@@ -115,18 +115,33 @@ Previously a round was open-ended: `roundAsked` only gave an unasked word a
 soft ×6 weight boost, so the SAME word could resurface before every word in
 the selection had a turn, and once the selection WAS fully covered the app
 paused with "Stop and review, or keep going?" rather than actually stopping.
-Changed on request: `buildPool` now hard-excludes anything in `roundAsked`
-(no repeats within a round, full stop), and reaching full coverage goes
-straight to the round summary -- no interstitial, no "keep going". From there
-the existing flow is unchanged: **Re-drill mistakes** re-asks exactly what was
-missed, and once that clears, **Redrill the full round** (above) retests
-everything. `recentIds` (the cross-round recency log, never reset) still
-softly discourages the last few words of the PREVIOUS round from opening the
-next one -- that's a different job from `roundAsked` and was kept as-is.
-Verified with a scripted round over a narrowed selection (40/40 nouns from
-lesson 1, zero duplicates, stopped exactly at coverage) and the same for a
-hardest-words round (8/8). The now-unreachable "Selection complete" screen and
-its `breakShown` flag were deleted rather than left dead.
+
+Changed on request, in two steps. First pass: `buildPool` hard-excluded
+anything in `roundAsked` (keyed by entry id), so a word couldn't repeat until
+every word had been asked once, in ANY mode. Second pass, on request: coverage
+is by **word AND drill type**, not just word -- with `pl_de`, `de_pl` and
+`conjugate` all enabled, a verb now gets all three asked, not just one, before
+it stops offering itself. `roundAsked` is now keyed `"entryId|mode"`, and
+`selectionExhausted` walks every (entry, enabled mode) pair the selection can
+actually produce rather than every entry. `MODE_ELIGIBLE` names, once, which
+mode can ask which kind of entry -- mirroring each mode's own `buildPool`
+filter exactly, so the two can't drift apart.
+
+Either way, reaching full coverage goes straight to the round summary -- no
+interstitial, no "keep going". From there the existing flow is unchanged:
+**Re-drill mistakes** re-asks exactly what was missed, and once that clears,
+**Redrill the full round** (above) retests everything. `recentIds` (the
+cross-round recency log, never reset) still softly discourages the last few
+words of the PREVIOUS round from opening the next one -- a different job from
+`roundAsked`, kept as-is.
+
+Verified with scripted rounds: a narrowed selection with three overlapping
+translation/case modes enabled produced exactly the expected word×mode pair
+count with zero duplicates (128/128, then 9/9 on a smaller one, confirmed live
+in a browser -- 3 verbs × pl_de/de_pl/conjugate = 9 questions); the same for a
+hardest-words round (37/37); and the mistakes -> review -> redrill-the-
+full-round chain end to end. The now-unreachable "Selection complete" screen
+and its `breakShown` flag were deleted rather than left dead.
 
 ## Why the header said 2234 and 1126 at the same time
 Nothing was counting two different things. The stats line was computed from the
