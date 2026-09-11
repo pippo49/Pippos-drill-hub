@@ -69,7 +69,7 @@ MODE_LABELS = [
     ("decline", "Decline"),
     ("noun_case", "Noun forms"),
     ("multiple_choice", "Multiple choice"),
-    ("cloze", "Cloze"),
+    ("cloze", "Fill the gap"),
     ("ser_estar", "Ser / estar / ficar"),
     ("por_para", "Por vs para"),
     ("personal_inf", "Personal infinitive"),
@@ -189,6 +189,16 @@ def build(cfg):
                  "  if (enabledModes.synonym && e.synonyms && e.synonyms.length > 0) return true;\n"):
         assert src.count(dead) == 1, "dead selectionCanAsk clause not found"
         src = src.replace(dead, "")
+
+    # --- perfect-round praise -------------------------------------------------
+    # Spanish's own copy of this text used to read Polish's "Swietnie" (fixed
+    # by patch_ui_strings.py); once fixed it reads Spanish's own praise word,
+    # which is just as wrong for a Portuguese app -- prose again, not a
+    # field, so the .es -> .pt rename never touches it.
+    src = sub(src, '''      ? "All mistakes cleared — nothing left to re-drill. ¡Genial! 🎉"
+      : "Perfect round — nothing to review. ¡Genial!";''',
+              '''      ? "All mistakes cleared — nothing left to re-drill. Ótimo! 🎉"
+      : "Perfect round — nothing to review. Ótimo!";''')
 
     # --- articles -----------------------------------------------------------
     # Found in a browser, not by a validator: the form labels still showed

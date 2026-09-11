@@ -643,7 +643,7 @@ const MODE_LABELS = [
   ["antonym", "Antonyms"],
   ["synonym", "Synonyms"],
   ["multiple_choice", "Multiple choice"],
-  ["cloze", "Cloze"],
+  ["cloze", "Fill the gap"],
   ["tu_vous", "Tu vs vous"],
   ["avoir_etre", "Avoir vs être"],
 ];
@@ -903,7 +903,7 @@ function generateQuestion(mode) {
              prompt: blanked,
              subPrompt: c.en,
              hint: e.fr,
-             promptLabel: "Cloze — fill the gap",
+             promptLabel: "Fill the gap",
              answerLabel: "Word", target: answer, rawTarget: answer };
   }
   if (mode === "antonym") {
@@ -1286,8 +1286,8 @@ function showSummary() {
     perfect.className = "summary-head";
     perfect.style.color = "#2a6f3d";
     perfect.textContent = reviewMode
-      ? "All mistakes cleared — nothing left to re-drill. Świetnie! 🎉"
-      : "Perfect round — nothing to review. Świetnie!";
+      ? "All mistakes cleared — nothing left to re-drill. Excellent ! 🎉"
+      : "Perfect round — nothing to review. Excellent !";
     card.appendChild(perfect);
   } else if (mistakes.length > 0) {
     const section = document.createElement("div");

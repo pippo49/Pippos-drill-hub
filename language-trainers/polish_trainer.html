@@ -577,7 +577,7 @@ const MODE_LABELS = [
   ["antonym", "Antonyms"],
   ["synonym", "Synonyms"],
   ["multiple_choice", "Multiple choice"],
-  ["cloze", "Cloze"],
+  ["cloze", "Fill the gap"],
 ];
 
 // Whether a given drill type CAN ask a given entry at all, independent of
@@ -796,7 +796,7 @@ function generateQuestion(mode) {
              prompt: blanked,
              subPrompt: c.de,
              hint: e.pl,
-             promptLabel: "Cloze — fill the gap",
+             promptLabel: "Fill the gap",
              answerLabel: "Word", target: answer, rawTarget: answer, caseTag: caseTag };
   }
   if (mode === "antonym") {
