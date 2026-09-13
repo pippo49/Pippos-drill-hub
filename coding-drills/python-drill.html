@@ -435,14 +435,22 @@ function modeLabel(m){ var x=MODE_LABELS.find(function(p){return p[0]===m;}); re
 function header(){
   var units = askableUnits();
   var cards = new Set(units.map(function(u){return u.card.id;})).size;
+  var backLink = session ? ' \u00b7 <button class="hintlink" id="backBtn">Back to topics</button>' : '';
   return '<header><div class="logo">py<b>Drill</b></div>'+
-    '<div class="stat">'+cards+' cards \u00b7 '+units.length+' questions</div></header>';
+    '<div class="stat">'+cards+' cards \u00b7 '+units.length+' questions'+backLink+'</div></header>';
 }
 
 function render(){
   app.innerHTML = "";
-  app.appendChild(el(header()));
-  if(session){ renderQuestion(); } else { renderHome(); }
+  var h = el(header());
+  app.appendChild(h);
+  if(session){
+    var back = h.querySelector("#backBtn");
+    if(back) back.onclick = function(){ session = null; render(); };
+    renderQuestion();
+  } else {
+    renderHome();
+  }
 }
 
 function renderHome(){
