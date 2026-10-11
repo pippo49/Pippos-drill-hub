@@ -139,6 +139,8 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-body); 
 details { border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); }
 summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 details p { margin: 10px 0 0; max-width: 62ch; }
+.credit { margin: 0; font-size: 13px; color: var(--muted); }
+.credit a { color: var(--accent); text-underline-offset: 3px; }
 .legend { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px; margin-top: 12px; }
 .legend div { border-radius: 6px; padding: 8px 6px; color: var(--on-g); text-align: center; font-size: 12px; }
 .legend b { display: block; font-family: var(--font-display); font-style: italic; font-weight: 800; font-size: 20px; line-height: 1.1; }
@@ -185,6 +187,7 @@ body { margin: 0; }
   </div>
   <div class="end" id="end" hidden></div>
   <details id="howto"><summary id="howSum"></summary><p id="howText"></p><div class="legend" id="legend"></div></details>
+  <p class="credit" id="credit"></p>
 </div>
 
 <script>
@@ -443,11 +446,13 @@ const STR = {
   de: { eyebrow: "Ein Musikrätsel in Vierergruppen", sub: "Finde vier Gruppen zu je vier Begriffen.", mistakes: "Fehler übrig", shuffle: "Mischen", clear: "Abwählen", submit: "Prüfen",
     oneAway: "Fast. Einer passt noch nicht.", already: "Diese Auswahl hattest du schon.", win: "Bravo!", lose: "Da capo?", winText: "Alle vier Gruppen gefunden.", loseText: "Diesmal nicht. Die Lösung steht oben.",
     next: "Nächstes Rätsel", retry: "Neu starten", soundOn: "Ton an", soundOff: "Ton aus", lang: "EN", listen: "Anhören", howSum: "Spielregeln",
+    credit: "Inspiriert von den Musik-Memory-Spielen und Adventsrätseln von ProPiano Hamburg e.V.: ",
     how: "Wähle vier Kärtchen, die etwas gemeinsam haben, und tippe auf „Prüfen“. Jedes Rätsel hat genau eine Lösung, aber manche Begriffe passen scheinbar in mehrere Gruppen. Nach vier Fehlern ist das Spiel vorbei. Die Gruppen sind wie Dynamikangaben abgestuft, von pp (leicht) bis ff (knifflig). Zu manchen Gruppen erklingt beim Lösen ein passendes Thema.",
     lv: ["leicht", "mittel", "schwer", "knifflig"] },
   en: { eyebrow: "A music puzzle in groups of four", sub: "Find four groups of four.", mistakes: "Mistakes remaining", shuffle: "Shuffle", clear: "Deselect", submit: "Submit",
     oneAway: "One away.", already: "You already tried that one.", win: "Bravo!", lose: "Da capo?", winText: "You found all four groups.", loseText: "Not this time. The answers are above.",
     next: "Next puzzle", retry: "Start over", soundOn: "Sound on", soundOff: "Sound off", lang: "DE", listen: "Listen", howSum: "How to play",
+    credit: "Inspired by the music memory games and Advent riddles of ProPiano Hamburg e.V.: ",
     how: "Pick four tiles that share something and press Submit. Each puzzle has exactly one solution, but some tiles seem to fit more than one group. Four mistakes end the game. Groups are graded like dynamics, from pp (easy) to ff (tricky). Some groups play a matching theme when you solve them.",
     lv: ["easy", "medium", "hard", "tricky"] },
 };
@@ -550,6 +555,7 @@ function render(enterGroup) {
   }
 
   $("howSum").textContent = S.howSum;
+  $("credit").innerHTML = S.credit + '<a href="https://www.propiano-hamburg.de/spiel.html" target="_blank" rel="noopener">propiano-hamburg.de</a>';
   $("howText").textContent = S.how;
   $("legend").innerHTML = [0, 1, 2, 3].map(l => `<div style="background:var(--g${l})"><b>${DYN[l]}</b>${S.lv[l]}</div>`).join("");
 }
