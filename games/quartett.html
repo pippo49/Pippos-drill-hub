@@ -243,18 +243,38 @@ const LEVEL_ARP = [
 ];
 
 let actx = null, bus = null, muted = false;
+// A tiny silent WAV. Older iOS only lets Web Audio past the Ring/Silent switch
+// while an <audio> element is playing, so we play this once on the first tap.
+const SILENT_WAV = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
 function getCtx() {
   if (!actx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
+    // iOS routes Web Audio like a ringtone by default, so the silent switch mutes it.
+    // "playback" makes it behave like music instead (Safari 16.4+).
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = "playback";
+      else { const a = new Audio(SILENT_WAV); a.setAttribute("playsinline", ""); a.play().catch(() => {}); }
+    } catch (e) {}
     actx = new AC();
     const comp = actx.createDynamicsCompressor();
     comp.connect(actx.destination);
     actx._out = comp;
+    // iOS also wants a buffer started inside the first gesture before it unlocks output.
+    const b = actx.createBufferSource();
+    b.buffer = actx.createBuffer(1, 1, 22050);
+    b.connect(actx.destination); b.start(0);
   }
-  if (actx.state === "suspended") actx.resume();
+  // iOS reports "interrupted" (not "suspended") after a call or after leaving the app.
+  if (actx.state !== "running") actx.resume().catch(() => {});
   return actx;
 }
+// Unlock on the very first touch anywhere, so the first solved group already has sound.
+["pointerdown", "touchend", "keydown"].forEach(ev =>
+  document.addEventListener(ev, () => { if (!muted) getCtx(); }, { once: true, capture: true }));
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && actx && actx.state !== "running") actx.resume().catch(() => {});
+});
 function midi(n) {
   const m = /^([A-G])([#b]?)(\d)$/.exec(n);
   if (!m) return null;
@@ -615,7 +635,11 @@ document.addEventListener("click", e => {
     case "submitBtn": submit(); break;
     case "retryBtn": st = fresh(PUZZLES[current]); selected = []; save(); render(); break;
     case "nextBtn": current = Math.min(current + 1, PUZZLES.length - 1); load(); save(); render(); window.scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" }); break;
-    case "soundBtn": muted = !muted; if (muted && bus && actx) bus.gain.setTargetAtTime(0, actx.currentTime, 0.05); save(); render(); break;
+    case "soundBtn":
+      muted = !muted;
+      if (muted && bus && actx) bus.gain.setTargetAtTime(0, actx.currentTime, 0.05);
+      if (!muted) play(LEVEL_ARP[0]);  // audible confirmation that sound works
+      save(); render(); break;
     case "langBtn": lang = lang === "de" ? "en" : "de"; save(); render(); break;
   }
 });
