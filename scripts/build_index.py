@@ -58,6 +58,12 @@ CODING_APPS = [
     ("sql-drill.html",    "sqlDrill",  "SQL / Postgres", "#12222e", "#4fc3f7", "SQL"),
 ]
 
+GAME_APPS = [
+    # Connections-style puzzle: sixteen tiles, four hidden groups of four.
+    # The badge echoes the app icon, an "ff" dynamic marking on a staff.
+    ("quartett.html", "Quartett", "classical music · groups of four", "#7e1d3a", "#f5f6f8", "ff"),
+]
+
 
 def language_stats(html_file, vocab_file):
     data = json.load(open(os.path.join(ROOT, "language-trainers", vocab_file), encoding="utf-8"))
@@ -76,6 +82,13 @@ def coding_stats(html_file):
     rest = src[src.index(key) + len(key):]
     deck, _ = json.JSONDecoder().raw_decode(rest, rest.index("{"))
     return {"topics": len(deck["topics"]), "cards": len(deck["cards"])}
+
+
+def game_stats(html_file):
+    src = open(os.path.join(ROOT, "games", html_file), encoding="utf-8").read()
+    # Each puzzle in PUZZLES opens with `{ id: "...",`; each holds four groups.
+    puzzles = len(re.findall(r'\{ id: "', src))
+    return {"puzzles": puzzles, "groups": puzzles * 4}
 
 
 def card(href, title, subtitle, stats, accent, ink, badge):
@@ -108,6 +121,14 @@ def build():
         code_cards.append(card(
             f"coding-drills/{f}", title, sub,
             [f"{s['cards']} cards", f"{s['topics']} topics"],
+            accent, ink, badge))
+
+    game_cards = []
+    for f, title, sub, accent, ink, badge in GAME_APPS:
+        s = game_stats(f)
+        game_cards.append(card(
+            f"games/{f}", title, sub,
+            [f"{s['puzzles']} puzzles", f"{s['groups']} groups"],
             accent, ink, badge))
 
     page = f"""<!DOCTYPE html>
@@ -200,6 +221,11 @@ def build():
 {chr(10).join(code_cards)}
   </div>
 
+  <h2>Games</h2>
+  <div class="grid">
+{chr(10).join(game_cards)}
+  </div>
+
   <footer>
     <p>Each app is a single self-contained page. Open one while online and it keeps
        working offline; add it to your home screen for its own icon.</p>
@@ -215,6 +241,7 @@ def build():
     print(f"wrote {out}")
     print(f"  {len(LANGUAGE_APPS)} language trainers · {total_entries:,} entries")
     print(f"  {len(CODING_APPS)} coding drills · {total_cards} cards")
+    print(f"  games: {len(GAME_APPS)}")
 
 
 if __name__ == "__main__":

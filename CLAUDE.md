@@ -1,12 +1,14 @@
 # Pippos-drill-hub
 
 Self-contained single-file HTML drill apps, served from GitHub Pages and used
-from the iOS home screen. Two projects, each with its own `CLAUDE.md`:
+from the iOS home screen. Two projects, each with its own `CLAUDE.md`, plus
+a small games folder:
 
 | Directory | What | Read first |
 |---|---|---|
 | `language-trainers/` | 8 vocabulary trainers (Polish, Spanish, European + Brazilian Portuguese, Italian, French, Latin, medical terminology) | `language-trainers/CLAUDE.md` |
 | `coding-drills/` | 5 coding trainers (pyDrill, bashDrill, cppDrill, gitDrill, sqlDrill) | `coding-drills/CLAUDE.md` |
+| `games/` | Quartett, a Connections-style classical-music puzzle (hand-edited; puzzles live in its `PUZZLES` array; same `-sw.js` / `-manifest.json` / `icons/` PWA set as the drills) | this file |
 
 **Read the CLAUDE.md for the directory you are changing before you change
 anything in it.** Each carries the build commands, the validation steps and the

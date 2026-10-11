@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quartett">
+<meta name="theme-color" content="#7E1D3A">
+<link rel="manifest" href="./quartett-manifest.json">
+<link rel="apple-touch-icon" href="./icons/quartett-icon-192.png">
+<meta name="description" content="Quartett: a Connections-style classical music puzzle in groups of four.">
+<title>Quartett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,600;1,6..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow concert-programme column; a five-line staff carries the masthead; groups of four are graded by dynamics pp → ff. */
+:root {
+  --bg: #F2F3F6;
+  --surface: #E1E3EA;
+  --surface-hover: #D6D9E2;
+  --sel: #23262F;
+  --on-sel: #F5F6F8;
+  --ink: #1B1E26;
+  --muted: #5F6576;
+  --line: #C7CAD4;
+  --accent: #7E1D3A;
+  --g0: #E6C873; --g1: #A9C79F; --g2: #A3BDE3; --g3: #C9A6D3;
+  --on-g: #1B1E26;
+  --font-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #13151B; --surface: #252932; --surface-hover: #2E333E; --sel: #E9EAEF; --on-sel: #13151B;
+    --ink: #ECEDF1; --muted: #9BA1B0; --line: #353A47; --accent: #E58BA5;
+    --g0: #D9B85C; --g1: #93B889; --g2: #8EAAD6; --g3: #B993C6; --on-g: #14161C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #13151B; --surface: #252932; --surface-hover: #2E333E; --sel: #E9EAEF; --on-sel: #13151B;
+  --ink: #ECEDF1; --muted: #9BA1B0; --line: #353A47; --accent: #E58BA5;
+  --g0: #D9B85C; --g1: #93B889; --g2: #8EAAD6; --g3: #B993C6; --on-g: #14161C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 620px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: flex; flex-direction: column; gap: 20px; }
+
+/* Masthead */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.top .eyebrow { min-width: 0; }
+.toolbar { display: flex; gap: 6px; }
+.iconbtn { white-space: nowrap; font: 600 12px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+.iconbtn:hover { color: var(--ink); border-color: var(--muted); }
+.eyebrow { font: 600 11px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.mast { position: relative; padding-block: 6px 2px; }
+.staff { position: absolute; inset: 50% 0 auto 0; height: 41px; transform: translateY(-50%);
+  background: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 10px); opacity: .9; pointer-events: none; }
+.mast h1 { position: relative; margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(48px, 13vw, 76px); line-height: 1; letter-spacing: -.01em; }
+.mast h1 span { background: var(--bg); padding-inline: 4px 10px; }
+.mast h1 i { font-style: italic; font-weight: 800; color: var(--accent); }
+
+/* Puzzle picker */
+.picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 7px; font: 500 13px/1 var(--font-body); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; cursor: pointer; }
+.chip b { font-family: var(--font-display); font-style: italic; font-weight: 800; color: var(--muted); }
+.chip:hover { border-color: var(--muted); }
+.chip[aria-current="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip[aria-current="true"] b { color: var(--bg); }
+.chip .st { font-size: 11px; }
+.chip .st.win { color: var(--accent); }
+.chip[aria-current="true"] .st.win { color: var(--bg); }
+
+.head h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-style: italic; font-size: 28px; line-height: 1.15; text-wrap: balance; }
+.head p { margin: 4px 0 0; color: var(--muted); }
+
+/* Board */
+.board { display: flex; flex-direction: column; gap: 8px; }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.tile { appearance: none; border: 0; border-radius: 8px; background: var(--surface); color: var(--ink); min-height: 76px; padding: 6px 5px;
+  font: 700 14px/1.15 var(--font-body); text-transform: uppercase; letter-spacing: .02em; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; text-align: center; overflow-wrap: anywhere; hyphens: auto; min-width: 0;
+  transition: background-color .15s, color .15s, transform .15s; user-select: none; -webkit-tap-highlight-color: transparent; }
+.tile.sm { font-size: 12.5px; }
+.tile.xs { font-size: 11px; letter-spacing: 0; }
+.tile:hover { background: var(--surface-hover); }
+.tile[aria-pressed="true"] { background: var(--sel); color: var(--on-sel); }
+.tile:active { transform: scale(.97); }
+.tile:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tile.hop { animation: hop .35s ease both; }
+.tile.shake { animation: shake .4s ease both; }
+@keyframes hop { 40% { transform: translateY(-10px); } }
+@keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+.bar { border-radius: 8px; padding: 12px 14px; color: var(--on-g); min-height: 76px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; }
+.bar.enter { animation: rise .45s cubic-bezier(.2,.8,.3,1.2) both; }
+@keyframes rise { from { transform: scale(.94); opacity: .4; } }
+.bar[data-l="0"] { background: var(--g0); } .bar[data-l="1"] { background: var(--g1); }
+.bar[data-l="2"] { background: var(--g2); } .bar[data-l="3"] { background: var(--g3); }
+.bar .dyn { font-family: var(--font-display); font-style: italic; font-weight: 800; font-size: 26px; line-height: 1; width: 1.6em; text-align: center; }
+.bar .txt { min-width: 0; text-align: center; }
+.bar .name { font: 700 14px/1.2 var(--font-body); text-transform: uppercase; letter-spacing: .05em; }
+.bar .items { font-size: 14px; margin-top: 2px; }
+.bar .note { font-size: 12px; opacity: .78; margin-top: 4px; }
+.bar.revealed { opacity: .82; }
+.play { appearance: none; border: 1.5px solid currentColor; background: transparent; color: var(--on-g); border-radius: 999px; width: 36px; height: 36px; cursor: pointer; display: grid; place-items: center; font-size: 15px; }
+.play:hover { background: color-mix(in srgb, var(--on-g) 12%, transparent); }
+.play[hidden] { display: none; }
+.spacer { width: 36px; }
+
+.lives { display: flex; justify-content: center; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
+.heads { display: flex; gap: 6px; }
+.heads svg { width: 15px; height: 15px; transform: rotate(-20deg); }
+.heads ellipse { fill: var(--ink); stroke: var(--ink); stroke-width: 1.4; transition: fill .25s; }
+.heads .used ellipse { fill: transparent; stroke: var(--line); }
+
+.controls { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.btn { font: 600 14px/1 var(--font-body); border-radius: 999px; padding: 13px 20px; cursor: pointer; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); }
+.btn:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn.primary:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+.btn:disabled { opacity: .35; cursor: default; }
+
+.toast { min-height: 24px; text-align: center; font-weight: 600; color: var(--accent); }
+
+.end { border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.end h3 { margin: 0; font-family: var(--font-display); font-style: italic; font-weight: 800; font-size: 40px; line-height: 1; }
+.end p { margin: 0; color: var(--muted); }
+.squares { display: flex; flex-direction: column; gap: 3px; }
+.squares div { display: flex; gap: 3px; }
+.squares span { width: 18px; height: 18px; border-radius: 4px; }
+.squares [data-l="0"] { background: var(--g0); } .squares [data-l="1"] { background: var(--g1); }
+.squares [data-l="2"] { background: var(--g2); } .squares [data-l="3"] { background: var(--g3); }
+.listen { appearance: none; background: none; border: 0; color: var(--accent); font: 600 14px var(--font-body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+details { border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); }
+summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+details p { margin: 10px 0 0; max-width: 62ch; }
+.legend { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px; margin-top: 12px; }
+.legend div { border-radius: 6px; padding: 8px 6px; color: var(--on-g); text-align: center; font-size: 12px; }
+.legend b { display: block; font-family: var(--font-display); font-style: italic; font-weight: 800; font-size: 20px; line-height: 1.1; }
+
+@media (max-width: 440px) {
+  .tile { min-height: 66px; font-size: 12.5px; border-radius: 6px; padding: 4px 3px; }
+  .tile.sm { font-size: 11px; }
+  .tile.xs { font-size: 9.5px; }
+  .grid, .board { gap: 6px; }
+  .bar { grid-template-columns: minmax(0,1fr) auto; padding: 10px 12px; }
+  .bar .dyn { display: none; }
+  .btn { padding: 12px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile.hop, .tile.shake, .bar.enter { animation: none; }
+}
+
+/* Base reset (the page is standalone, not inside an artifact viewer) */
+html { -webkit-text-size-adjust: 100%; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <span class="eyebrow" id="eyebrow"></span>
+    <div class="toolbar">
+      <button class="iconbtn" id="soundBtn" type="button"></button>
+      <button class="iconbtn" id="langBtn" type="button"></button>
+    </div>
+  </div>
+  <div class="mast"><div class="staff"></div><h1><span>Quart<i>e</i>tt</span></h1></div>
+  <nav class="picker" id="picker" aria-label="Puzzles"></nav>
+  <div class="head"><h2 id="pTitle"></h2><p id="pSub"></p></div>
+  <section class="board" id="board" aria-live="polite"><div id="bars" class="board"></div><div class="grid" id="grid"></div></section>
+  <div class="lives" id="lives"></div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="controls" id="controls">
+    <button class="btn" id="shuffleBtn" type="button"></button>
+    <button class="btn" id="clearBtn" type="button"></button>
+    <button class="btn primary" id="submitBtn" type="button"></button>
+  </div>
+  <div class="end" id="end" hidden></div>
+  <details id="howto"><summary id="howSum"></summary><p id="howText"></p><div class="legend" id="legend"></div></details>
+</div>
+
+<script>
+// ---------- Music: tiny piano-ish synth playing public-domain themes ----------
+const MOTIFS = {
+  brahms: { t: { de: "Brahms – Wiegenlied op. 49/4", en: "Brahms – Lullaby, Op. 49/4" }, bpm: 150,
+    v: ["E4:.5 E4:.5 G4:2 E4:.5 E4:.5 G4:2 E4:.5 G4:.5 C5:1.5 B4:.5 A4:1 A4:1 G4:1 D4:.5 E4:.5 F4:1 D4:1 D4:.5 E4:.5 F4:2 D4:.5 F4:.5 B4:.5 A4:.5 G4:1 B4:1 C5:3",
+        "r:1 C3+G3:3 C3+G3:3 C3+E3:3 C3+F3:3 G2+F3:3 G2+F3:3 G2+D3:2 C3+E3:3"] },
+  furelise: { t: { de: "Beethoven – Für Elise WoO 59", en: "Beethoven – Für Elise, WoO 59" }, bpm: 150,
+    v: ["E5 D#5 E5 D#5 E5 B4 D5 C5 A4:2 r C4 E4 A4 B4:2 r E4 G#4 B4 C5:3",
+        "r:8 A2 E3 A3 r:3 E2 E3 G#3 r:3"] },
+  ode: { t: { de: "Beethoven – 9. Sinfonie, Finale", en: "Beethoven – Symphony No. 9, finale" }, bpm: 120,
+    v: ["E4 E4 F4 G4 G4 F4 E4 D4 C4 C4 D4 E4 E4:1.5 D4:.5 D4:2", "C3:4 G2:4 A2:2 F2:2 G2:4"] },
+  fifth: { t: { de: "Beethoven – 5. Sinfonie", en: "Beethoven – Symphony No. 5" }, bpm: 220,
+    v: ["r G4+G3! G4+G3! G4+G3! Eb4+Eb3!:6 r:2 r F4+F3! F4+F3! F4+F3! D4+D3!:8"] },
+  surprise: { t: { de: "Haydn – Sinfonie Nr. 94 „Mit dem Paukenschlag“", en: "Haydn – Symphony No. 94 “Surprise”" }, bpm: 190,
+    v: ["C4 C4 E4 E4 G4 G4 E4:2 F4 F4 D4 D4 B3 B3 G3:2 C4 C4 E4 E4 G4 G4 E4:2 r:2 G2+G3+B3+D4+G4!:4",
+        "C3:4 C3:4 G2:4 G2:4 C3:4 C3:4"] },
+  moonlight: { t: { de: "Beethoven – Mondscheinsonate op. 27/2", en: "Beethoven – “Moonlight” Sonata, Op. 27/2" }, bpm: 168,
+    v: ["G#3 C#4 E4 G#3 C#4 E4 G#3 C#4 E4 G#3 C#4 E4 A3 C#4 E4 A3 C#4 E4 A3 D4 F#4 A3 D4 F#4 G#3 C4 F#4 G#3 C#4 E4 G#3 C#4 D#4 F#3 C4 D#4 G#3:3",
+        "C#2+C#3:12 B1+B2:12 G#1+G#2:12"] },
+  nachtmusik: { t: { de: "Mozart – Eine kleine Nachtmusik", en: "Mozart – Eine kleine Nachtmusik" }, bpm: 132,
+    v: ["G4 r:.5 D4:.5 G4 r:.5 D4:.5 G4:.5 D4:.5 G4:.5 B4:.5 D5:2 C5 r:.5 A4:.5 C5 r:.5 A4:.5 C5:.5 A4:.5 F#4:.5 A4:.5 D4:2",
+        "G3+G2 r:1 G3+G2 r:1 G3+G2 r:1 r:1 r:1 D3+F#3 r:1 D3+F#3 r:1 D3 r:1 G2:2"] },
+  mozart40: { t: { de: "Mozart – Sinfonie Nr. 40 g-Moll", en: "Mozart – Symphony No. 40 in G minor" }, bpm: 104,
+    v: ["Eb5:.5 D5:.5 D5 Eb5:.5 D5:.5 D5 Eb5:.5 D5:.5 D5 Bb5:2 Bb5:.5 A5:.5 G5 G5:.5 F5:.5 Eb5 Eb5:.5 D5:.5 C5 C5:2",
+        "G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 G3+Bb3:.5 A3+C4:4 F#3+C4:4 G3+Bb3:2"] },
+  danube: { t: { de: "Johann Strauss (Sohn) – An der schönen blauen Donau", en: "Johann Strauss II – The Blue Danube" }, bpm: 170,
+    v: ["D4 D4 F#4 A4 A4:2 r A5 A5:2 r F#5 F#5:2 r D4 D4 F#4 A4 A4:2 r A5 A5:2 r G5 G5:2",
+        "r:3 D3 A3+F#4 A3+F#4 D3 A3+F#4 A3+F#4 D3 A3+F#4 A3+F#4 D3 A3+F#4 A3+F#4 A2 A3+G4 A3+G4 A2 A3+G4 A3+G4 A2 A3+G4 A3+G4 A2 A3+G4 A3+G4"] },
+  bachprelude: { t: { de: "Bach – Präludium C-Dur BWV 846", en: "Bach – Prelude in C major, BWV 846" }, bpm: 100,
+    v: ["C4:.5 E4:.5 G4:.5 C5:.5 E5:.5 G4:.5 C5:.5 E5:.5 C4:.5 E4:.5 G4:.5 C5:.5 E5:.5 G4:.5 C5:.5 E5:.5 C4:.5 D4:.5 A4:.5 D5:.5 F5:.5 A4:.5 D5:.5 F5:.5 C4:.5 D4:.5 A4:.5 D5:.5 F5:.5 A4:.5 D5:.5 F5:.5 B3:.5 D4:.5 G4:.5 D5:.5 F5:.5 G4:.5 D5:.5 F5:.5 C4:.5 E4:.5 G4:.5 C5:.5 E5:2"] },
+  toccata: { t: { de: "Bach – Toccata d-Moll BWV 565", en: "Bach – Toccata in D minor, BWV 565" }, bpm: 60,
+    v: ["A5+A4:.12 G5+G4:.12 A5+A4!:1.5 r:.6 G5+G4:.12 F5+F4:.12 E5+E4:.12 D5+D4:.12 C#5+C#4!:.9 D5+D4!:2.5"] },
+  rach: { t: { de: "Rachmaninow – Prélude cis-Moll op. 3/2", en: "Rachmaninoff – Prelude in C-sharp minor, Op. 3/2" }, bpm: 46,
+    v: ["A2+A3+A1!:1 G#2+G#3+G#1!:1 C#2+C#3+C#1!:3", "r:2 C#4+E4+G#4+C#5:3"] },
+  grieg: { t: { de: "Grieg – Morgenstimmung (Peer Gynt)", en: "Grieg – Morning Mood (Peer Gynt)" }, bpm: 92,
+    v: ["G5:.75 E5:.25 D5:.5 C5:.5 D5:.5 E5:.5 G5:.75 E5:.25 D5:.5 C5:.5 D5:.25 E5:.25 D5:.25 E5:.25 G5:.75 E5:.25 G5:.5 A5:.5 E5:.5 A5:.5 G5:.75 E5:.25 D5:.5 C5:2",
+        "C3+G3:3 C3+G3:3 C3+A3:3 C3+G3:3"] },
+  allaturca: { t: { de: "Mozart – Rondo alla turca", en: "Mozart – Rondo alla turca" }, bpm: 116,
+    v: ["B4:.25 A4:.25 G#4:.25 A4:.25 C5:1 D5:.25 C5:.25 B4:.25 C5:.25 E5:1 F5:.25 E5:.25 D#5:.25 E5:.25 B5:.25 A5:.25 G#5:.25 A5:.25 B5:.25 A5:.25 G#5:.25 A5:.25 C6:2",
+        "r:1 A3 C4+E4 C4+E4 A3 C4+E4 C4+E4 A3 C4+E4 A3:2"] },
+  kaiser: { t: { de: "Haydn – „Gott erhalte Franz den Kaiser“", en: "Haydn – “Emperor’s Hymn”" }, bpm: 80,
+    v: ["C4:1.5 D4:.5 E4 D4 F4 E4 D4:.5 B3:.5 C4 A4 G4 F4 E4 D4:1.5 E4:.5 C4:2",
+        "C3+E3:2 G2+B2:2 A2+C3:2 G2+C3:2 F2+C3:2 C3:2 G2+F3:2 C3+E3:2"] },
+  tristan: { t: { de: "Wagner – Tristan-Akkord", en: "Wagner – The Tristan chord" }, bpm: 42,
+    v: ["A3:1 F4:2 E4:.5 D#4:2 D4:3", "r:3.5 G#4:1.5 A4:.5 A#4:.5 B4:3", "r:3.5 F3+B3:2 E3+G#3:3"] },
+  crypto: { t: { de: "B-A-C-H · A-B-E-G-G · A-S-C-H · D-S-C-H", en: "B-A-C-H · A-B-E-G-G · A-S-C-H · D-S-C-H" }, bpm: 150,
+    v: ["Bb4 A4 C5 B4 r A4 Bb4 E5 G5 G5 r A4 Eb4 C4 B3 r D4 Eb4 C4 B3:2"] },
+};
+const LEVEL_ARP = [
+  { bpm: 160, v: ["C4:.5 E4:.5 G4:.5 C5:2", "C3:3.5"] },
+  { bpm: 160, v: ["F4:.5 A4:.5 C5:.5 F5:2", "F2+F3:3.5"] },
+  { bpm: 160, v: ["D4:.5 F#4:.5 A4:.5 D5:2", "D2+D3:3.5"] },
+  { bpm: 140, v: ["B3:.5 D4:.5 F4:.5 G#4:.5 A4:2", "r:2 A2+E3:2"] },
+];
+
+let actx = null, bus = null, muted = false;
+function getCtx() {
+  if (!actx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    actx = new AC();
+    const comp = actx.createDynamicsCompressor();
+    comp.connect(actx.destination);
+    actx._out = comp;
+  }
+  if (actx.state === "suspended") actx.resume();
+  return actx;
+}
+function midi(n) {
+  const m = /^([A-G])([#b]?)(\d)$/.exec(n);
+  if (!m) return null;
+  const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]];
+  return (+m[3] + 1) * 12 + base + (m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0);
+}
+function tone(ctx, out, m, t, dur, vel) {
+  const f = 440 * Math.pow(2, (m - 69) / 12);
+  const decay = Math.min(3.2, 0.7 + 260 / f);
+  const end = t + Math.max(0.3, Math.min(decay, dur + 0.7));
+  const g = ctx.createGain();
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass"; lp.frequency.value = Math.min(9000, 1400 + f * 3);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.22 * vel, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.3);
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  lp.connect(g); g.connect(out);
+  [[1, "triangle", 1], [2, "sine", 0.35], [3, "sine", 0.12], [4.01, "sine", 0.05]].forEach(([mul, type, amp]) => {
+    const o = ctx.createOscillator(), og = ctx.createGain();
+    o.type = type; o.frequency.value = f * mul; og.gain.value = amp;
+    o.connect(og); og.connect(lp); o.start(t); o.stop(end + 0.05);
+  });
+}
+function play(motif) {
+  if (muted || !motif) return 0;
+  const ctx = getCtx();
+  if (!ctx) return 0;
+  if (bus) { const old = bus; old.gain.setTargetAtTime(0, ctx.currentTime, 0.05); setTimeout(() => old.disconnect(), 400); }
+  bus = ctx.createGain(); bus.gain.value = 0.9; bus.connect(ctx._out);
+  const t0 = ctx.currentTime + 0.06, spb = 60 / motif.bpm;
+  let total = 0;
+  motif.v.forEach(voice => {
+    let t = 0;
+    voice.trim().split(/\s+/).forEach(tok => {
+      let [n, d] = tok.split(":");
+      const dur = d ? parseFloat(d) : 1;
+      const loud = n.endsWith("!");
+      if (loud) n = n.slice(0, -1);
+      if (n !== "r") n.split("+").forEach(p => { const m = midi(p); if (m != null) tone(ctx, bus, m, t0 + t * spb, dur * spb, loud ? 1.6 : 0.7); });
+      t += dur;
+    });
+    total = Math.max(total, t);
+  });
+  return total * spb;
+}
+function thud() {
+  if (muted) return;
+  const ctx = getCtx(); if (!ctx) return;
+  const g = ctx.createGain(); g.gain.value = 0.5; g.connect(ctx._out);
+  tone(ctx, g, midi("E2"), ctx.currentTime + 0.02, 0.3, 0.6);
+  tone(ctx, g, midi("F2"), ctx.currentTime + 0.02, 0.3, 0.6);
+}
+
+// ---------- Puzzles ----------
+// Each group: lvl 0..3 (pp → ff), name, four items, note, optional motif. Items are strings or {de,en}.
+const PUZZLES = [
+  { id: "werke", t: { de: "Werkverzeichnis", en: "Catalogue of Works" }, s: { de: "Komponisten und ihre Werke", en: "Composers and their works" }, finale: "allaturca",
+    groups: [
+      { lvl: 0, n: { de: "Johannes Brahms", en: "Johannes Brahms" }, motif: "brahms",
+        items: ["Ein deutsches Requiem", { de: "Ungarische Tänze", en: "Hungarian Dances" }, { de: "Wiegenlied", en: "Lullaby" }, { de: "Akademische Festouvertüre", en: "Academic Festival Overture" }],
+        note: { de: "1833 in Hamburg geboren.", en: "Born in Hamburg in 1833." } },
+      { lvl: 1, n: { de: "Franz Liszt", en: "Franz Liszt" },
+        items: ["Liebestraum", "La Campanella", { de: "Mephisto-Walzer", en: "Mephisto Waltz" }, "Totentanz"],
+        note: { de: "La Campanella ist die dritte der Paganini-Etüden.", en: "La Campanella is the third of the Paganini Études." } },
+      { lvl: 2, n: { de: "Claude Debussy", en: "Claude Debussy" },
+        items: ["Clair de lune", "La Mer", "Golliwogg's Cakewalk", "Pelléas et Mélisande"],
+        note: { de: "Clair de lune stammt aus der Suite bergamasque, der Cakewalk aus Children's Corner.", en: "Clair de lune is from the Suite bergamasque, the Cakewalk from Children's Corner." } },
+      { lvl: 3, n: { de: "Maurice Ravel", en: "Maurice Ravel" },
+        items: ["Boléro", "Gaspard de la nuit", "Ma mère l'Oye", "Jeux d'eau"],
+        note: { de: "Vorsicht Falle: Les jeux d'eaux à la Villa d'Este ist von Liszt.", en: "The trap: Les jeux d'eaux à la Villa d'Este is by Liszt." } },
+    ] },
+  { id: "spitznamen", t: { de: "Spitznamen", en: "Nicknames" }, s: { de: "Werke, die besser unter einem Beinamen bekannt sind", en: "Works better known by a nickname" }, finale: "mozart40",
+    groups: [
+      { lvl: 0, n: { de: "Beethovens Klaviersonaten", en: "Beethoven piano sonatas" }, motif: "moonlight",
+        items: [{ de: "Mondschein", en: "Moonlight" }, "Pathétique", "Appassionata", { de: "Der Sturm", en: "Tempest" }],
+        note: { de: "op. 27/2, op. 13, op. 57, op. 31/2", en: "Op. 27/2, Op. 13, Op. 57, Op. 31/2" } },
+      { lvl: 1, n: { de: "Franz Schubert", en: "Franz Schubert" },
+        items: [{ de: "Die Forelle", en: "The Trout" }, { de: "Die Unvollendete", en: "Unfinished" }, { de: "Der Tod und das Mädchen", en: "Death and the Maiden" }, { de: "Wanderer-Fantasie", en: "Wanderer Fantasy" }],
+        note: { de: "D 550, D 759, D 810, D 760", en: "D 550, D 759, D 810, D 760" } },
+      { lvl: 2, n: { de: "Haydns Sinfonien", en: "Haydn symphonies" }, motif: "surprise",
+        items: [{ de: "Mit dem Paukenschlag", en: "Surprise" }, { de: "Die Uhr", en: "The Clock" }, { de: "Militär", en: "Military" }, { de: "Abschied", en: "Farewell" }],
+        note: { de: "Nr. 94, 101, 100, 45. Nicht zu verwechseln mit Beethovens „Les Adieux“.", en: "Nos. 94, 101, 100, 45. Not to be confused with Beethoven's “Les Adieux”." } },
+      { lvl: 3, n: { de: "Sinfonien nach Orten benannt", en: "Symphonies named after places" },
+        items: ["Linz", { de: "Prag", en: "Prague" }, "Oxford", { de: "Rheinische", en: "Rhenish" }],
+        note: { de: "Mozart Nr. 36 und 38, Haydn Nr. 92, Schumann Nr. 3", en: "Mozart Nos. 36 and 38, Haydn No. 92, Schumann No. 3" } },
+    ] },
+  { id: "familie", t: { de: "Familienbande", en: "Family Ties" }, s: { de: "Väter, Söhne, Schwestern, Ehefrauen", en: "Fathers, sons, sisters and wives" }, finale: "grieg",
+    groups: [
+      { lvl: 0, n: { de: "Die Strauss-Dynastie", en: "The Strauss dynasty" }, motif: "danube",
+        items: [{ de: "Johann (Vater)", en: "Johann (father)" }, { de: "Johann (Sohn)", en: "Johann (son)" }, "Josef", "Eduard"],
+        note: { de: "Die Walzerfamilie aus Wien", en: "Vienna's waltz family" } },
+      { lvl: 1, n: { de: "Söhne von J. S. Bach", en: "Sons of J. S. Bach" }, motif: "bachprelude",
+        items: ["Wilhelm Friedemann", "Carl Philipp Emanuel", "Johann Christian", "Johann Christoph Friedrich"],
+        note: { de: "Vier der komponierenden Bach-Söhne", en: "Four of Bach's composing sons" } },
+      { lvl: 2, n: { de: "Familie Mozart", en: "The Mozart family" }, motif: "nachtmusik",
+        items: ["Leopold", "Nannerl", "Anna Maria", "Franz Xaver"],
+        note: { de: "Vater, Schwester, Mutter, Sohn", en: "Father, sister, mother, son" } },
+      { lvl: 3, n: { de: "Ehefrauen von Komponisten", en: "Composers' wives" },
+        items: ["Clara", "Cosima", "Constanze", "Alma"],
+        note: { de: "Clara Schumann, Cosima Wagner (Liszts Tochter), Constanze Mozart, Alma Mahler", en: "Clara Schumann, Cosima Wagner (Liszt's daughter), Constanze Mozart, Alma Mahler" } },
+    ] },
+  { id: "pianisten", t: { de: "Am Flügel", en: "At the Keyboard" }, s: { de: "Pianistinnen und Pianisten", en: "Pianists" }, finale: "furelise",
+    groups: [
+      { lvl: 0, n: { de: "Im Russischen Kaiserreich geboren", en: "Born in the Russian Empire" }, motif: "rach",
+        items: ["Horowitz", "Richter", "Gilels", { de: "Rachmaninow", en: "Rachmaninoff" }],
+        note: { de: "Kiew, Schytomyr, Odessa, Gouvernement Nowgorod", en: "Kyiv, Zhytomyr, Odesa, Novgorod Governorate" } },
+      { lvl: 1, n: { de: "Aus Südamerika", en: "From South America" },
+        items: ["Argerich", "Arrau", "Barenboim", "Freire"],
+        note: { de: "Argentinien, Chile, Argentinien, Brasilien", en: "Argentina, Chile, Argentina, Brazil" } },
+      { lvl: 2, n: { de: "Große Bach-Interpreten", en: "Great Bach interpreters" }, motif: "toccata",
+        items: ["Gould", "Schiff", "Hewitt", "Tureck"],
+        note: { de: "Glenn Gould, András Schiff, Angela Hewitt, Rosalyn Tureck", en: "Glenn Gould, András Schiff, Angela Hewitt, Rosalyn Tureck" } },
+      { lvl: 3, n: { de: "Schüler von Liszt", en: "Pupils of Liszt" },
+        items: ["Bülow", "Tausig", "Siloti", "Rosenthal"],
+        note: { de: "Siloti (Charkiw) und Tausig (Warschau) kamen übrigens auch im Zarenreich zur Welt.", en: "Siloti (Kharkiv) and Tausig (Warsaw) were also born in the Russian Empire." } },
+    ] },
+  { id: "beethoven", t: { de: "Ludwig van", en: "Ludwig van" }, s: { de: "Alles Beethoven, aber was genau?", en: "All Beethoven, but which part of him?" }, finale: "ode",
+    groups: [
+      { lvl: 0, n: { de: "Beethovens Lebensorte", en: "Places in Beethoven's life" }, motif: "fifth",
+        items: ["Bonn", { de: "Wien", en: "Vienna" }, "Heiligenstadt", "Baden"],
+        note: { de: "Geburtsort, Wahlheimat, das Testament von 1802, Sommerfrische", en: "Birthplace, adopted home, the 1802 Testament, summer retreat" } },
+      { lvl: 1, n: { de: "Klaviersonaten", en: "Piano sonatas" },
+        items: ["Waldstein", "Hammerklavier", "Les Adieux", "Pastorale"],
+        note: { de: "op. 53, op. 106, op. 81a, op. 28. Die Pastorale ist hier keine Sinfonie.", en: "Op. 53, Op. 106, Op. 81a, Op. 28. Here the Pastorale is not the symphony." } },
+      { lvl: 2, n: { de: "Violinsonaten und Klaviertrios", en: "Violin sonatas and piano trios" },
+        items: ["Kreutzer", { de: "Erzherzog", en: "Archduke" }, { de: "Frühling", en: "Spring" }, { de: "Geister", en: "Ghost" }],
+        note: { de: "op. 47, op. 97, op. 24, op. 70/1", en: "Op. 47, Op. 97, Op. 24, Op. 70/1" } },
+      { lvl: 3, n: { de: "Streichquartette", en: "String quartets" },
+        items: [{ de: "Rasumowsky", en: "Razumovsky" }, { de: "Harfe", en: "Harp" }, "Serioso", { de: "Große Fuge", en: "Grosse Fuge" }],
+        note: { de: "op. 59, op. 74, op. 95, op. 133", en: "Op. 59, Op. 74, Op. 95, Op. 133" } },
+    ] },
+  { id: "dichter", t: { de: "Dichterliebe", en: "A Poet's Love" }, s: { de: "Komponisten und ihre Dichter", en: "Composers and their poets" }, finale: "kaiser",
+    groups: [
+      { lvl: 0, n: { de: "Goethe in Musik", en: "Goethe set to music" },
+        items: ["Faust", "Erlkönig", "Egmont", "Werther"],
+        note: { de: "Gounod, Schubert, Beethoven, Massenet", en: "Gounod, Schubert, Beethoven, Massenet" } },
+      { lvl: 1, n: { de: "Librettisten", en: "Librettists" },
+        items: ["Da Ponte", "Hofmannsthal", "Boito", "Schikaneder"],
+        note: { de: "für Mozart, Richard Strauss, Verdi und noch einmal Mozart", en: "for Mozart, Richard Strauss, Verdi, and Mozart again" } },
+      { lvl: 2, n: { de: "Texter berühmter Liederzyklen", en: "Poets of famous song cycles" },
+        items: ["Müller", "Heine", "Chamisso", "Jeitteles"],
+        note: { de: "Winterreise, Dichterliebe, Frauenliebe und -leben, An die ferne Geliebte", en: "Winterreise, Dichterliebe, Frauenliebe und -leben, An die ferne Geliebte" } },
+      { lvl: 3, n: { de: "Liszts literarische Vorbilder", en: "Liszt's literary sources" },
+        items: ["Dante", "Petrarca", "Lamartine", "Byron"],
+        note: { de: "Dante-Sonate, Petrarca-Sonette, Harmonies poétiques et religieuses, Années de pèlerinage", en: "Dante Sonata, Petrarch Sonnets, Harmonies poétiques et religieuses, Années de pèlerinage" } },
+    ] },
+  { id: "advent", t: { de: "Adventsrätsel", en: "Advent Riddle" }, s: { de: "Für Fortgeschrittene: Buchstaben, Decknamen, Zirkel", en: "Advanced: letters, pen names and circles" }, finale: "tristan",
+    groups: [
+      { lvl: 0, n: { de: "Komponistenkreise", en: "Circles of composers" },
+        items: ["Les Six", { de: "Mächtiges Häuflein", en: "The Mighty Handful" }, "Davidsbündler", { de: "Zweite Wiener Schule", en: "Second Viennese School" }],
+        note: { de: "Paris, Sankt Petersburg, Schumanns Fantasiebund, Schönberg und seine Schüler", en: "Paris, Saint Petersburg, Schumann's imaginary league, Schoenberg and his pupils" } },
+      { lvl: 1, n: { de: "Decknamen", en: "Pen names and alter egos" },
+        items: ["Corno di Bassetto", "Peter Warlock", "Florestan", "Eusebius"],
+        note: { de: "George Bernard Shaw als Musikkritiker, Philip Heseltine und Schumanns zwei Seelen", en: "George Bernard Shaw as music critic, Philip Heseltine, and Schumann's two selves" } },
+      { lvl: 2, n: { de: "Tonbuchstaben-Chiffren", en: "Musical cryptograms" }, motif: "crypto",
+        items: ["B-A-C-H", "A-B-E-G-G", "A-S-C-H", "D-S-C-H"],
+        note: { de: "Bach, Schumanns Abegg-Variationen, Carnaval, Schostakowitsch", en: "Bach, Schumann's Abegg Variations, Carnaval, Shostakovich" } },
+      { lvl: 3, n: { de: "Anagramme von Komponisten", en: "Anagrams of composers" },
+        items: ["Lager", "Drive", "Sloth", "Fowl"],
+        note: { de: "Elgar, Verdi, Holst, Wolf", en: "Elgar, Verdi, Holst, Wolf" } },
+    ] },
+];
+
+const STR = {
+  de: { eyebrow: "Ein Musikrätsel in Vierergruppen", sub: "Finde vier Gruppen zu je vier Begriffen.", mistakes: "Fehler übrig", shuffle: "Mischen", clear: "Abwählen", submit: "Prüfen",
+    oneAway: "Fast. Einer passt noch nicht.", already: "Diese Auswahl hattest du schon.", win: "Bravo!", lose: "Da capo?", winText: "Alle vier Gruppen gefunden.", loseText: "Diesmal nicht. Die Lösung steht oben.",
+    next: "Nächstes Rätsel", retry: "Neu starten", soundOn: "Ton an", soundOff: "Ton aus", lang: "EN", listen: "Anhören", howSum: "Spielregeln",
+    how: "Wähle vier Kärtchen, die etwas gemeinsam haben, und tippe auf „Prüfen“. Jedes Rätsel hat genau eine Lösung, aber manche Begriffe passen scheinbar in mehrere Gruppen. Nach vier Fehlern ist das Spiel vorbei. Die Gruppen sind wie Dynamikangaben abgestuft, von pp (leicht) bis ff (knifflig). Zu manchen Gruppen erklingt beim Lösen ein passendes Thema.",
+    lv: ["leicht", "mittel", "schwer", "knifflig"] },
+  en: { eyebrow: "A music puzzle in groups of four", sub: "Find four groups of four.", mistakes: "Mistakes remaining", shuffle: "Shuffle", clear: "Deselect", submit: "Submit",
+    oneAway: "One away.", already: "You already tried that one.", win: "Bravo!", lose: "Da capo?", winText: "You found all four groups.", loseText: "Not this time. The answers are above.",
+    next: "Next puzzle", retry: "Start over", soundOn: "Sound on", soundOff: "Sound off", lang: "DE", listen: "Listen", howSum: "How to play",
+    how: "Pick four tiles that share something and press Submit. Each puzzle has exactly one solution, but some tiles seem to fit more than one group. Four mistakes end the game. Groups are graded like dynamics, from pp (easy) to ff (tricky). Some groups play a matching theme when you solve them.",
+    lv: ["easy", "medium", "hard", "tricky"] },
+};
+const DYN = ["pp", "mp", "f", "ff"];
+
+// ---------- State ----------
+const store = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+};
+const prefs = store.get("quartett:prefs") || {};
+let lang = prefs.lang || ((navigator.language || "de").toLowerCase().startsWith("de") ? "de" : "en");
+muted = !!prefs.muted;
+let current = Math.min(prefs.current || 0, PUZZLES.length - 1);
+let st, selected = [], busy = false;
+
+const tx = v => typeof v === "string" ? v : (v[lang] || v.de);
+const itemText = id => { const [g, i] = id.split("."); return tx(PUZZLES[current].groups[g].items[i]); };
+const groupOf = id => +id.split(".")[0];
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function fresh(p) {
+  const ids = []; p.groups.forEach((g, gi) => g.items.forEach((_, ii) => ids.push(gi + "." + ii)));
+  return { order: shuffle(ids), solved: [], revealed: [], mistakes: 0, guesses: [], done: false };
+}
+function load() {
+  const p = PUZZLES[current];
+  st = store.get("quartett:" + p.id) || fresh(p);
+  selected = [];
+}
+function save() {
+  store.set("quartett:" + PUZZLES[current].id, st);
+  store.set("quartett:prefs", { lang, muted, current });
+}
+function result(p) { const s = store.get("quartett:" + p.id); return s && s.done ? (s.revealed.length ? "lose" : "win") : null; }
+
+// ---------- Rendering ----------
+const $ = id => document.getElementById(id);
+function noteHead(used) { return `<svg viewBox="0 0 16 12" class="${used ? "used" : ""}" aria-hidden="true"><ellipse cx="8" cy="6" rx="6.5" ry="4.5"/></svg>`; }
+
+function barHTML(gi, enter, revealed) {
+  const g = PUZZLES[current].groups[gi];
+  const items = g.items.map(tx).join(", ");
+  const m = g.motif ? MOTIFS[g.motif] : null;
+  return `<div class="bar${enter ? " enter" : ""}${revealed ? " revealed" : ""}" data-l="${g.lvl}">
+    <span class="dyn" title="${STR[lang].lv[g.lvl]}">${DYN[g.lvl]}</span>
+    <div class="txt"><div class="name">${tx(g.n)}</div><div class="items">${items}</div>
+    <div class="note">${tx(g.note)}${m ? " · ♪ " + tx(m.t) : ""}</div></div>
+    ${m ? `<button class="play" type="button" data-motif="${g.motif}" aria-label="${STR[lang].listen}: ${tx(m.t)}">▶</button>` : `<span class="spacer"></span>`}
+  </div>`;
+}
+
+function render(enterGroup) {
+  const S = STR[lang], p = PUZZLES[current];
+  document.documentElement.lang = lang;
+  $("eyebrow").textContent = S.eyebrow;
+  $("soundBtn").textContent = muted ? S.soundOff : S.soundOn;
+  $("soundBtn").setAttribute("aria-pressed", String(!muted));
+  $("langBtn").textContent = S.lang;
+  $("pTitle").textContent = tx(p.t);
+  $("pSub").textContent = tx(p.s) + ". " + S.sub;
+
+  $("picker").innerHTML = PUZZLES.map((q, i) => {
+    const r = i === current ? (st.done ? (st.revealed.length ? "lose" : "win") : null) : result(q);
+    const mark = r === "win" ? `<span class="st win" aria-label="solved">✓</span>` : r === "lose" ? `<span class="st" aria-label="not solved">×</span>` : "";
+    return `<button class="chip" type="button" data-i="${i}" aria-current="${i === current}"><b>${i + 1}</b>${tx(q.t)}${mark}</button>`;
+  }).join("");
+
+  const shown = [...st.solved, ...st.revealed];
+  $("bars").innerHTML = shown.map(gi => barHTML(gi, gi === enterGroup, st.revealed.includes(gi))).join("");
+  $("bars").hidden = shown.length === 0;
+
+  const remaining = st.order.filter(id => !shown.includes(groupOf(id)));
+  $("grid").innerHTML = remaining.map(id => {
+    const t = itemText(id), longest = Math.max(...t.split(/[\s-]/).map(w => w.length));
+    const size = (longest >= 12 || t.length > 22) ? "xs" : (longest >= 9 || t.length > 14) ? "sm" : "";
+    return `<button class="tile ${size}" type="button" data-id="${id}" aria-pressed="${selected.includes(id)}">${t}</button>`;
+  }).join("");
+  $("grid").hidden = remaining.length === 0;
+
+  $("lives").innerHTML = st.done ? "" : `<span>${S.mistakes}</span><span class="heads">${[0, 1, 2, 3].map(i => noteHead(i >= 4 - st.mistakes)).join("")}</span>`;
+  $("controls").hidden = st.done;
+  $("shuffleBtn").textContent = S.shuffle;
+  $("clearBtn").textContent = S.clear;
+  $("submitBtn").textContent = S.submit;
+  $("clearBtn").disabled = selected.length === 0;
+  $("submitBtn").disabled = selected.length !== 4;
+
+  const end = $("end");
+  end.hidden = !st.done;
+  if (st.done) {
+    const won = st.revealed.length === 0, fin = MOTIFS[p.finale];
+    const rows = st.guesses.map(gs => `<div>${gs.map(id => `<span data-l="${p.groups[groupOf(id)].lvl}"></span>`).join("")}</div>`).join("");
+    end.innerHTML = `<h3>${won ? S.win : S.lose}</h3><p>${won ? S.winText : S.loseText}</p>
+      <div class="squares" aria-hidden="true">${rows}</div>
+      <button class="listen" type="button" data-motif="${p.finale}">♪ ${tx(fin.t)}</button>
+      <div class="controls">
+        <button class="btn" type="button" id="retryBtn">${S.retry}</button>
+        ${current < PUZZLES.length - 1 ? `<button class="btn primary" type="button" id="nextBtn">${S.next}</button>` : ""}
+      </div>`;
+  }
+
+  $("howSum").textContent = S.howSum;
+  $("howText").textContent = S.how;
+  $("legend").innerHTML = [0, 1, 2, 3].map(l => `<div style="background:var(--g${l})"><b>${DYN[l]}</b>${S.lv[l]}</div>`).join("");
+}
+
+let toastTimer;
+function toast(msg) {
+  $("toast").textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $("toast").textContent = ""; }, 2200);
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+async function submit() {
+  if (busy || selected.length !== 4) return;
+  const p = PUZZLES[current];
+  const key = [...selected].sort().join("|");
+  if (st.guesses.some(g => [...g].sort().join("|") === key)) { toast(STR[lang].already); return; }
+  busy = true;
+  st.guesses.push([...selected]);
+  const tiles = selected.map(id => document.querySelector(`.tile[data-id="${id}"]`));
+  if (!reduced()) {
+    tiles.forEach((t, i) => setTimeout(() => t && t.classList.add("hop"), i * 90));
+    await wait(4 * 90 + 300);
+  }
+  const groups = selected.map(groupOf);
+  const counts = {}; groups.forEach(g => counts[g] = (counts[g] || 0) + 1);
+  const best = Math.max(...Object.values(counts));
+  if (best === 4) {
+    const gi = groups[0];
+    st.solved.push(gi);
+    selected = [];
+    const won = st.solved.length === 4;
+    if (won) st.done = true;
+    save(); render(gi);
+    play(won ? MOTIFS[p.finale] : (MOTIFS[p.groups[gi].motif] || LEVEL_ARP[p.groups[gi].lvl]));
+  } else {
+    tiles.forEach(t => t && (t.classList.remove("hop"), t.classList.add("shake")));
+    thud();
+    if (best === 3) toast(STR[lang].oneAway);
+    st.mistakes++;
+    await wait(420);
+    tiles.forEach(t => t && t.classList.remove("shake"));
+    if (st.mistakes >= 4) {
+      selected = [];
+      save(); render();
+      for (const gi of p.groups.map((_, i) => i).filter(i => !st.solved.includes(i))) {
+        await wait(700);
+        st.revealed.push(gi); render(gi);
+      }
+      st.done = true;
+      save(); render();
+    } else { save(); render(); }
+  }
+  busy = false;
+}
+
+// ---------- Events ----------
+document.addEventListener("click", e => {
+  const el = e.target.closest("button");
+  if (!el) return;
+  if (el.classList.contains("tile")) {
+    if (busy || st.done) return;
+    const id = el.dataset.id;
+    if (selected.includes(id)) selected = selected.filter(x => x !== id);
+    else if (selected.length < 4) selected.push(id);
+    el.setAttribute("aria-pressed", String(selected.includes(id)));
+    $("clearBtn").disabled = selected.length === 0;
+    $("submitBtn").disabled = selected.length !== 4;
+    getCtx();
+    return;
+  }
+  if (el.dataset.motif) { play(MOTIFS[el.dataset.motif]); return; }
+  if (el.classList.contains("chip")) { if (busy) return; current = +el.dataset.i; load(); save(); render(); return; }
+  switch (el.id) {
+    case "shuffleBtn": {
+      const shown = st.solved;
+      const rest = shuffle(st.order.filter(id => !shown.includes(groupOf(id))));
+      st.order = [...st.order.filter(id => shown.includes(groupOf(id))), ...rest];
+      save(); render(); break;
+    }
+    case "clearBtn": selected = []; render(); break;
+    case "submitBtn": submit(); break;
+    case "retryBtn": st = fresh(PUZZLES[current]); selected = []; save(); render(); break;
+    case "nextBtn": current = Math.min(current + 1, PUZZLES.length - 1); load(); save(); render(); window.scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" }); break;
+    case "soundBtn": muted = !muted; if (muted && bus && actx) bus.gain.setTargetAtTime(0, actx.currentTime, 0.05); save(); render(); break;
+    case "langBtn": lang = lang === "de" ? "en" : "de"; save(); render(); break;
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && selected.length === 4 && !e.target.closest("button")) submit();
+});
+
+load(); render();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./quartett-sw.js', { scope: './quartett.html' }).catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

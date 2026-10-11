@@ -1,0 +1,13 @@
+{
+  "name": "Quartett",
+  "short_name": "Quartett",
+  "start_url": "./quartett.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F2F3F6",
+  "theme_color": "#7E1D3A",
+  "icons": [
+    { "src": "./icons/quartett-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/quartett-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
