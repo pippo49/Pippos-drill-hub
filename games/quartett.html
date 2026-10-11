@@ -298,9 +298,14 @@ function getCtx() {
   if (actx.state !== "running") actx.resume().catch(() => {});
   return actx;
 }
-// Unlock on the very first touch anywhere, so the first solved group already has sound.
-["pointerdown", "touchend", "keydown"].forEach(ev =>
-  document.addEventListener(ev, () => { if (!muted) getCtx(); }, { once: true, capture: true }));
+// Unlock (and re-wake) audio on every tap until it is running. Only touchend, click and
+// keydown count as permission to start audio on iOS; pointerdown/touchstart do not, so a
+// context woken there stays blocked. iOS can also suspend a running context later
+// (screen lock, a call, another app's sound), so this keeps checking rather than once.
+["touchend", "click", "keydown"].forEach(ev =>
+  document.addEventListener(ev, () => {
+    if (!muted && (!actx || actx.state !== "running")) getCtx();
+  }, { capture: true }));
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && actx && actx.state !== "running") actx.resume().catch(() => {});
 });
