@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LT = os.path.join(HERE, "..")
 APPS = ["polish_trainer.html", "spanish_trainer.html", "italian_trainer.html",
         "french_trainer.html", "latin_trainer.html", "medical_trainer.html",
-        "portuguese_trainer.html", "brazilian_trainer.html"]
+        "portuguese_trainer.html", "brazilian_trainer.html", "english_trainer.html"]
 
 PROBE = r"""
 // Seed a history: 120 attempted words, 30 of them with mistakes, wrong counts

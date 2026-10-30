@@ -1,0 +1,1718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vocabulary — English / German trainer</title>
+<link rel="manifest" href="./english-trainer-manifest.json">
+<link rel="apple-touch-icon" href="./icons/english-trainer-icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="English Trainer">
+<meta name="theme-color" content="#f3f1e9">
+<style>
+  :root {
+    --paper: #f3f1e9;
+    --ink: #1a1a1a;
+    --muted: #4a4f56;
+    --accent: #2d4356;
+    --green: #2a6f3d;
+    --amber: #a06a1f;
+    --red: #b43c28;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: light only; }
+  html, body { margin: 0; padding: 0; }
+  html { background: #f3f1e9 !important; }
+  body {
+    background: #f3f1e9 !important;
+    color: #1a1a1a !important;
+    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
+    min-height: 100vh;
+    padding: 32px 20px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header { border-bottom: 1px solid var(--ink); padding-bottom: 16px; margin-bottom: 28px; }
+  header h1 { margin: 0; font-size: 2.4rem; font-weight: 500; letter-spacing: -0.01em; font-style: italic; color: #1a1a1a !important; }
+  header h1 .accent { font-style: normal; color: var(--accent) !important; margin-left: 12px; font-size: 1.5rem; }
+  header h1 .subtitle { font-size: 1.1rem; font-style: normal; color: var(--muted) !important; margin-left: 12px; }
+  .stats { font-size: 0.85rem; color: var(--muted) !important; line-height: 1.6; }
+  .meta-line { margin-top: 10px; font-size: 0.85rem; color: var(--muted) !important; font-style: italic; }
+  .header-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; }
+
+  .section-label {
+    font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted) !important; margin-bottom: 8px;
+  }
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(45, 67, 86, 0.2);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .modes { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .mode-btn {
+    background: transparent; color: var(--ink); border: 1px solid var(--ink);
+    padding: 8px 14px; font-family: inherit; font-size: 0.95rem;
+    cursor: pointer; letter-spacing: 0.02em; transition: all 0.15s ease;
+  }
+  .mode-btn.active { background: var(--ink); color: var(--paper); }
+
+  .card {
+    background: #ffffff !important; border: 1px solid var(--ink);
+    padding: 22px 32px 36px; position: relative;
+    box-shadow: 8px 8px 0 -2px rgba(45,67,86,0.15);
+    color: #1a1a1a !important;
+  }
+  .card-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 16px; margin-bottom: 10px;
+  }
+  .card .prompt-label {
+    text-align: right; flex: 1 1 auto; min-width: 0; line-height: 1.35;
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted) !important;
+  }
+  .card .prompt {
+    font-size: 2rem; font-weight: 500; line-height: 1.2;
+    margin-bottom: 24px; margin-top: 8px;
+    color: #1a1a1a !important;
+  }
+  .card .prompt .pos {
+    font-size: 0.9rem; color: var(--muted) !important; font-style: italic; margin-left: 12px;
+  }
+  .card .prompt-sub {
+    font-size: 1rem; line-height: 1.4; color: var(--muted) !important;
+    margin-top: -14px; margin-bottom: 24px;
+  }
+  .card .prompt-sub .hint-link {
+    background: transparent; border: none; padding: 0; cursor: pointer;
+    font: inherit; color: var(--accent) !important; text-decoration: underline;
+    -webkit-tap-highlight-color: rgba(45, 67, 86, 0.2);
+  }
+  .card input[type=text] {
+    width: 100%; padding: 10px 12px; font-size: 1.2rem; font-family: inherit;
+    border: none; border-bottom: 1px solid var(--ink); background: #ffffff !important;
+    outline: none; color: #1a1a1a !important;
+  }
+  .card input[type=text].g-exact, .card input[type=text].g-diacritic { color: var(--green) !important; }
+  .card input[type=text].g-typo { color: var(--amber) !important; }
+  .card input[type=text].g-wrong { color: var(--red) !important; }
+  .feedback { margin-top: 16px; font-size: 1rem; line-height: 1.6; color: #1a1a1a !important; }
+  .feedback .ok { color: var(--green) !important; }
+  .feedback .near { color: var(--amber) !important; }
+  .feedback .bad { color: var(--red) !important; }
+  .feedback strong { font-weight: 600; }
+
+  .actions {
+    display: flex; gap: 12px; margin-top: 28px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .actions .btn-primary {
+    min-width: 180px;
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+  .actions-secondary {
+    display: flex; gap: 8px; margin-top: 16px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .q-counter {
+    flex: 0 0 auto; white-space: nowrap; align-self: baseline;
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    color: var(--muted) !important;
+  }
+  .actions-end { display: flex; justify-content: center; margin-top: 20px; }
+  .btn-end {
+    background: transparent; border: none; cursor: pointer;
+    font-family: inherit; font-size: 0.85rem; font-style: italic;
+    color: var(--muted) !important; text-decoration: underline;
+  }
+  .conj-section { margin-top: 14px; }
+  .mc-options { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .mc-option {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    padding: 14px 16px; font-family: inherit; font-size: 1.1rem;
+    background: #faf8f0; color: #1a1a1a !important; border: 1px solid var(--ink);
+  }
+  .mc-option:active { background: #ece8da; }
+  .mc-option[disabled] { cursor: default; }
+  .mc-num { color: var(--muted) !important; font-size: 0.85rem; margin-right: 4px; }
+  .mc-gloss { color: var(--muted) !important; font-style: italic; }
+  .mc-option.mc-correct { background: #e3f1e6 !important; border-color: #2a6f3d !important; color: #1f5630 !important; }
+  .mc-option.mc-correct .mc-num { color: #2a6f3d !important; }
+  .mc-option.mc-wrong { background: #f6e1de !important; border-color: #9a3326 !important; color: #7a2a20 !important; }
+  .mc-option.mc-wrong .mc-num { color: #9a3326 !important; }
+  .conj-toggle {
+    background: transparent; border: none; cursor: pointer; padding: 0;
+    font-family: inherit; font-size: 0.85rem; font-style: italic;
+    color: var(--muted) !important; text-decoration: underline;
+  }
+  .conj-table { display: none; margin-top: 10px; font-size: 0.95rem; line-height: 1.7; }
+  .conj-table.open { display: block; }
+  .conj-label {
+    font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted) !important; margin-bottom: 4px;
+  }
+  .conj-row { display: flex; gap: 12px; border-bottom: 1px dashed rgba(26,26,26,0.15); padding: 2px 0; }
+  .conj-row .cp { width: 110px; flex-shrink: 0; color: var(--muted) !important; }
+  .summary-head { font-size: 1.15rem; margin: 8px 0 18px; line-height: 1.5; }
+  .summary-section { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted) !important; margin: 18px 0 6px; }
+  .summary-row {
+    padding: 10px 0; border-bottom: 1px dashed rgba(26,26,26,0.25);
+    font-size: 1rem; line-height: 1.5;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .sr-target { color: var(--green) !important; font-weight: 600; }
+  .summary-row .sr-yours { color: var(--red) !important; font-style: italic; }
+  .summary-row.near .sr-yours { color: var(--amber) !important; }
+  .btn-primary {
+    background: #1a1a1a !important; color: #f3f1e9 !important; border: 1px solid #1a1a1a;
+    padding: 8px 16px; font-family: inherit; font-size: 0.95rem;
+    cursor: pointer; letter-spacing: 0.02em;
+  }
+  .btn-ghost {
+    background: #f3f1e9 !important; color: #1a1a1a !important; border: 1px solid #1a1a1a;
+    padding: 8px 14px; font-family: inherit; font-size: 0.9rem;
+    cursor: pointer; letter-spacing: 0.02em;
+  }
+  .btn-danger { color: #b43c28 !important; border-color: #b43c28; }
+
+  footer {
+    margin-top: 36px; padding-top: 16px;
+    border-top: 1px solid rgba(26,26,26,0.2);
+    display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.85rem; align-items: center;
+  }
+  .footer-note {
+    margin-top: 16px; font-size: 0.75rem; color: var(--muted) !important;
+    font-style: italic; text-align: center; line-height: 1.6;
+  }
+  .export-msg { color: var(--green) !important; font-style: italic; margin-left: 8px; }
+  .hardest-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .btn-hardest{font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:8px;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+  .btn-hardest.active{background:var(--ink);color:var(--paper)}
+  .btn-hardest:disabled{opacity:.4;cursor:default}
+  .hardest-note{font-size:12px;color:var(--muted)}
+  .empty { padding: 36px; text-align: center; color: var(--muted) !important; font-style: italic; }
+
+  .file-label { display: inline-block; }
+  .file-label input { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="header-row">
+      <h1>Vocabulary<span class="accent">·</span><span class="subtitle">english / deutsch</span></h1>
+      <div class="stats" id="stats"></div>
+      <div class="stats" id="selection-count"></div>
+    </div>
+    <div class="meta-line" id="deck-meta"></div>
+    <div class="hardest-row" id="hardest-row"></div>
+  </header>
+
+  <section>
+    <div class="section-label">Drill types</div>
+    <div class="modes" id="modes"></div>
+  </section>
+
+  <section>
+    <div class="section-label">Lessons</div>
+    <div class="modes" id="lessons"></div>
+  </section>
+
+  <section>
+    <div class="section-label">Word forms</div>
+    <div class="modes" id="pos-filter"></div>
+  </section>
+
+  <div id="card-area">
+    <div class="empty">Loading…</div>
+  </div>
+
+  <footer>
+    <button class="btn-ghost" id="btn-export">Export progress</button>
+    <button class="btn-ghost" id="btn-copy">Copy to clipboard</button>
+    <label class="btn-ghost file-label">
+      Import progress
+      <input type="file" id="file-import" accept=".json">
+    </label>
+    <button class="btn-ghost btn-danger" id="btn-reset">Reset</button>
+    <span class="export-msg" id="export-msg"></span>
+  </footer>
+
+  <div class="footer-note">
+    Progress is kept in this browser (localStorage). Use “Export” or “Copy” to back up your progress as JSON; use “Import” to restore it.
+  </div>
+
+</div>
+
+<script>
+// === DIAGNOSTIC: catch any errors and show them on the page ===
+window.addEventListener("error", function(e) {
+  // Ignore opaque cross-origin errors (an in-app browser's or an extension's
+  // injected code). This page loads no external scripts, so such an error is
+  // never ours. Anything our own inline script throws still carries this
+  // page's URL and a real line number, so it is still reported below.
+  if (!e.filename && !e.lineno &&
+      (!e.message || String(e.message).indexOf("Script error") === 0)) return;
+  var el = document.getElementById("error-box");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "error-box";
+    el.style.cssText = "background:#ffeaea;border:2px solid #b43c28;padding:12px;margin:16px;font-family:monospace;font-size:12px;color:#b43c28;white-space:pre-wrap;word-break:break-word;position:fixed;top:0;left:0;right:0;z-index:9999;max-height:50vh;overflow:auto";
+    document.body && document.body.insertBefore(el, document.body.firstChild);
+  }
+  el.textContent += "ERROR: " + (e.message || e.error || e) + "\n  at " + (e.filename || "?") + ":" + (e.lineno || "?") + "\n";
+});
+window.addEventListener("unhandledrejection", function(e) {
+  var el = document.getElementById("error-box") || (function(){
+    var d = document.createElement("div");
+    d.id = "error-box";
+    d.style.cssText = "background:#ffeaea;border:2px solid #b43c28;padding:12px;margin:16px;font-family:monospace;font-size:12px;color:#b43c28;white-space:pre-wrap;word-break:break-word;position:fixed;top:0;left:0;right:0;z-index:9999;max-height:50vh;overflow:auto";
+    document.body && document.body.insertBefore(d, document.body.firstChild);
+    return d;
+  })();
+  el.textContent += "PROMISE REJECTION: " + (e.reason && e.reason.message || e.reason || e) + "\n";
+});
+
+// === VOCABULARY DATA ===
+const VOCAB_DATA = {"meta":{"language":"English","reference":"German","version":"v1"},"entries":[{"en":"I","de":"ich","pos":"pronoun","id":"o001","lesson":"1"},{"en":"you","de":"du","pos":"pronoun","id":"o002","lesson":"1"},{"en":"he","de":"er","pos":"pronoun","id":"o003","lesson":"1"},{"en":"she","de":"sie","pos":"pronoun","id":"o004","lesson":"1"},{"en":"it","de":"es","pos":"pronoun","id":"o005","lesson":"1"},{"en":"we","de":"wir","pos":"pronoun","id":"o006","lesson":"1"},{"en":"they","de":"sie","pos":"pronoun","id":"o007","lesson":"1"},{"en":"to be","de":"sein","pos":"verb","id":"v001","lesson":"1","conjugation":{"i":"am","you":"are","he_she_it":"is","we":"are","they":"are"},"cloze":[{"en":"I {am} happy.","de":"Ich bin glücklich."},{"en":"You {are} late.","de":"Du bist spät dran."},{"en":"She {is} a doctor.","de":"Sie ist Ärztin."}]},{"en":"hello","de":"hallo","pos":"phrase","id":"o008","lesson":"1"},{"en":"good morning","de":"guten Morgen","pos":"phrase","id":"o009","lesson":"1"},{"en":"good evening","de":"guten Abend","pos":"phrase","id":"o010","lesson":"1"},{"en":"good night","de":"gute Nacht","pos":"phrase","id":"o011","lesson":"1"},{"en":"goodbye","de":"auf Wiedersehen","pos":"phrase","id":"o012","lesson":"1"},{"en":"please","de":"bitte","pos":"phrase","id":"o013","lesson":"1"},{"en":"thank you","de":"danke","pos":"phrase","id":"o014","lesson":"1"},{"en":"yes","de":"ja","pos":"phrase","id":"o015","lesson":"1"},{"en":"no","de":"nein","pos":"phrase","id":"o016","lesson":"1"},{"en":"excuse me","de":"entschuldigung","pos":"phrase","id":"o017","lesson":"1"},{"en":"sorry","de":"es tut mir leid","pos":"phrase","id":"o018","lesson":"1"},{"en":"how are you?","de":"wie geht es dir?","pos":"phrase","id":"o019","lesson":"1","cloze":[{"en":"“How {are you}?” — “Fine, thanks.”","de":"„Wie geht es dir?“ — „Gut, danke.“"}]},{"en":"my name is","de":"ich heiße","pos":"phrase","id":"o020","lesson":"1"},{"en":"nice to meet you","de":"freut mich","pos":"phrase","id":"o021","lesson":"1"},{"en":"father","de":"Vater","pos":"noun","id":"n001","lesson":"2"},{"en":"mother","de":"Mutter","pos":"noun","id":"n002","lesson":"2"},{"en":"parent","de":"Elternteil","pos":"noun","id":"n003","lesson":"2"},{"en":"brother","de":"Bruder","pos":"noun","id":"n004","lesson":"2"},{"en":"sister","de":"Schwester","pos":"noun","id":"n005","lesson":"2"},{"en":"son","de":"Sohn","pos":"noun","id":"n006","lesson":"2"},{"en":"daughter","de":"Tochter","pos":"noun","id":"n007","lesson":"2"},{"en":"child","de":"Kind","pos":"noun","id":"n008","lesson":"2","plural":"children","cloze":[{"en":"The {child} is playing in the garden.","de":"Das Kind spielt im Garten."}]},{"en":"husband","de":"Ehemann","pos":"noun","id":"n009","lesson":"2"},{"en":"wife","de":"Ehefrau","pos":"noun","id":"n010","lesson":"2","plural":"wives"},{"en":"grandmother","de":"Großmutter","pos":"noun","id":"n011","lesson":"2"},{"en":"grandfather","de":"Großvater","pos":"noun","id":"n012","lesson":"2"},{"en":"friend","de":"Freund","pos":"noun","id":"n013","lesson":"2","cloze":[{"en":"She is my best {friend}.","de":"Sie ist meine beste Freundin."}]},{"en":"family","de":"Familie","pos":"noun","id":"n014","lesson":"2","plural":"families"},{"en":"baby","de":"Baby","pos":"noun","id":"n015","lesson":"2","plural":"babies"},{"en":"one","de":"eins","pos":"number","id":"o022","lesson":"3"},{"en":"two","de":"zwei","pos":"number","id":"o023","lesson":"3"},{"en":"three","de":"drei","pos":"number","id":"o024","lesson":"3"},{"en":"four","de":"vier","pos":"number","id":"o025","lesson":"3"},{"en":"five","de":"fünf","pos":"number","id":"o026","lesson":"3"},{"en":"six","de":"sechs","pos":"number","id":"o027","lesson":"3"},{"en":"seven","de":"sieben","pos":"number","id":"o028","lesson":"3"},{"en":"eight","de":"acht","pos":"number","id":"o029","lesson":"3"},{"en":"nine","de":"neun","pos":"number","id":"o030","lesson":"3"},{"en":"ten","de":"zehn","pos":"number","id":"o031","lesson":"3"},{"en":"today","de":"heute","pos":"adverb","id":"o032","lesson":"3"},{"en":"tomorrow","de":"morgen","pos":"adverb","id":"o033","lesson":"3"},{"en":"yesterday","de":"gestern","pos":"adverb","id":"o034","lesson":"3"},{"en":"day","de":"Tag","pos":"noun","id":"n016","lesson":"3","cloze":[{"en":"Have a nice {day}!","de":"Hab einen schönen Tag!"}]},{"en":"week","de":"Woche","pos":"noun","id":"n017","lesson":"3"},{"en":"month","de":"Monat","pos":"noun","id":"n018","lesson":"3"},{"en":"year","de":"Jahr","pos":"noun","id":"n019","lesson":"3"},{"en":"hour","de":"Stunde","pos":"noun","id":"n020","lesson":"3"},{"en":"minute","de":"Minute","pos":"noun","id":"n021","lesson":"3"},{"en":"time","de":"Zeit","pos":"noun","id":"n022","lesson":"3"},{"en":"bread","de":"Brot","pos":"noun","id":"n023","lesson":"4"},{"en":"water","de":"Wasser","pos":"noun","id":"n024","lesson":"4"},{"en":"coffee","de":"Kaffee","pos":"noun","id":"n025","lesson":"4"},{"en":"tea","de":"Tee","pos":"noun","id":"n026","lesson":"4"},{"en":"milk","de":"Milch","pos":"noun","id":"n027","lesson":"4"},{"en":"apple","de":"Apfel","pos":"noun","id":"n028","lesson":"4"},{"en":"egg","de":"Ei","pos":"noun","id":"n029","lesson":"4"},{"en":"cheese","de":"Käse","pos":"noun","id":"n030","lesson":"4"},{"en":"meat","de":"Fleisch","pos":"noun","id":"n031","lesson":"4"},{"en":"fish","de":"Fisch","pos":"noun","id":"n032","lesson":"4","plural":"fish"},{"en":"vegetable","de":"Gemüse","pos":"noun","id":"n033","lesson":"4"},{"en":"fruit","de":"Obst","pos":"noun","id":"n034","lesson":"4"},{"en":"breakfast","de":"Frühstück","pos":"noun","id":"n035","lesson":"4"},{"en":"lunch","de":"Mittagessen","pos":"noun","id":"n036","lesson":"4","plural":"lunches"},{"en":"dinner","de":"Abendessen","pos":"noun","id":"n037","lesson":"4"},{"en":"restaurant","de":"Restaurant","pos":"noun","id":"n038","lesson":"4"},{"en":"to eat","de":"essen","pos":"verb","id":"v002","lesson":"4","conjugation":{"i":"eat","you":"eat","he_she_it":"eats","we":"eat","they":"eat"},"principal_parts":["eat","ate","eaten"],"cloze":[{"en":"I {eat} breakfast at seven.","de":"Ich frühstücke um sieben."},{"en":"Yesterday we {ate} fish.","de":"Gestern haben wir Fisch gegessen."}]},{"en":"to drink","de":"trinken","pos":"verb","id":"v003","lesson":"4","conjugation":{"i":"drink","you":"drink","he_she_it":"drinks","we":"drink","they":"drink"},"principal_parts":["drink","drank","drunk"],"cloze":[{"en":"He {drinks} coffee every morning.","de":"Er trinkt jeden Morgen Kaffee."}]},{"en":"to cook","de":"kochen","pos":"verb","id":"v004","lesson":"4","conjugation":{"i":"cook","you":"cook","he_she_it":"cooks","we":"cook","they":"cook"}},{"en":"to go","de":"gehen","pos":"verb","id":"v005","lesson":"5","conjugation":{"i":"go","you":"go","he_she_it":"goes","we":"go","they":"go"},"principal_parts":["go","went","gone"],"cloze":[{"en":"I {go} to work by bus.","de":"Ich fahre mit dem Bus zur Arbeit."},{"en":"She {went} home early.","de":"Sie ging früh nach Hause."}]},{"en":"to come","de":"kommen","pos":"verb","id":"v006","lesson":"5","conjugation":{"i":"come","you":"come","he_she_it":"comes","we":"come","they":"come"},"principal_parts":["come","came","come"],"cloze":[{"en":"Can you {come} here, please?","de":"Kannst du bitte herkommen?"}]},{"en":"to have","de":"haben","pos":"verb","id":"v007","lesson":"5","conjugation":{"i":"have","you":"have","he_she_it":"has","we":"have","they":"have"},"principal_parts":["have","had","had"],"cloze":[{"en":"He {has} two sisters.","de":"Er hat zwei Schwestern."}]},{"en":"to do","de":"tun","pos":"verb","id":"v008","lesson":"5","conjugation":{"i":"do","you":"do","he_she_it":"does","we":"do","they":"do"},"principal_parts":["do","did","done"]},{"en":"to make","de":"machen","pos":"verb","id":"v009","lesson":"5","conjugation":{"i":"make","you":"make","he_she_it":"makes","we":"make","they":"make"},"principal_parts":["make","made","made"],"cloze":[{"en":"I {make} dinner every evening.","de":"Ich mache jeden Abend das Abendessen."}]},{"en":"to see","de":"sehen","pos":"verb","id":"v010","lesson":"5","conjugation":{"i":"see","you":"see","he_she_it":"sees","we":"see","they":"see"},"principal_parts":["see","saw","seen"],"cloze":[{"en":"I {see} you tomorrow.","de":"Ich sehe dich morgen."}]},{"en":"to know","de":"wissen","pos":"verb","id":"v011","lesson":"5","conjugation":{"i":"know","you":"know","he_she_it":"knows","we":"know","they":"know"},"principal_parts":["know","knew","known"]},{"en":"to think","de":"denken","pos":"verb","id":"v012","lesson":"5","conjugation":{"i":"think","you":"think","he_she_it":"thinks","we":"think","they":"think"},"principal_parts":["think","thought","thought"]},{"en":"to want","de":"wollen","pos":"verb","id":"v013","lesson":"5","conjugation":{"i":"want","you":"want","he_she_it":"wants","we":"want","they":"want"}},{"en":"to need","de":"brauchen","pos":"verb","id":"v014","lesson":"5","conjugation":{"i":"need","you":"need","he_she_it":"needs","we":"need","they":"need"}},{"en":"to like","de":"mögen","pos":"verb","id":"v015","lesson":"5","conjugation":{"i":"like","you":"like","he_she_it":"likes","we":"like","they":"like"},"cloze":[{"en":"I {like} this song.","de":"Ich mag dieses Lied."}]},{"en":"to work","de":"arbeiten","pos":"verb","id":"v016","lesson":"5","conjugation":{"i":"work","you":"work","he_she_it":"works","we":"work","they":"work"},"cloze":[{"en":"She {works} in a hospital.","de":"Sie arbeitet in einem Krankenhaus."}]},{"en":"to live","de":"wohnen","pos":"verb","id":"v017","lesson":"5","conjugation":{"i":"live","you":"live","he_she_it":"lives","we":"live","they":"live"},"cloze":[{"en":"They {live} in Berlin.","de":"Sie wohnen in Berlin."}]},{"en":"to speak","de":"sprechen","pos":"verb","id":"v018","lesson":"5","conjugation":{"i":"speak","you":"speak","he_she_it":"speaks","we":"speak","they":"speak"},"principal_parts":["speak","spoke","spoken"],"cloze":[{"en":"Do you {speak} German?","de":"Sprichst du Deutsch?"}]},{"en":"to understand","de":"verstehen","pos":"verb","id":"v019","lesson":"5","conjugation":{"i":"understand","you":"understand","he_she_it":"understands","we":"understand","they":"understand"},"principal_parts":["understand","understood","understood"]},{"en":"to read","de":"lesen","pos":"verb","id":"v020","lesson":"5","conjugation":{"i":"read","you":"read","he_she_it":"reads","we":"read","they":"read"},"principal_parts":["read","read","read"]},{"en":"to write","de":"schreiben","pos":"verb","id":"v021","lesson":"5","conjugation":{"i":"write","you":"write","he_she_it":"writes","we":"write","they":"write"},"principal_parts":["write","wrote","written"]},{"en":"to buy","de":"kaufen","pos":"verb","id":"v022","lesson":"5","conjugation":{"i":"buy","you":"buy","he_she_it":"buys","we":"buy","they":"buy"},"principal_parts":["buy","bought","bought"],"cloze":[{"en":"I {bought} a new phone.","de":"Ich habe ein neues Handy gekauft."}]},{"en":"to give","de":"geben","pos":"verb","id":"v023","lesson":"5","conjugation":{"i":"give","you":"give","he_she_it":"gives","we":"give","they":"give"},"principal_parts":["give","gave","given"]},{"en":"to take","de":"nehmen","pos":"verb","id":"v024","lesson":"5","conjugation":{"i":"take","you":"take","he_she_it":"takes","we":"take","they":"take"},"principal_parts":["take","took","taken"]},{"en":"to sleep","de":"schlafen","pos":"verb","id":"v025","lesson":"5","conjugation":{"i":"sleep","you":"sleep","he_she_it":"sleeps","we":"sleep","they":"sleep"},"principal_parts":["sleep","slept","slept"],"cloze":[{"en":"The baby {is sleeping}.","de":"Das Baby schläft."}]},{"en":"to run","de":"rennen","pos":"verb","id":"v026","lesson":"5","conjugation":{"i":"run","you":"run","he_she_it":"runs","we":"run","they":"run"},"principal_parts":["run","ran","run"]},{"en":"to walk","de":"laufen","pos":"verb","id":"v027","lesson":"5","conjugation":{"i":"walk","you":"walk","he_she_it":"walks","we":"walk","they":"walk"}},{"en":"big","de":"groß","pos":"adjective","id":"a001","lesson":"6","comparison":["bigger","biggest"],"cloze":[{"en":"This house is very {big}.","de":"Dieses Haus ist sehr groß."}]},{"en":"small","de":"klein","pos":"adjective","id":"a002","lesson":"6","comparison":["smaller","smallest"]},{"en":"good","de":"gut","pos":"adjective","id":"a003","lesson":"6","comparison":["better","best"],"cloze":[{"en":"The food was really {good}.","de":"Das Essen war wirklich gut."}]},{"en":"bad","de":"schlecht","pos":"adjective","id":"a004","lesson":"6","comparison":["worse","worst"]},{"en":"happy","de":"glücklich","pos":"adjective","id":"a005","lesson":"6","comparison":["more happy","most happy"]},{"en":"sad","de":"traurig","pos":"adjective","id":"a006","lesson":"6","comparison":["more sad","most sad"]},{"en":"hot","de":"heiß","pos":"adjective","id":"a007","lesson":"6","comparison":["hotter","hottest"]},{"en":"cold","de":"kalt","pos":"adjective","id":"a008","lesson":"6","comparison":["colder","coldest"],"cloze":[{"en":"It's very {cold} today.","de":"Es ist heute sehr kalt."}]},{"en":"new","de":"neu","pos":"adjective","id":"a009","lesson":"6","comparison":["newer","newest"]},{"en":"old","de":"alt","pos":"adjective","id":"a010","lesson":"6","comparison":["older","oldest"]},{"en":"young","de":"jung","pos":"adjective","id":"a011","lesson":"6","comparison":["younger","youngest"]},{"en":"beautiful","de":"schön","pos":"adjective","id":"a012","lesson":"6","comparison":["more beautiful","most beautiful"]},{"en":"ugly","de":"hässlich","pos":"adjective","id":"a013","lesson":"6","comparison":["more ugly","most ugly"]},{"en":"fast","de":"schnell","pos":"adjective","id":"a014","lesson":"6","comparison":["faster","fastest"]},{"en":"slow","de":"langsam","pos":"adjective","id":"a015","lesson":"6","comparison":["more slow","most slow"]},{"en":"easy","de":"einfach","pos":"adjective","id":"a016","lesson":"6","comparison":["more easy","most easy"]},{"en":"difficult","de":"schwierig","pos":"adjective","id":"a017","lesson":"6","comparison":["more difficult","most difficult"]},{"en":"expensive","de":"teuer","pos":"adjective","id":"a018","lesson":"6","comparison":["more expensive","most expensive"]},{"en":"cheap","de":"billig","pos":"adjective","id":"a019","lesson":"6","comparison":["more cheap","most cheap"]},{"en":"long","de":"lang","pos":"adjective","id":"a020","lesson":"6","comparison":["longer","longest"]},{"en":"short","de":"kurz","pos":"adjective","id":"a021","lesson":"6","comparison":["shorter","shortest"]},{"en":"strong","de":"stark","pos":"adjective","id":"a022","lesson":"6","comparison":["stronger","strongest"]},{"en":"weak","de":"schwach","pos":"adjective","id":"a023","lesson":"6","comparison":["weaker","weakest"]},{"en":"clean","de":"sauber","pos":"adjective","id":"a024","lesson":"6","comparison":["more clean","most clean"]},{"en":"dirty","de":"schmutzig","pos":"adjective","id":"a025","lesson":"6","comparison":["more dirty","most dirty"]},{"en":"important","de":"wichtig","pos":"adjective","id":"a026","lesson":"6","comparison":["more important","most important"]},{"en":"interesting","de":"interessant","pos":"adjective","id":"a027","lesson":"6","comparison":["more interesting","most interesting"]},{"en":"boring","de":"langweilig","pos":"adjective","id":"a028","lesson":"6","comparison":["more boring","most boring"]},{"en":"many","de":"viele","pos":"adjective","id":"a029","lesson":"6","comparison":["more","most"]},{"en":"little","de":"wenig","pos":"adjective","id":"a030","lesson":"6","comparison":["less","least"]},{"en":"much","de":"viel","pos":"adjective","id":"a031","lesson":"6","comparison":["more","most"]},{"en":"far","de":"weit","pos":"adjective","id":"a032","lesson":"6","comparison":["further","furthest"]},{"en":"house","de":"Haus","pos":"noun","id":"n039","lesson":"7"},{"en":"room","de":"Zimmer","pos":"noun","id":"n040","lesson":"7"},{"en":"kitchen","de":"Küche","pos":"noun","id":"n041","lesson":"7"},{"en":"bathroom","de":"Badezimmer","pos":"noun","id":"n042","lesson":"7"},{"en":"bedroom","de":"Schlafzimmer","pos":"noun","id":"n043","lesson":"7"},{"en":"door","de":"Tür","pos":"noun","id":"n044","lesson":"7"},{"en":"window","de":"Fenster","pos":"noun","id":"n045","lesson":"7"},{"en":"table","de":"Tisch","pos":"noun","id":"n046","lesson":"7"},{"en":"chair","de":"Stuhl","pos":"noun","id":"n047","lesson":"7"},{"en":"bed","de":"Bett","pos":"noun","id":"n048","lesson":"7"},{"en":"book","de":"Buch","pos":"noun","id":"n049","lesson":"7","cloze":[{"en":"I'm reading a good {book}.","de":"Ich lese ein gutes Buch."}]},{"en":"phone","de":"Telefon","pos":"noun","id":"n050","lesson":"7"},{"en":"computer","de":"Computer","pos":"noun","id":"n051","lesson":"7"},{"en":"key","de":"Schlüssel","pos":"noun","id":"n052","lesson":"7"},{"en":"bag","de":"Tasche","pos":"noun","id":"n053","lesson":"7"},{"en":"money","de":"Geld","pos":"noun","id":"n054","lesson":"7"},{"en":"car","de":"Auto","pos":"noun","id":"n055","lesson":"7"},{"en":"clock","de":"Uhr","pos":"noun","id":"n056","lesson":"7"},{"en":"Monday","de":"Montag","pos":"noun","id":"n057","lesson":"8"},{"en":"Tuesday","de":"Dienstag","pos":"noun","id":"n058","lesson":"8"},{"en":"Wednesday","de":"Mittwoch","pos":"noun","id":"n059","lesson":"8"},{"en":"Thursday","de":"Donnerstag","pos":"noun","id":"n060","lesson":"8"},{"en":"Friday","de":"Freitag","pos":"noun","id":"n061","lesson":"8"},{"en":"Saturday","de":"Samstag","pos":"noun","id":"n062","lesson":"8"},{"en":"Sunday","de":"Sonntag","pos":"noun","id":"n063","lesson":"8"},{"en":"morning","de":"Morgen","pos":"noun","id":"n064","lesson":"8"},{"en":"afternoon","de":"Nachmittag","pos":"noun","id":"n065","lesson":"8"},{"en":"evening","de":"Abend","pos":"noun","id":"n066","lesson":"8"},{"en":"night","de":"Nacht","pos":"noun","id":"n067","lesson":"8"},{"en":"weather","de":"Wetter","pos":"noun","id":"n068","lesson":"8"},{"en":"sun","de":"Sonne","pos":"noun","id":"n069","lesson":"8"},{"en":"rain","de":"Regen","pos":"noun","id":"n070","lesson":"8"},{"en":"snow","de":"Schnee","pos":"noun","id":"n071","lesson":"8"},{"en":"cloud","de":"Wolke","pos":"noun","id":"n072","lesson":"8"},{"en":"wind","de":"Wind","pos":"noun","id":"n073","lesson":"8"},{"en":"to begin","de":"anfangen","pos":"verb","id":"v028","lesson":"9","conjugation":{"i":"begin","you":"begin","he_she_it":"begins","we":"begin","they":"begin"},"principal_parts":["begin","began","begun"]},{"en":"to break","de":"brechen","pos":"verb","id":"v029","lesson":"9","conjugation":{"i":"break","you":"break","he_she_it":"breaks","we":"break","they":"break"},"principal_parts":["break","broke","broken"],"cloze":[{"en":"Be careful, you'll {break} it.","de":"Pass auf, du machst es kaputt."}]},{"en":"to bring","de":"bringen","pos":"verb","id":"v030","lesson":"9","conjugation":{"i":"bring","you":"bring","he_she_it":"brings","we":"bring","they":"bring"},"principal_parts":["bring","brought","brought"]},{"en":"to build","de":"bauen","pos":"verb","id":"v031","lesson":"9","conjugation":{"i":"build","you":"build","he_she_it":"builds","we":"build","they":"build"},"principal_parts":["build","built","built"]},{"en":"to catch","de":"fangen","pos":"verb","id":"v032","lesson":"9","conjugation":{"i":"catch","you":"catch","he_she_it":"catches","we":"catch","they":"catch"},"principal_parts":["catch","caught","caught"]},{"en":"to choose","de":"wählen","pos":"verb","id":"v033","lesson":"9","conjugation":{"i":"choose","you":"choose","he_she_it":"chooses","we":"choose","they":"choose"},"principal_parts":["choose","chose","chosen"]},{"en":"to cut","de":"schneiden","pos":"verb","id":"v034","lesson":"9","conjugation":{"i":"cut","you":"cut","he_she_it":"cuts","we":"cut","they":"cut"},"principal_parts":["cut","cut","cut"]},{"en":"to draw","de":"zeichnen","pos":"verb","id":"v035","lesson":"9","conjugation":{"i":"draw","you":"draw","he_she_it":"draws","we":"draw","they":"draw"},"principal_parts":["draw","drew","drawn"]},{"en":"to drive","de":"fahren","pos":"verb","id":"v036","lesson":"9","conjugation":{"i":"drive","you":"drive","he_she_it":"drives","we":"drive","they":"drive"},"principal_parts":["drive","drove","driven"],"cloze":[{"en":"He {drives} to work every day.","de":"Er fährt jeden Tag zur Arbeit."}]},{"en":"to fall","de":"fallen","pos":"verb","id":"v037","lesson":"9","conjugation":{"i":"fall","you":"fall","he_she_it":"falls","we":"fall","they":"fall"},"principal_parts":["fall","fell","fallen"]},{"en":"to feed","de":"füttern","pos":"verb","id":"v038","lesson":"9","conjugation":{"i":"feed","you":"feed","he_she_it":"feeds","we":"feed","they":"feed"},"principal_parts":["feed","fed","fed"]},{"en":"to feel","de":"fühlen","pos":"verb","id":"v039","lesson":"9","conjugation":{"i":"feel","you":"feel","he_she_it":"feels","we":"feel","they":"feel"},"principal_parts":["feel","felt","felt"],"cloze":[{"en":"I {feel} tired today.","de":"Ich fühle mich heute müde."}]},{"en":"to fight","de":"kämpfen","pos":"verb","id":"v040","lesson":"9","conjugation":{"i":"fight","you":"fight","he_she_it":"fights","we":"fight","they":"fight"},"principal_parts":["fight","fought","fought"]},{"en":"to find","de":"finden","pos":"verb","id":"v041","lesson":"9","conjugation":{"i":"find","you":"find","he_she_it":"finds","we":"find","they":"find"},"principal_parts":["find","found","found"],"cloze":[{"en":"I can't {find} my keys.","de":"Ich kann meine Schlüssel nicht finden."}]},{"en":"to fly","de":"fliegen","pos":"verb","id":"v042","lesson":"9","conjugation":{"i":"fly","you":"fly","he_she_it":"flies","we":"fly","they":"fly"},"principal_parts":["fly","flew","flown"]},{"en":"to forget","de":"vergessen","pos":"verb","id":"v043","lesson":"9","conjugation":{"i":"forget","you":"forget","he_she_it":"forgets","we":"forget","they":"forget"},"principal_parts":["forget","forgot","forgotten"],"cloze":[{"en":"Please don't {forget} your bag.","de":"Vergiss bitte deine Tasche nicht."}]},{"en":"to get","de":"bekommen","pos":"verb","id":"v044","lesson":"9","conjugation":{"i":"get","you":"get","he_she_it":"gets","we":"get","they":"get"},"principal_parts":["get","got","gotten"]},{"en":"to grow","de":"wachsen","pos":"verb","id":"v045","lesson":"9","conjugation":{"i":"grow","you":"grow","he_she_it":"grows","we":"grow","they":"grow"},"principal_parts":["grow","grew","grown"]},{"en":"to hear","de":"hören","pos":"verb","id":"v046","lesson":"9","conjugation":{"i":"hear","you":"hear","he_she_it":"hears","we":"hear","they":"hear"},"principal_parts":["hear","heard","heard"]},{"en":"to hold","de":"halten","pos":"verb","id":"v047","lesson":"9","conjugation":{"i":"hold","you":"hold","he_she_it":"holds","we":"hold","they":"hold"},"principal_parts":["hold","held","held"]},{"en":"to hurt","de":"wehtun","pos":"verb","id":"v048","lesson":"9","conjugation":{"i":"hurt","you":"hurt","he_she_it":"hurts","we":"hurt","they":"hurt"},"principal_parts":["hurt","hurt","hurt"]},{"en":"to keep","de":"behalten","pos":"verb","id":"v049","lesson":"9","conjugation":{"i":"keep","you":"keep","he_she_it":"keeps","we":"keep","they":"keep"},"principal_parts":["keep","kept","kept"]},{"en":"to leave","de":"verlassen","pos":"verb","id":"v050","lesson":"9","conjugation":{"i":"leave","you":"leave","he_she_it":"leaves","we":"leave","they":"leave"},"principal_parts":["leave","left","left"],"cloze":[{"en":"The train {leaves} at nine.","de":"Der Zug fährt um neun ab."}]},{"en":"to lend","de":"leihen","pos":"verb","id":"v051","lesson":"9","conjugation":{"i":"lend","you":"lend","he_she_it":"lends","we":"lend","they":"lend"},"principal_parts":["lend","lent","lent"]},{"en":"to let","de":"lassen","pos":"verb","id":"v052","lesson":"9","conjugation":{"i":"let","you":"let","he_she_it":"lets","we":"let","they":"let"},"principal_parts":["let","let","let"]},{"en":"to light","de":"anzünden","pos":"verb","id":"v053","lesson":"9","conjugation":{"i":"light","you":"light","he_she_it":"lights","we":"light","they":"light"},"principal_parts":["light","lit","lit"]},{"en":"to lose","de":"verlieren","pos":"verb","id":"v054","lesson":"9","conjugation":{"i":"lose","you":"lose","he_she_it":"loses","we":"lose","they":"lose"},"principal_parts":["lose","lost","lost"]},{"en":"to meet","de":"treffen","pos":"verb","id":"v055","lesson":"9","conjugation":{"i":"meet","you":"meet","he_she_it":"meets","we":"meet","they":"meet"},"principal_parts":["meet","met","met"],"cloze":[{"en":"Let's {meet} at the station.","de":"Lass uns am Bahnhof treffen."}]},{"en":"to pay","de":"bezahlen","pos":"verb","id":"v056","lesson":"9","conjugation":{"i":"pay","you":"pay","he_she_it":"pays","we":"pay","they":"pay"},"principal_parts":["pay","paid","paid"]},{"en":"to put","de":"legen","pos":"verb","id":"v057","lesson":"9","conjugation":{"i":"put","you":"put","he_she_it":"puts","we":"put","they":"put"},"principal_parts":["put","put","put"]},{"en":"to ride","de":"reiten","pos":"verb","id":"v058","lesson":"9","conjugation":{"i":"ride","you":"ride","he_she_it":"rides","we":"ride","they":"ride"},"principal_parts":["ride","rode","ridden"]},{"en":"to ring","de":"klingeln","pos":"verb","id":"v059","lesson":"9","conjugation":{"i":"ring","you":"ring","he_she_it":"rings","we":"ring","they":"ring"},"principal_parts":["ring","rang","rung"]},{"en":"to rise","de":"steigen","pos":"verb","id":"v060","lesson":"9","conjugation":{"i":"rise","you":"rise","he_she_it":"rises","we":"rise","they":"rise"},"principal_parts":["rise","rose","risen"]},{"en":"to say","de":"sagen","pos":"verb","id":"v061","lesson":"9","conjugation":{"i":"say","you":"say","he_she_it":"says","we":"say","they":"say"},"principal_parts":["say","said","said"],"cloze":[{"en":"What did you {say}?","de":"Was hast du gesagt?"}]},{"en":"to sell","de":"verkaufen","pos":"verb","id":"v062","lesson":"9","conjugation":{"i":"sell","you":"sell","he_she_it":"sells","we":"sell","they":"sell"},"principal_parts":["sell","sold","sold"]},{"en":"to send","de":"schicken","pos":"verb","id":"v063","lesson":"9","conjugation":{"i":"send","you":"send","he_she_it":"sends","we":"send","they":"send"},"principal_parts":["send","sent","sent"]},{"en":"to shine","de":"scheinen","pos":"verb","id":"v064","lesson":"9","conjugation":{"i":"shine","you":"shine","he_she_it":"shines","we":"shine","they":"shine"},"principal_parts":["shine","shone","shone"]},{"en":"to shoot","de":"schießen","pos":"verb","id":"v065","lesson":"9","conjugation":{"i":"shoot","you":"shoot","he_she_it":"shoots","we":"shoot","they":"shoot"},"principal_parts":["shoot","shot","shot"]},{"en":"to shut","de":"schließen","pos":"verb","id":"v066","lesson":"9","conjugation":{"i":"shut","you":"shut","he_she_it":"shuts","we":"shut","they":"shut"},"principal_parts":["shut","shut","shut"]},{"en":"to sing","de":"singen","pos":"verb","id":"v067","lesson":"9","conjugation":{"i":"sing","you":"sing","he_she_it":"sings","we":"sing","they":"sing"},"principal_parts":["sing","sang","sung"]},{"en":"to sit","de":"sitzen","pos":"verb","id":"v068","lesson":"9","conjugation":{"i":"sit","you":"sit","he_she_it":"sits","we":"sit","they":"sit"},"principal_parts":["sit","sat","sat"]},{"en":"to spend","de":"ausgeben","pos":"verb","id":"v069","lesson":"9","conjugation":{"i":"spend","you":"spend","he_she_it":"spends","we":"spend","they":"spend"},"principal_parts":["spend","spent","spent"]},{"en":"to stand","de":"stehen","pos":"verb","id":"v070","lesson":"9","conjugation":{"i":"stand","you":"stand","he_she_it":"stands","we":"stand","they":"stand"},"principal_parts":["stand","stood","stood"]},{"en":"to steal","de":"stehlen","pos":"verb","id":"v071","lesson":"9","conjugation":{"i":"steal","you":"steal","he_she_it":"steals","we":"steal","they":"steal"},"principal_parts":["steal","stole","stolen"]},{"en":"to swim","de":"schwimmen","pos":"verb","id":"v072","lesson":"9","conjugation":{"i":"swim","you":"swim","he_she_it":"swims","we":"swim","they":"swim"},"principal_parts":["swim","swam","swum"]},{"en":"to teach","de":"unterrichten","pos":"verb","id":"v073","lesson":"9","conjugation":{"i":"teach","you":"teach","he_she_it":"teaches","we":"teach","they":"teach"},"principal_parts":["teach","taught","taught"]},{"en":"to tell","de":"erzählen","pos":"verb","id":"v074","lesson":"9","conjugation":{"i":"tell","you":"tell","he_she_it":"tells","we":"tell","they":"tell"},"principal_parts":["tell","told","told"]},{"en":"to throw","de":"werfen","pos":"verb","id":"v075","lesson":"9","conjugation":{"i":"throw","you":"throw","he_she_it":"throws","we":"throw","they":"throw"},"principal_parts":["throw","threw","thrown"]},{"en":"to wake","de":"aufwachen","pos":"verb","id":"v076","lesson":"9","conjugation":{"i":"wake","you":"wake","he_she_it":"wakes","we":"wake","they":"wake"},"principal_parts":["wake","woke","woken"]},{"en":"to wear","de":"tragen","pos":"verb","id":"v077","lesson":"9","conjugation":{"i":"wear","you":"wear","he_she_it":"wears","we":"wear","they":"wear"},"principal_parts":["wear","wore","worn"],"cloze":[{"en":"She's {wearing} a red dress.","de":"Sie trägt ein rotes Kleid."}]},{"en":"to win","de":"gewinnen","pos":"verb","id":"v078","lesson":"9","conjugation":{"i":"win","you":"win","he_she_it":"wins","we":"win","they":"win"},"principal_parts":["win","won","won"]},{"en":"man","de":"Mann","pos":"noun","id":"n074","lesson":"10","plural":"men"},{"en":"woman","de":"Frau","pos":"noun","id":"n075","lesson":"10","plural":"women"},{"en":"person","de":"Person","pos":"noun","id":"n076","lesson":"10","plural":"people","cloze":[{"en":"She's a very kind {person}.","de":"Sie ist ein sehr netter Mensch."}]},{"en":"foot","de":"Fuß","pos":"noun","id":"n077","lesson":"10","plural":"feet"},{"en":"tooth","de":"Zahn","pos":"noun","id":"n078","lesson":"10","plural":"teeth"},{"en":"mouse","de":"Maus","pos":"noun","id":"n079","lesson":"10","plural":"mice"},{"en":"goose","de":"Gans","pos":"noun","id":"n080","lesson":"10","plural":"geese"},{"en":"sheep","de":"Schaf","pos":"noun","id":"n081","lesson":"10","plural":"sheep"}]};
+
+// === BUILD INDEX ===
+const byId = {};
+VOCAB_DATA.entries.forEach(e => { byId[e.id] = e; });
+
+// Deck meta-line generated from the data so it never goes stale
+(function renderDeckMeta() {
+  const el = document.getElementById("deck-meta");
+  if (!el) return;
+  const counts = {};
+  VOCAB_DATA.entries.forEach(function(e) { counts[e.pos] = (counts[e.pos] || 0) + 1; });
+  const PLURAL = { noun:"nouns", verb:"verbs", adjective:"adjectives", adverb:"adverbs",
+    pronoun:"pronouns", number:"numbers", phrase:"phrases", preposition:"prepositions",
+    conjunction:"conjunctions", particle:"particles", other:"other words" };
+  const parts = Object.keys(counts)
+    .sort(function(a, b) { return counts[b] - counts[a]; })
+    .slice(0, 5)
+    .map(function(p) { return counts[p] + " " + (PLURAL[p] || p + "s"); });
+  el.textContent = VOCAB_DATA.entries.length + " entries · " + parts.join(" · ");
+})();
+
+// === HELPERS ===
+// Punctuation is never part of an answer. Apostrophes are deliberately NOT
+// stripped: English contractions ("it's") are handled by expandContractions
+// below, not by throwing the apostrophe away, which would wrongly equate
+// "its" and "it's".
+const normalize = (s) => (s || "").trim().toLowerCase().replace(/[.,!?;:¡¿…«»–—“”]/g, "").replace(/-+$/, "").replace(/\s+/g, " ").trim();
+
+// Only German needs diacritic tolerance here -- the vocabulary is plain ASCII
+// English, but a German answer (en_de mode) commonly loses its umlauts/eszett
+// when typed on a phone keyboard.
+const DIACRITIC_MAP = { "ä":"a", "ö":"o", "ü":"u", "ß":"ss" };
+const stripDiacritics = (s) => s.replace(/[äöüß]/g, ch => DIACRITIC_MAP[ch] || ch);
+
+const editDistance = (a, b) => {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const m = a.length, n = b.length;
+  const prev2 = new Array(n + 1);
+  let prev = new Array(n + 1);
+  let curr = new Array(n + 1);
+  for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= m; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      curr[j] = Math.min(curr[j-1] + 1, prev[j] + 1, prev[j-1] + cost);
+      if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1]) {
+        curr[j] = Math.min(curr[j], prev2[j-2] + 1);
+      }
+    }
+    for (let j = 0; j <= n; j++) { prev2[j] = prev[j]; prev[j] = curr[j]; curr[j] = 0; }
+  }
+  return prev[n];
+};
+
+const tolerance = (len) => {
+  if (len <= 3) return 0;
+  if (len <= 5) return 1;
+  if (len <= 9) return 1;
+  return 2;
+};
+
+// Drop the German reflexive particle "sich" so "sich freuen" and "freuen"
+// match. Token-based so it only strips whole words, never a substring.
+const stripFiller = (s) => {
+  const kept = s.split(" ").filter(function(w) { return w !== "sich"; }).join(" ").trim();
+  return kept || s;   // never let filler-stripping empty an answer:
+                      // the particle can itself be the headword
+};
+
+// English glosses/cloze sentences are written as people speak them ("it's",
+// "don't"); a learner typing the formal written form ("it is", "do not") is
+// also correct. Expand both sides before comparing. Harmless no-ops against
+// German text -- none of these patterns can match German words.
+const CONTRACTIONS = [
+  [/\bcan't\b/g, "can not"], [/\bcannot\b/g, "can not"],
+  [/\bwon't\b/g, "will not"], [/\bshan't\b/g, "shall not"],
+  [/\b([a-z]+)n't\b/g, "$1 not"],
+  [/\blet's\b/g, "let us"],
+  [/\b(it|that|there|what|who|how|where|here|he|she|one)'s\b/g, "$1 is"],
+  [/\bi'm\b/g, "i am"],
+  [/\b(you|we|they)'re\b/g, "$1 are"],
+  [/\b(i|you|we|they|he|she|it)'ll\b/g, "$1 will"],
+  [/\b(i|you|we|they)'ve\b/g, "$1 have"],
+  [/\b(i|you|we|they|he|she|it)'d\b/g, "$1 would"],
+];
+const expandContractions = (s) => {
+  let out = s;
+  for (let i = 0; i < CONTRACTIONS.length; i++) out = out.replace(CONTRACTIONS[i][0], CONTRACTIONS[i][1]);
+  return out.replace(/\s+/g, " ").trim();
+};
+
+const gradeOne = (input, target) => {
+  let ni = normalize(input);
+  let nt = normalize(target);
+  if (!ni) return "wrong";
+  ni = stripFiller(ni);
+  nt = stripFiller(nt);
+  ni = expandContractions(ni);
+  nt = expandContractions(nt);
+  if (ni === nt) return "exact";
+  if (stripDiacritics(ni) === stripDiacritics(nt)) return "diacritic";
+  const d = editDistance(stripDiacritics(ni), stripDiacritics(nt));
+  if (d <= tolerance(Math.max(ni.length, nt.length))) return "typo";
+  return "wrong";
+};
+const RANK = { exact: 3, diacritic: 2, typo: 1, wrong: 0 };
+
+const gradeAnswer = (input, target) => {
+  if (!input || !target) return "wrong";
+  // A comma in a gloss is usually an alternative ("hello, hi") but sometimes
+  // part of the phrase itself ("I'm fine, thanks") -- keep the split (right
+  // most of the time) and also offer the intact target alongside.
+  const alts = [target.trim()].concat(target.split(/[,/]/).map(a => a.trim())).filter(Boolean);
+  let best = "wrong";
+  for (const a of alts) {
+    const g = gradeOne(input, a);
+    if (RANK[g] > RANK[best]) best = g;
+  }
+  return best;
+};
+
+// Remove parenthetical notes from a gloss for matching ("to go (by foot)" → "to go")
+const cleanGloss = (s) => s.replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+
+const PRONOUN_LABELS = {
+  i: "I", you: "you", he_she_it: "he / she / it", we: "we", they: "they"
+};
+
+// === SCORING / SRS ===
+const STORAGE_KEY = "english_trainer_progress";
+
+let LS_AVAILABLE = false;
+try {
+  if (typeof window !== "undefined" && window.localStorage) {
+    window.localStorage.setItem("__test__", "1");
+    window.localStorage.removeItem("__test__");
+    LS_AVAILABLE = true;
+  }
+} catch (e) {
+  LS_AVAILABLE = false;
+}
+
+const loadProgress = function() {
+  if (!LS_AVAILABLE) return { stats: {}, history: [] };
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { stats: {}, history: [] };
+};
+
+const saveProgress = function(p) {
+  if (!LS_AVAILABLE) return;
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch (e) {}
+};
+
+const weightFor = (stats, id) => {
+  const s = stats[id] || { correct: 0, wrong: 0, seen: 0, streak: 0 };
+  if (s.seen === 0) return 12;
+  const accuracy = s.correct / s.seen;
+  const base = 1 + (1 - accuracy) * 4;
+  return base / (1 + (s.streak || 0) * 1.5);
+};
+
+const NO_REPEAT_WINDOW = 8;
+
+const weightedPick = (pool, weights) => {
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+};
+
+const shuffle = (arr) => {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+};
+
+// === STATE ===
+let progress = loadProgress();
+let enabledModes = {
+  en_de: true, de_en: true, multiple_choice: true, conjugate: true,
+  principal_parts: true, comparison: true, plural: true, cloze: true
+};
+const ALL_LESSONS = (function() {
+  const seen = {};
+  VOCAB_DATA.entries.forEach(function(e){ if (e.lesson) seen[e.lesson] = true; });
+  const nums = Object.keys(seen).filter(function(k){ return /^\d+$/.test(k); })
+                     .sort(function(a,b){ return (+a) - (+b); });
+  const rest = Object.keys(seen).filter(function(k){ return !/^\d+$/.test(k); }).sort();
+  return nums.concat(rest);
+})();
+const LESSON_KEY = "english_trainer_lessons";
+function loadLessons() {
+  if (!LS_AVAILABLE) return null;
+  try { const r = window.localStorage.getItem(LESSON_KEY); return r ? JSON.parse(r) : null; }
+  catch (e) { return null; }
+}
+function saveLessons() {
+  if (!LS_AVAILABLE) return;
+  try { window.localStorage.setItem(LESSON_KEY, JSON.stringify(enabledLessons)); } catch (e) {}
+}
+let enabledLessons = {};
+(function() {
+  const saved = loadLessons();
+  ALL_LESSONS.forEach(function(l) {
+    enabledLessons[l] = (saved && (l in saved)) ? !!saved[l] : true;
+  });
+})();
+const ALL_POS = (function() {
+  const counts = {};
+  VOCAB_DATA.entries.forEach(function(e){ if (e.pos) counts[e.pos] = (counts[e.pos] || 0) + 1; });
+  return Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; });
+})();
+const POS_LABELS = { noun:"Nouns", verb:"Verbs", adjective:"Adjectives", adverb:"Adverbs",
+  pronoun:"Pronouns", preposition:"Prepositions", number:"Numbers", phrase:"Phrases",
+  conjunction:"Conjunctions", particle:"Particles", other:"Other" };
+function posLabel(p) { return POS_LABELS[p] || (p.charAt(0).toUpperCase() + p.slice(1)); }
+const POS_KEY = "english_trainer_pos";
+function loadPos() {
+  if (!LS_AVAILABLE) return null;
+  try { const r = window.localStorage.getItem(POS_KEY); return r ? JSON.parse(r) : null; }
+  catch (e) { return null; }
+}
+function savePos() {
+  if (!LS_AVAILABLE) return;
+  try { window.localStorage.setItem(POS_KEY, JSON.stringify(enabledPos)); } catch (e) {}
+}
+let enabledPos = {};
+(function() {
+  const saved = loadPos();
+  ALL_POS.forEach(function(p) {
+    enabledPos[p] = (saved && (p in saved)) ? !!saved[p] : true;
+  });
+})();
+let currentQ = null;
+let feedback = null;
+let recentIds = [];
+
+// === SESSION (open-ended round, ended manually for a summary) ===
+let session = { count: 0, results: [] };
+let summaryShowing = false;
+let reviewMode = false;
+let reviewQueue = [];
+let fullRoundQuestions = null;
+let summaryPrimaryAction = null;
+// "entryId|mode" pairs asked this round -- coverage is by WORD AND DRILL TYPE,
+// not just word: with en_de, de_en and cloze all enabled, a word needs all
+// three asked before it stops offering itself, not just one of them.
+let roundAsked = new Set();
+
+let clozeHintShown = false;
+
+const MODE_LABELS = [
+  ["en_de", "EN → DE"],
+  ["de_en", "DE → EN"],
+  ["multiple_choice", "Multiple choice"],
+  ["conjugate", "Conjugate"],
+  ["principal_parts", "Principal parts"],
+  ["comparison", "Comparison"],
+  ["plural", "Plural"],
+  ["cloze", "Fill the gap"],
+];
+
+// Whether a given drill type CAN ask a given entry at all, independent of
+// whether that mode is currently enabled. Mirrors each mode's own buildPool
+// filter in generateQuestion exactly -- kept as one table so the two can't
+// drift apart -- and is what per-(word, drill type) round coverage is
+// measured against in selectionExhausted.
+const MODE_ELIGIBLE = {
+  en_de: (e) => e.en && e.de,
+  de_en: (e) => e.en && e.de,
+  multiple_choice: (e) => e.en && e.de,
+  conjugate: (e) => e.pos === "verb" && e.conjugation,
+  principal_parts: (e) => e.pos === "verb" && e.principal_parts && e.principal_parts.length > 1,
+  comparison: (e) => e.pos === "adjective" && e.comparison && e.comparison.length > 1,
+  plural: (e) => e.pos === "noun" && e.plural,
+  cloze: (e) => e.cloze && e.cloze.length,
+};
+
+// === QUESTION GENERATORS ===
+function generateQuestion(mode) {
+  const entries = VOCAB_DATA.entries;
+  let pool = [], weights = [];
+
+  const buildPool = (filter) => {
+    pool = entries.filter(function(e){
+      if (!filter(e)) return false;
+      if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
+      return enabledLessons[e.lesson] && enabledPos[e.pos];
+    });
+    if (pool.length === 0) { weights = []; return; }
+    pool = pool.filter(function(e){ return !roundAsked.has(e.id + "|" + mode); });
+    if (pool.length === 0) { weights = []; return; }
+    if (pool.length > 1) {
+      const last = recentIds[recentIds.length - 1];
+      const trimmed = pool.filter(function(e){ return e.id !== last; });
+      if (trimmed.length > 0) pool = trimmed;
+    }
+    if (pool.length > 1 && recentIds.length > 0) {
+      const noRepeatWindow = Math.min(recentIds.length, pool.length - 1, NO_REPEAT_WINDOW);
+      if (noRepeatWindow > 0) {
+        const banned = {};
+        recentIds.slice(-noRepeatWindow).forEach(function(id){ banned[id] = true; });
+        const fresh = pool.filter(function(e){ return !banned[e.id]; });
+        if (fresh.length > 0) pool = fresh;
+      }
+    }
+    weights = pool.map(function(e) {
+      var w = weightFor(progress.stats, e.id);
+      var idx = recentIds.lastIndexOf(e.id);
+      if (idx >= 0) {
+        var recency = recentIds.length - idx;
+        w *= recency / (recency + 12);
+      }
+      return w;
+    });
+  };
+
+  // German alternatives of an entry's gloss, cleaned and lowercased
+  const deAlts = function(e) {
+    return cleanGloss(e.de).toLowerCase().split(/[,/]/).map(function(s){ return s.trim(); }).filter(Boolean);
+  };
+
+  if (mode === "en_de") {
+    buildPool(e => e.en && e.de);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    // Accept the German of ANY entry with the same English headword
+    // (a headword with two senses is one right answer under either)
+    const sameEn = entries.filter(function(x){ return x.en.toLowerCase() === e.en.toLowerCase() && x.de; });
+    const accept = sameEn.map(function(x){ return cleanGloss(x.de); });
+    return { type: mode, entryId: e.id, prompt: e.en, promptLabel: "English",
+             answerIn: true, answerLabel: "German", target: cleanGloss(e.de),
+             rawTarget: sameEn.map(function(x){ return x.de; }).join(" / "),
+             acceptableAnswers: accept, posHint: e.pos };
+  }
+  if (mode === "de_en") {
+    buildPool(e => e.en && e.de);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    // Accept the English of ANY entry sharing at least one German
+    // alternative -- several headwords can translate the same gloss
+    const myAlts = deAlts(e);
+    const matches = entries.filter(function(x) {
+      if (!x.de || !x.en) return false;
+      return deAlts(x).some(function(a){ return myAlts.indexOf(a) >= 0; });
+    });
+    const accept = matches.map(function(x){ return cleanGloss(x.en); });
+    return { type: mode, entryId: e.id, prompt: e.de, promptLabel: "German",
+             answerIn: true, answerLabel: "English", target: cleanGloss(e.en),
+             rawTarget: matches.map(function(x){ return x.en; }).join(" / "),
+             acceptableAnswers: accept, posHint: e.pos };
+  }
+  if (mode === "multiple_choice") {
+    buildPool(e => e.en && e.de);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    const enToDe = Math.random() < 0.5;       // true: show English, choose German
+    const field = enToDe ? "de" : "en";        // what the options display
+    const back = enToDe ? "en" : "de";         // each option's translation (prompt language)
+    const correct = e[field];
+    const exclude = {}; exclude[e.id] = true;
+    const taken = {}; taken[correct] = true;
+    const distractors = [];
+    const fillFrom = function(arr) {
+      const sh = shuffle(arr);
+      for (let i = 0; i < sh.length && distractors.length < 3; i++) {
+        const val = sh[i][field];
+        if (val && !taken[val]) { taken[val] = true; distractors.push({ text: val, trans: sh[i][back] }); }
+      }
+    };
+    fillFrom(entries.filter(function(x){ return x.pos === e.pos && x[field] && !exclude[x.id]; }));
+    if (distractors.length < 3) fillFrom(entries.filter(function(x){ return x[field] && !exclude[x.id]; }));
+    const choices = shuffle([{ text: correct, trans: e[back] }].concat(distractors));
+    return { type: mode, entryId: e.id,
+             prompt: e[enToDe ? "en" : "de"],
+             promptLabel: enToDe ? "Choose the German" : "Choose the English",
+             answerLabel: enToDe ? "German" : "English",
+             rawTarget: correct, correct: correct, choices: choices };
+  }
+  if (mode === "conjugate") {
+    buildPool(e => e.pos === "verb" && e.conjugation);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    const persons = Object.keys(e.conjugation);
+    const person = persons[Math.floor(Math.random() * persons.length)];
+    return { type: mode, entryId: e.id, person,
+             prompt: e.en + "  (" + e.de + ")  — " + PRONOUN_LABELS[person],
+             promptLabel: "Conjugate (present, " + PRONOUN_LABELS[person] + ")",
+             answerLabel: "Form", target: e.conjugation[person], rawTarget: e.conjugation[person] };
+  }
+  if (mode === "principal_parts") {
+    buildPool(e => e.pos === "verb" && e.principal_parts && e.principal_parts.length > 1);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    // normalize() collapses whitespace, so "go went gone" and "go, went, gone"
+    // grade identically; both spellings listed anyway.
+    const commas = e.principal_parts.join(", ");
+    const spaces = e.principal_parts.join(" ");
+    return { type: mode, entryId: e.id,
+             prompt: e.en + "  (" + e.de + ")",
+             promptLabel: "Give the principal parts",
+             answerLabel: "Principal parts (base, past, past participle)",
+             target: commas, rawTarget: commas,
+             acceptableAnswers: [commas, spaces] };
+  }
+  if (mode === "comparison") {
+    buildPool(e => e.pos === "adjective" && e.comparison && e.comparison.length > 1);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    const commas = e.comparison.join(", ");
+    const spaces = e.comparison.join(" ");
+    return { type: mode, entryId: e.id,
+             prompt: e.en + "  (" + e.de + ")",
+             promptLabel: "Give the comparative and superlative",
+             answerLabel: "Comparative, superlative",
+             target: commas, rawTarget: commas,
+             acceptableAnswers: [commas, spaces] };
+  }
+  if (mode === "plural") {
+    buildPool(e => e.pos === "noun" && e.plural);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    return { type: mode, entryId: e.id,
+             prompt: e.en + "  (" + e.de + ")",
+             promptLabel: "Give the plural",
+             answerLabel: "Plural", target: e.plural, rawTarget: e.plural };
+  }
+  if (mode === "cloze") {
+    buildPool(e => e.cloze && e.cloze.length);
+    if (pool.length === 0) return null;
+    const e = weightedPick(pool, weights);
+    const arr = Array.isArray(e.cloze) ? e.cloze : [e.cloze];
+    const c = arr[Math.floor(Math.random() * arr.length)];
+    const m = c.en.match(/\{([^}]*)\}/);
+    const answer = m ? m[1] : "";
+    const blanked = c.en.replace(/\{[^}]*\}/, "_____");
+    return { type: mode, entryId: e.id,
+             prompt: blanked,
+             subPrompt: c.de,
+             hint: e.en,
+             promptLabel: "Fill the gap",
+             answerLabel: "Word", target: answer, rawTarget: answer };
+  }
+  return null;
+}
+
+function checkAnswer(q, input) {
+  if (q.acceptableAnswers) {
+    let best = "wrong";
+    for (const a of q.acceptableAnswers) {
+      const g = gradeAnswer(input, a);
+      if (RANK[g] > RANK[best]) best = g;
+    }
+    return best;
+  }
+  return gradeAnswer(input, q.target);
+}
+
+function recordAnswer(grade) {
+  const id = currentQ.entryId;
+  const prev = progress.stats[id] || { correct: 0, wrong: 0, seen: 0, streak: 0 };
+  const addCorrect = grade === "exact" || grade === "diacritic" ? 1 : (grade === "typo" ? 0.5 : 0);
+  const addWrong = grade === "wrong" ? 1 : (grade === "typo" ? 0.5 : 0);
+  const isCorrect = grade === "exact" || grade === "diacritic";
+  progress.stats[id] = {
+    correct: prev.correct + addCorrect,
+    wrong: prev.wrong + addWrong,
+    seen: prev.seen + 1,
+    streak: isCorrect ? (prev.streak || 0) + 1 : (grade === "typo" ? (prev.streak || 0) : 0)
+  };
+  progress.history = (progress.history || []).slice(-200);
+  progress.history.push({ id, type: currentQ.type, grade, t: Date.now() });
+  saveProgress(progress);
+  session.count++;
+  roundAsked.add(currentQ.entryId + "|" + currentQ.type);
+  session.results.push({
+    q: currentQ,
+    userInput: (feedback && feedback.userInput) || "",
+    grade: grade
+  });
+}
+
+// === RENDER ===
+function renderStats() {
+  renderHardestButton();
+  const stats = Object.values(progress.stats);
+  const totalSeen = stats.reduce((a, s) => a + s.seen, 0);
+  const totalCorrect = stats.reduce((a, s) => a + s.correct, 0);
+  const pct = totalSeen === 0 ? 0 : Math.round((totalCorrect / totalSeen) * 100);
+  const attempted = Object.keys(progress.stats).length;
+  document.getElementById("stats").textContent =
+    totalCorrect.toFixed(0) + "/" + totalSeen + " correct · " + pct + "% · " + attempted + "/" + VOCAB_DATA.entries.length + " words attempted";
+}
+
+function setAllModes(v) {
+  MODE_LABELS.forEach(function(pair){ enabledModes[pair[0]] = v; });
+  renderModes();
+  pickQuestion();
+}
+function renderModes() {
+  const container = document.getElementById("modes");
+  container.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.type = "button"; allBtn.className = "btn-ghost"; allBtn.textContent = "All";
+  allBtn.addEventListener("click", function(){ setAllModes(true); });
+  container.appendChild(allBtn);
+
+  const noneBtn = document.createElement("button");
+  noneBtn.type = "button"; noneBtn.className = "btn-ghost"; noneBtn.textContent = "None";
+  noneBtn.addEventListener("click", function(){ setAllModes(false); });
+  container.appendChild(noneBtn);
+
+  MODE_LABELS.forEach(function(pair) {
+    const key = pair[0], label = pair[1];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-btn" + (enabledModes[key] ? " active" : "");
+    btn.textContent = label;
+    btn.addEventListener("click", function() {
+      enabledModes[key] = !enabledModes[key];
+      renderModes();
+      if (!currentQ || !enabledModes[currentQ.type]) pickQuestion();
+    });
+    container.appendChild(btn);
+  });
+
+  renderSelectionCount();
+}
+
+function lessonLabel(l) {
+  return /^\d+$/.test(l) ? "L" + l : l;
+}
+function setAllLessons(v) {
+  ALL_LESSONS.forEach(function(l){ enabledLessons[l] = v; });
+  saveLessons();
+  renderLessons();
+  pickQuestion();
+}
+function renderLessons() {
+  const container = document.getElementById("lessons");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.type = "button"; allBtn.className = "btn-ghost"; allBtn.textContent = "All";
+  allBtn.addEventListener("click", function(){ setAllLessons(true); });
+  container.appendChild(allBtn);
+
+  const noneBtn = document.createElement("button");
+  noneBtn.type = "button"; noneBtn.className = "btn-ghost"; noneBtn.textContent = "None";
+  noneBtn.addEventListener("click", function(){ setAllLessons(false); });
+  container.appendChild(noneBtn);
+
+  ALL_LESSONS.forEach(function(l) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-btn" + (enabledLessons[l] ? " active" : "");
+    btn.textContent = lessonLabel(l);
+    btn.addEventListener("click", function() {
+      enabledLessons[l] = !enabledLessons[l];
+      saveLessons();
+      renderLessons();
+      const e = currentQ ? byId[currentQ.entryId] : null;
+      if (!currentQ || (e && !enabledLessons[e.lesson])) pickQuestion();
+    });
+    container.appendChild(btn);
+  });
+  renderSelectionCount();
+}
+
+function setAllPos(v) {
+  ALL_POS.forEach(function(p){ enabledPos[p] = v; });
+  savePos();
+  renderPosFilter();
+  pickQuestion();
+}
+function renderPosFilter() {
+  const container = document.getElementById("pos-filter");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.type = "button"; allBtn.className = "btn-ghost"; allBtn.textContent = "All";
+  allBtn.addEventListener("click", function(){ setAllPos(true); });
+  container.appendChild(allBtn);
+
+  const noneBtn = document.createElement("button");
+  noneBtn.type = "button"; noneBtn.className = "btn-ghost"; noneBtn.textContent = "None";
+  noneBtn.addEventListener("click", function(){ setAllPos(false); });
+  container.appendChild(noneBtn);
+
+  ALL_POS.forEach(function(p) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-btn" + (enabledPos[p] ? " active" : "");
+    btn.textContent = posLabel(p);
+    btn.addEventListener("click", function() {
+      enabledPos[p] = !enabledPos[p];
+      savePos();
+      renderPosFilter();
+      const e = currentQ ? byId[currentQ.entryId] : null;
+      if (!currentQ || (e && !enabledPos[e.pos])) pickQuestion();
+    });
+    container.appendChild(btn);
+  });
+  renderSelectionCount();
+}
+
+function selectionCanAsk(e) {
+  if ((enabledModes.en_de || enabledModes.de_en || enabledModes.multiple_choice) && e.en && e.de) return true;
+  if (enabledModes.conjugate && e.pos === "verb" && e.conjugation) return true;
+  if (enabledModes.principal_parts && e.pos === "verb" && e.principal_parts && e.principal_parts.length > 1) return true;
+  if (enabledModes.comparison && e.pos === "adjective" && e.comparison && e.comparison.length > 1) return true;
+  if (enabledModes.plural && e.pos === "noun" && e.plural) return true;
+  if (enabledModes.cloze && e.cloze) return true;
+  return false;
+}
+function renderSelectionCount() {
+  const el = document.getElementById("selection-count");
+  if (!el) return;
+  const anyLesson = ALL_LESSONS.some(function(l){ return enabledLessons[l]; });
+  const anyPos = ALL_POS.some(function(p){ return enabledPos[p]; });
+  const anyMode = Object.keys(enabledModes).some(function(m){ return enabledModes[m]; });
+  if (!anyLesson) { el.textContent = "no lessons selected"; return; }
+  if (!anyPos) { el.textContent = "no word forms selected"; return; }
+  if (!anyMode) { el.textContent = "no drill types selected"; return; }
+  const enabledModeList = Object.keys(enabledModes).filter(function(m){ return enabledModes[m]; });
+  const countQuestions = function(sel) {
+    let q = 0;
+    for (let i = 0; i < sel.length; i++) {
+      for (let j = 0; j < enabledModeList.length; j++) {
+        const m = enabledModeList[j];
+        if (MODE_ELIGIBLE[m] && MODE_ELIGIBLE[m](sel[i])) q++;
+      }
+    }
+    return q;
+  };
+  if (hardestMode && hardestIds) {
+    const sel = VOCAB_DATA.entries.filter(function(e){
+      return hardestIds[e.id] && selectionCanAsk(e);
+    });
+    const h = sel.length;
+    const q = countQuestions(sel);
+    el.textContent = h + (h === 1 ? " word" : " words") + " · " +
+      q + (q === 1 ? " question" : " questions") + " in this hardest-words round";
+    return;
+  }
+  const sel = VOCAB_DATA.entries.filter(function(e){
+    return enabledLessons[e.lesson] && enabledPos[e.pos] && selectionCanAsk(e);
+  });
+  const n = sel.length;
+  const q = countQuestions(sel);
+  el.textContent = n + (n === 1 ? " word" : " words") + " · " +
+    q + (q === 1 ? " question" : " questions") + " in selection";
+}
+
+function pickQuestion(focusInput) {
+  summaryShowing = false;
+  clozeHintShown = false;
+  if (reviewMode) {
+    if (reviewQueue.length > 0) {
+      currentQ = reviewQueue.shift();
+      feedback = null;
+      renderCard(focusInput);
+      return;
+    }
+    if (session.count > 0) { showSummary(); return; }
+    reviewMode = false;
+  }
+  const modes = Object.keys(enabledModes).filter(m => enabledModes[m]);
+  if (modes.length === 0) {
+    currentQ = null; feedback = null;
+    renderCard();
+    return;
+  }
+  if (session.count > 0 && selectionExhausted()) {
+    showSummary();
+    return;
+  }
+  const candidateModes = shuffle(modes);
+  for (let i = 0; i < candidateModes.length; i++) {
+    const q = generateQuestion(candidateModes[i]);
+    if (q) {
+      currentQ = q; feedback = null;
+      recentIds.push(q.entryId);
+      if (recentIds.length > 40) recentIds.shift();
+      renderCard(focusInput);
+      return;
+    }
+  }
+  currentQ = null; feedback = null;
+  renderCard();
+}
+
+function selectionExhausted() {
+  const sel = VOCAB_DATA.entries.filter(function(e){
+    if (hardestMode) return !!(hardestIds && hardestIds[e.id]);
+    return enabledLessons[e.lesson] && enabledPos[e.pos];
+  });
+  const enabled = Object.keys(enabledModes).filter(function(m){ return enabledModes[m]; });
+  let any = false;
+  for (let i = 0; i < sel.length; i++) {
+    const e = sel[i];
+    for (let j = 0; j < enabled.length; j++) {
+      const m = enabled[j];
+      if (!MODE_ELIGIBLE[m](e)) continue;
+      any = true;
+      if (!roundAsked.has(e.id + "|" + m)) return false;
+    }
+  }
+  return any;
+}
+
+function showSummary() {
+  summaryShowing = true;
+  currentQ = null; feedback = null;
+
+  const area = document.getElementById("card-area");
+  area.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const headRow = document.createElement("div");
+  headRow.className = "card-head";
+  const label = document.createElement("div");
+  label.className = "prompt-label";
+  label.textContent = "Round summary";
+  headRow.appendChild(label);
+  card.appendChild(headRow);
+
+  const results = session.results;
+  const nCorrect = results.filter(function(r){ return r.grade === "exact" || r.grade === "diacritic"; }).length;
+  const nNear = results.filter(function(r){ return r.grade === "typo"; }).length;
+  const nWrong = results.filter(function(r){ return r.grade === "wrong"; }).length;
+  const pct = results.length ? Math.round((nCorrect + nNear * 0.5) / results.length * 100) : 0;
+
+  const head = document.createElement("div");
+  head.className = "summary-head";
+  head.textContent = results.length + " questions · " + nCorrect + " correct · " +
+    nNear + " near " + (nNear === 1 ? "miss" : "misses") + " · " + nWrong + " wrong · " + pct + "%";
+  card.appendChild(head);
+
+  const mistakes = results.filter(function(r){ return r.grade === "wrong" || r.grade === "typo"; });
+  if (mistakes.length > 0 && !reviewMode) {
+    fullRoundQuestions = results.map(function(r){ return r.q; });
+  }
+  if (mistakes.length === 0 && results.length > 0) {
+    const perfect = document.createElement("div");
+    perfect.className = "summary-head";
+    perfect.style.color = "#2a6f3d";
+    perfect.textContent = reviewMode
+      ? "All mistakes cleared — nothing left to re-drill. Well done! 🎉"
+      : "Perfect round — nothing to review. Well done!";
+    card.appendChild(perfect);
+  } else if (mistakes.length > 0) {
+    const section = document.createElement("div");
+    section.className = "summary-section";
+    section.textContent = "To review";
+    card.appendChild(section);
+    mistakes.forEach(function(r) {
+      const row = document.createElement("div");
+      row.className = "summary-row" + (r.grade === "typo" ? " near" : "");
+      const q = document.createElement("div");
+      q.textContent = r.q.prompt;
+      row.appendChild(q);
+      const a = document.createElement("div");
+      const tgt = document.createElement("span");
+      tgt.className = "sr-target";
+      tgt.textContent = r.q.rawTarget;
+      a.appendChild(tgt);
+      if (r.userInput) {
+        const yours = document.createElement("span");
+        yours.className = "sr-yours";
+        yours.textContent = "  — you wrote: " + r.userInput;
+        a.appendChild(yours);
+      }
+      row.appendChild(a);
+      card.appendChild(row);
+    });
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  if (mistakes.length > 0) {
+    const remaining = mistakes.map(function(r){ return r.q; });
+    const redrillFn = function() { startReviewRound(remaining); };
+    summaryPrimaryAction = redrillFn;
+    const redrill = document.createElement("button");
+    redrill.type = "button"; redrill.className = "btn-primary";
+    redrill.textContent = "Re-drill mistakes (" + mistakes.length + ") (Enter)";
+    redrill.addEventListener("click", redrillFn);
+    actions.appendChild(redrill);
+    const next = document.createElement("button");
+    next.type = "button"; next.className = "btn-ghost";
+    next.textContent = "New round";
+    next.addEventListener("click", startNewRound);
+    actions.appendChild(next);
+    if (hardestRows().length >= HARDEST_MIN_POOL) {
+      const hard = document.createElement("button");
+      hard.type = "button"; hard.className = "btn-ghost";
+      hard.textContent = "Hardest words";
+      hard.addEventListener("click", startHardestRound);
+      actions.appendChild(hard);
+    }
+  } else if (reviewMode && fullRoundQuestions && fullRoundQuestions.length > 0) {
+    const retestFn = function() { startReviewRound(fullRoundQuestions); };
+    summaryPrimaryAction = retestFn;
+    const retest = document.createElement("button");
+    retest.type = "button"; retest.className = "btn-primary";
+    retest.textContent = "Redrill the full round (" + fullRoundQuestions.length + ") (Enter)";
+    retest.addEventListener("click", retestFn);
+    actions.appendChild(retest);
+    const next = document.createElement("button");
+    next.type = "button"; next.className = "btn-ghost";
+    next.textContent = "Start next round";
+    next.addEventListener("click", startNewRound);
+    actions.appendChild(next);
+  } else {
+    summaryPrimaryAction = startNewRound;
+    const next = document.createElement("button");
+    next.type = "button"; next.className = "btn-primary";
+    next.textContent = "Start next round (Enter)";
+    next.addEventListener("click", startNewRound);
+    actions.appendChild(next);
+  }
+  card.appendChild(actions);
+
+  area.appendChild(card);
+}
+
+// --- Hardest-words round --------------------------------------------------
+const HARDEST_SHARE = 0.10;
+const HARDEST_MIN_POOL = 8;
+
+let hardestMode = false;
+let hardestIds = null;
+
+function hardestRows() {
+  const stats = (progress && progress.stats) || {};
+  const rows = [];
+  let attempted = 0;
+  Object.keys(stats).forEach(function(id) {
+    const s = stats[id];
+    if (!s || !s.seen || !byId[id]) return;
+    attempted++;
+    if (s.wrong > 0) rows.push({ id: id, wrong: s.wrong, seen: s.seen });
+  });
+  rows.sort(function(a, b) {
+    if (b.wrong !== a.wrong) return b.wrong - a.wrong;
+    return (b.wrong / b.seen) - (a.wrong / a.seen);
+  });
+  const target = Math.max(HARDEST_MIN_POOL, Math.ceil(attempted * HARDEST_SHARE));
+  return rows.slice(0, Math.min(target, rows.length));
+}
+
+function startHardestRound() {
+  const rows = hardestRows();
+  if (rows.length === 0) return;
+  hardestIds = {};
+  rows.forEach(function(r) { hardestIds[r.id] = true; });
+  session = { count: 0, results: [] };
+  summaryShowing = false;
+  reviewMode = false;
+  reviewQueue = [];
+  fullRoundQuestions = null;
+  roundAsked = new Set();
+  hardestMode = true;
+  pickQuestion();
+  renderHardestButton();
+  renderSelectionCount();
+}
+
+function renderHardestButton() {
+  const row = document.getElementById("hardest-row");
+  if (!row) return;
+  while (row.firstChild) row.removeChild(row.firstChild);
+  const rows = hardestRows();
+  const ready = rows.length >= HARDEST_MIN_POOL;
+  const size = hardestMode ? Object.keys(hardestIds || {}).length : rows.length;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-hardest" + (hardestMode ? " active" : "");
+  btn.setAttribute("aria-pressed", hardestMode ? "true" : "false");
+  btn.textContent = hardestMode ? "Drilling my hardest words (" + size + ")"
+                  : ready ? "Drill my hardest words (" + size + ")"
+                          : "Drill my hardest words";
+  if (hardestMode) btn.addEventListener("click", startNewRound);
+  else if (ready) btn.addEventListener("click", startHardestRound);
+  else btn.disabled = true;
+  row.appendChild(btn);
+  const note = document.createElement("span");
+  note.className = "hardest-note";
+  note.textContent = hardestMode
+    ? "tap again to leave the round and go back to the filters below"
+    : ready ? "the " + rows.length + " you get wrong most often — ignores the filters below"
+            : "unlocks once " + HARDEST_MIN_POOL + " different words have been missed (" +
+              rows.length + " so far)";
+  row.appendChild(note);
+}
+
+function startNewRound() {
+  session = { count: 0, results: [] };
+  summaryShowing = false;
+  reviewMode = false;
+  hardestMode = false;
+  hardestIds = null;
+  reviewQueue = [];
+  fullRoundQuestions = null;
+  roundAsked = new Set();
+  pickQuestion();
+  renderHardestButton();
+  renderSelectionCount();
+}
+
+function startReviewRound(questions) {
+  session = { count: 0, results: [] };
+  summaryShowing = false;
+  reviewMode = true;
+  reviewQueue = shuffle(questions.slice());
+  pickQuestion();
+}
+
+function submit() {
+  if (!currentQ || feedback) return;
+  const input = document.getElementById("answer-input").value;
+  const grade = checkAnswer(currentQ, input);
+  feedback = { grade, target: currentQ.rawTarget, userInput: input };
+  recordAnswer(grade);
+  renderStats();
+  updateCardForFeedback();
+}
+
+function reveal() {
+  if (!currentQ || feedback) return;
+  const el = document.getElementById("answer-input");
+  if (el && el.value && el.value.trim()) { submit(); return; }
+  feedback = { grade: "wrong", target: currentQ.rawTarget, revealed: true };
+  recordAnswer("wrong");
+  renderStats();
+  updateCardForFeedback();
+}
+
+function buildFeedbackEl() {
+  const fb = document.createElement("div");
+  fb.className = "feedback";
+  const target = document.createElement("strong");
+  target.textContent = feedback.target;
+  const userTyped = (feedback.userInput || "").trim().toLowerCase();
+  const targetText = (feedback.target || "").trim().toLowerCase();
+  const isLiteralMatch = userTyped === targetText;
+
+  if (feedback.grade === "exact" && isLiteralMatch) {
+    const span = document.createElement("span"); span.className = "ok"; span.textContent = "✓ Correct.";
+    fb.appendChild(span);
+  } else if (feedback.grade === "exact") {
+    const span = document.createElement("span"); span.className = "ok";
+    span.appendChild(document.createTextNode("✓ Correct. Full answer: "));
+    span.appendChild(target);
+    fb.appendChild(span);
+  } else if (feedback.grade === "diacritic") {
+    const span = document.createElement("span"); span.className = "ok";
+    span.appendChild(document.createTextNode("✓ Correct — mind the diacritics. Full answer: "));
+    span.appendChild(target);
+    fb.appendChild(span);
+  } else if (feedback.grade === "typo") {
+    const span = document.createElement("span"); span.className = "near";
+    span.appendChild(document.createTextNode("≈ Near miss (counted as half). Correct form: "));
+    span.appendChild(target);
+    fb.appendChild(span);
+  } else {
+    const span = document.createElement("span"); span.className = "bad";
+    span.appendChild(document.createTextNode(feedback.revealed ? "Answer: " : "✗ Not quite. Answer: "));
+    span.appendChild(target);
+    fb.appendChild(span);
+  }
+  return fb;
+}
+
+// Expandable form panel for the current question's word: present-tense
+// conjugation for verbs (with principal parts alongside, for irregular ones),
+// singular/plural for nouns, positive/comparative/superlative for adjectives.
+// Hidden before answering in any mode where the table would hand over the
+// answer (conjugate/principal_parts/comparison/plural: the form IS the
+// answer; de_en/cloze: the English word itself IS the answer).
+function buildConjSection() {
+  if (!currentQ) return null;
+  const e = byId[currentQ.entryId];
+  if (!e) return null;
+
+  const isVerb = e.pos === "verb" && e.conjugation;
+  const isNoun = e.pos === "noun" && e.plural;
+  const isAdj = e.pos === "adjective" && e.comparison;
+  if (!isVerb && !isNoun && !isAdj) return null;
+  const HIDDEN_TYPES = { conjugate: 1, principal_parts: 1, comparison: 1, plural: 1, de_en: 1, cloze: 1 };
+  if (!feedback && HIDDEN_TYPES[currentQ.type]) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "conj-section";
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "conj-toggle";
+  const word = isVerb ? "conjugation" : (isNoun ? "forms" : "comparison");
+  btn.textContent = "Show " + word;
+  const tbl = document.createElement("div");
+  tbl.className = "conj-table";
+  const lbl = document.createElement("div");
+  lbl.className = "conj-label";
+
+  const addRow = function(label, text) {
+    const row = document.createElement("div"); row.className = "conj-row";
+    const p = document.createElement("span"); p.className = "cp"; p.textContent = label;
+    const f = document.createElement("span"); f.textContent = text;
+    row.appendChild(p); row.appendChild(f);
+    tbl.appendChild(row);
+  };
+
+  if (isVerb) {
+    lbl.textContent = e.en + " — present";
+    tbl.appendChild(lbl);
+    Object.keys(e.conjugation).forEach(function(k) { addRow(PRONOUN_LABELS[k], e.conjugation[k]); });
+    if (e.principal_parts) {
+      const plbl = document.createElement("div"); plbl.className = "conj-label";
+      plbl.style.marginTop = "10px";
+      plbl.textContent = "principal parts";
+      tbl.appendChild(plbl);
+      addRow("base", e.principal_parts[0]);
+      addRow("past", e.principal_parts[1]);
+      addRow("past participle", e.principal_parts[2]);
+    }
+  } else if (isNoun) {
+    lbl.textContent = e.en;
+    tbl.appendChild(lbl);
+    addRow("singular", e.en);
+    addRow("plural", e.plural);
+  } else {
+    lbl.textContent = e.en;
+    tbl.appendChild(lbl);
+    addRow("positive", e.en);
+    addRow("comparative", e.comparison[0]);
+    addRow("superlative", e.comparison[1]);
+  }
+
+  btn.addEventListener("click", function() {
+    const open = tbl.className.indexOf("open") >= 0;
+    tbl.className = open ? "conj-table" : "conj-table open";
+    btn.textContent = (open ? "Show " : "Hide ") + word;
+  });
+  wrap.appendChild(btn);
+  wrap.appendChild(tbl);
+  return wrap;
+}
+
+function buildEndRow() {
+  const endRow = document.createElement("div");
+  endRow.className = "actions-end";
+  const endBtn = document.createElement("button");
+  endBtn.type = "button";
+  endBtn.className = "btn-end";
+  endBtn.textContent = "End round & show summary";
+  endBtn.addEventListener("click", showSummary);
+  endRow.appendChild(endBtn);
+  return endRow;
+}
+
+function buildNextActions() {
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  const next = document.createElement("button");
+  next.type = "button"; next.className = "btn-primary"; next.textContent = "Next (Enter)";
+  next.addEventListener("click", function() { pickQuestion(false); });
+  actions.appendChild(next);
+  return actions;
+}
+
+function buildChoiceSection() {
+  const wrap = document.createElement("div");
+  wrap.className = "mc-options";
+  (currentQ.choices || []).forEach(function(opt, i) {
+    const text = opt.text;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "mc-option";
+    const num = document.createElement("span");
+    num.className = "mc-num"; num.textContent = (i + 1) + ".";
+    b.appendChild(num);
+    b.appendChild(document.createTextNode(" " + text));
+    if (feedback) {
+      if (opt.trans) {
+        const gloss = document.createElement("span");
+        gloss.className = "mc-gloss";
+        gloss.textContent = " — " + opt.trans;
+        b.appendChild(gloss);
+      }
+      if (text === currentQ.correct) b.className += " mc-correct";
+      else if (text === feedback.userInput) b.className += " mc-wrong";
+      b.addEventListener("click", function() { pickQuestion(true); });
+    } else {
+      b.addEventListener("click", function() { chooseOption(text); });
+    }
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+
+function chooseOption(text) {
+  if (!currentQ || feedback || !currentQ.choices) return;
+  const grade = text === currentQ.correct ? "exact" : "wrong";
+  feedback = { grade: grade, target: currentQ.rawTarget, userInput: text };
+  recordAnswer(grade);
+  renderStats();
+  renderCard();
+}
+
+function updateCardForFeedback() {
+  const inputEl = document.getElementById("answer-input");
+  if (!inputEl) { renderCard(); return; }
+  inputEl.readOnly = true;
+  inputEl.className = "g-" + feedback.grade;
+  const card = inputEl.parentNode;
+  const old = card.querySelectorAll(".actions, .actions-secondary, .actions-end");
+  for (let i = 0; i < old.length; i++) card.removeChild(old[i]);
+  const cnt = card.querySelector(".q-counter");
+  if (cnt) cnt.textContent = (reviewMode ? "Review · Q " : "Q ") + session.count;
+  const oldConj = card.querySelector(".conj-section");
+  if (oldConj) card.removeChild(oldConj);
+  card.appendChild(buildFeedbackEl());
+  const conj = buildConjSection();
+  if (conj) card.appendChild(conj);
+  card.appendChild(buildNextActions());
+  if (session.count > 0) card.appendChild(buildEndRow());
+  inputEl.focus();
+}
+
+function renderCard(focusInput) {
+  if (summaryShowing) return;
+  const area = document.getElementById("card-area");
+  area.innerHTML = "";
+
+  if (!currentQ) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    const anyMode = Object.keys(enabledModes).some(function(m){ return enabledModes[m]; });
+    const anyLesson = ALL_LESSONS.some(function(l){ return enabledLessons[l]; });
+    const anyPos = ALL_POS.some(function(p){ return enabledPos[p]; });
+    empty.textContent = !anyLesson ? "Select at least one lesson to begin."
+      : !anyPos ? "Select at least one word form to begin."
+      : !anyMode ? "Select at least one drill type to begin."
+      : hardestMode ? "None of the selected drill types can ask your hardest words. Turn on more drill types, or start a new round."
+      : "No words match the selected drill types, lessons, and word forms.";
+    area.appendChild(empty);
+    return;
+  }
+
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const head = document.createElement("div");
+  head.className = "card-head";
+
+  const counter = document.createElement("div");
+  counter.className = "q-counter";
+  counter.textContent = (reviewMode ? "Review · Q " : "Q ") + (feedback ? session.count : session.count + 1);
+  head.appendChild(counter);
+
+  const promptLabel = document.createElement("div");
+  promptLabel.className = "prompt-label";
+  promptLabel.textContent = currentQ.promptLabel;
+  head.appendChild(promptLabel);
+
+  card.appendChild(head);
+
+  const prompt = document.createElement("div");
+  prompt.className = "prompt";
+  prompt.textContent = currentQ.prompt;
+  if (currentQ.posHint) {
+    const pos = document.createElement("span");
+    pos.className = "pos";
+    pos.textContent = "(" + currentQ.posHint + ")";
+    prompt.appendChild(pos);
+  }
+  card.appendChild(prompt);
+
+  if (currentQ.subPrompt) {
+    const sub = document.createElement("div");
+    sub.className = "prompt-sub";
+    const revealHint = currentQ.hint && (currentQ.type !== "cloze" || clozeHintShown || feedback);
+    if (revealHint) {
+      sub.textContent = currentQ.subPrompt + "    ·    (" + currentQ.hint + ")";
+    } else if (currentQ.hint && currentQ.type === "cloze") {
+      sub.textContent = currentQ.subPrompt + "    ·    ";
+      const link = document.createElement("button");
+      link.type = "button";
+      link.className = "hint-link";
+      link.textContent = "Show hint";
+      link.addEventListener("click", function() { clozeHintShown = true; renderCard(false); });
+      sub.appendChild(link);
+    } else {
+      sub.textContent = currentQ.subPrompt;
+    }
+    card.appendChild(sub);
+  }
+
+  if (currentQ.choices) {
+    card.appendChild(buildChoiceSection());
+    if (feedback) {
+      card.appendChild(buildFeedbackEl());
+      const conj = buildConjSection();
+      if (conj) card.appendChild(conj);
+      card.appendChild(buildNextActions());
+    }
+    if (session.count > 0) card.appendChild(buildEndRow());
+    area.appendChild(card);
+    return;
+  }
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.id = "answer-input";
+  input.placeholder = currentQ.answerIn
+    ? "Your answer in " + currentQ.answerLabel.toLowerCase() + "..."
+    : "Your " + currentQ.answerLabel.toLowerCase() + "...";
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("autocorrect", "off");
+  input.setAttribute("autocapitalize", "none");
+  input.setAttribute("spellcheck", "false");
+  input.spellcheck = false;
+  if (feedback) {
+    input.readOnly = true;
+    input.value = feedback.userInput || "";
+    input.className = "g-" + feedback.grade;
+  }
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      if (feedback) pickQuestion(true);
+      else submit();
+    }
+  });
+  card.appendChild(input);
+
+  if (feedback) {
+    card.appendChild(buildFeedbackEl());
+  }
+
+  const conjSection = buildConjSection();
+  if (conjSection) card.appendChild(conjSection);
+
+  if (!feedback) {
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    const check = document.createElement("button"); check.type = "button"; check.className = "btn-primary"; check.textContent = "Check (Enter)";
+    check.addEventListener("click", submit);
+    actions.appendChild(check);
+
+    const secondary = document.createElement("div");
+    secondary.className = "actions-secondary";
+    const show = document.createElement("button"); show.type = "button"; show.className = "btn-ghost"; show.textContent = "Show answer";
+    show.addEventListener("click", reveal);
+    const skip = document.createElement("button"); skip.type = "button"; skip.className = "btn-ghost"; skip.textContent = "Skip";
+    skip.addEventListener("click", function() { pickQuestion(false); });
+    secondary.appendChild(show); secondary.appendChild(skip);
+    card.appendChild(actions);
+    card.appendChild(secondary);
+  } else {
+    card.appendChild(buildNextActions());
+  }
+
+  if (session.count > 0) {
+    card.appendChild(buildEndRow());
+  }
+
+  area.appendChild(card);
+
+  if (!feedback) {
+    if (focusInput) input.focus();
+    else if (!("ontouchstart" in window)) setTimeout(function() { input.focus(); }, 0);
+  }
+}
+
+// === EXPORT / IMPORT ===
+function showMsg(text) {
+  const m = document.getElementById("export-msg");
+  m.textContent = text;
+  setTimeout(() => { m.textContent = ""; }, 4000);
+}
+
+document.getElementById("btn-export").addEventListener("click", function() {
+  const json = JSON.stringify(progress, null, 2);
+  const date = new Date().toISOString().slice(0, 10);
+  const filename = STORAGE_KEY.replace(/_progress$/, "").replace(/_/g, "-") + "-progress-" + date + ".json";
+
+  try {
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showMsg("Saved as " + filename);
+    return;
+  } catch (e) {}
+
+  try {
+    const w = window.open("", "_blank");
+    if (w) {
+      w.document.open();
+      w.document.write("<!doctype html><meta charset=\"utf-8\"><title>" + filename + "</title><pre style=\"font-family:monospace;white-space:pre-wrap;word-break:break-all;padding:16px\">" + json.replace(/[&<>]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[ch])) + "</pre>");
+      w.document.close();
+      showMsg("Opened in new tab.");
+      return;
+    }
+  } catch (e) {}
+
+  navigator.clipboard.writeText(json).then(function() { showMsg("Copied to clipboard."); });
+});
+
+document.getElementById("btn-copy").addEventListener("click", function() {
+  try {
+    var p = navigator.clipboard.writeText(JSON.stringify(progress, null, 2));
+    if (p && p.then) p.then(function() { showMsg("Copied JSON to clipboard."); }, function() { showMsg("Clipboard blocked — try Export."); });
+    else showMsg("Copied JSON to clipboard.");
+  } catch (e) {
+    showMsg("Clipboard blocked — try Export.");
+  }
+});
+
+document.getElementById("file-import").addEventListener("change", function(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = function() {
+    try {
+      const data = JSON.parse(r.result);
+      if (data && data.stats) {
+        progress = data;
+        saveProgress(progress);
+        renderStats();
+        showMsg("Progress restored.");
+      } else {
+        showMsg("Not a valid progress file.");
+      }
+    } catch (err) {
+      showMsg("Could not read file.");
+    }
+  };
+  r.readAsText(f);
+});
+
+document.getElementById("btn-reset").addEventListener("click", function() {
+  if (!confirm("Clear all progress? This cannot be undone.")) return;
+  progress = { stats: {}, history: [] };
+  saveProgress(progress);
+  renderStats();
+  showMsg("Progress cleared.");
+});
+
+// === INIT ===
+document.addEventListener("keydown", function(e) {
+  if (currentQ && currentQ.choices && !feedback && !summaryShowing) {
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= (currentQ.choices || []).length) {
+      e.preventDefault();
+      chooseOption(currentQ.choices[n - 1].text);
+      return;
+    }
+  }
+  if (e.key !== "Enter") return;
+  if (summaryShowing) {
+    e.preventDefault();
+    (summaryPrimaryAction || startNewRound)();
+    return;
+  }
+  if (feedback && currentQ) {
+    e.preventDefault();
+    pickQuestion(true);
+  }
+});
+
+try {
+  renderStats();
+  renderModes();
+  renderLessons();
+  renderPosFilter();
+  pickQuestion();
+  setTimeout(function() {
+    var area = document.getElementById("card-area");
+    if (area && area.textContent.indexOf("Loading") >= 0) {
+      area.innerHTML = "";
+      var msg = document.createElement("div");
+      msg.className = "empty";
+      msg.innerHTML = "Trainer initialised, but no question was generated.<br>" +
+        "Storage available: " + LS_AVAILABLE + "<br>" +
+        "Vocab entries: " + (VOCAB_DATA && VOCAB_DATA.entries ? VOCAB_DATA.entries.length : "MISSING") + "<br>" +
+        "Modes enabled: " + Object.keys(enabledModes).filter(function(m) { return enabledModes[m]; }).join(", ") + "<br>" +
+        "Word forms enabled: " + ALL_POS.filter(function(p) { return enabledPos[p]; }).join(", ");
+      area.appendChild(msg);
+    }
+  }, 500);
+} catch (e) {
+  var area = document.getElementById("card-area");
+  if (area) {
+    area.innerHTML = "";
+    var msg = document.createElement("div");
+    msg.className = "empty";
+    msg.style.color = "#b43c28";
+    msg.textContent = "INIT ERROR: " + (e && e.message ? e.message : e);
+    area.appendChild(msg);
+  }
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./english-trainer-sw.js', { scope: './english_trainer.html' }).catch(function () {});
+  });
+}
+</script>
+
+</body>
+</html>

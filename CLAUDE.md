@@ -6,7 +6,7 @@ a small games folder:
 
 | Directory | What | Read first |
 |---|---|---|
-| `language-trainers/` | 8 vocabulary trainers (Polish, Spanish, European + Brazilian Portuguese, Italian, French, Latin, medical terminology) | `language-trainers/CLAUDE.md` |
+| `language-trainers/` | 9 vocabulary trainers (Polish, Spanish, European + Brazilian Portuguese, Italian, French, Latin, medical terminology, English) | `language-trainers/CLAUDE.md` |
 | `coding-drills/` | 5 coding trainers (pyDrill, bashDrill, cppDrill, gitDrill, sqlDrill) | `coding-drills/CLAUDE.md` |
 | `games/` | Quartett, a Connections-style classical-music puzzle (hand-edited; puzzles live in its `PUZZLES` array; same `-sw.js` / `-manifest.json` / `icons/` PWA set as the drills) | this file |
 

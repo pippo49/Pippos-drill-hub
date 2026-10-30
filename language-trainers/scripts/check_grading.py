@@ -106,6 +106,28 @@ POLISH_POSSESSIVES = {
 # prompt genuinely translates to both. That rule is not what changed here.
 POLISH_ASPECT_PAIRS = ["mówić", "płacić", "słuchać"]
 
+# --- English (headword English, gloss German -- the mirror of Polish's
+# headword/gloss split, but WITH contractions since English is now the side
+# that gets typed as free text) -----------------------------------------
+ENGLISH_PAIRS = [
+    # English contractions, both directions -- same rule as French/Spanish/
+    # Italian/Latin, just reached from the opposite side (English is the
+    # target here, not the gloss).
+    ("it is", "it's", "exact"),
+    ("what is your name?", "what's your name?", "exact"),
+    ("I am fine, thanks", "I'm fine, thanks", "exact"),
+    ("it's", "it is", "exact"),
+    ("I cannot", "I can't", "exact"),
+    # A comma inside a phrase is not an alternative separator
+    ("I'm fine, thanks", "I'm fine, thanks", "exact"),
+    # the German reflexive particle "sich" is filler, both directions
+    ("freuen", "sich freuen", "exact"),
+    ("sich freuen", "freuen", "exact"),
+    # guards: genuinely wrong answers stay wrong
+    ("good", "bad", "wrong"),
+    ("hello", "goodbye", "wrong"),
+]
+
 
 def run(html, script):
     src = open(os.path.join(LT, html), encoding="utf-8").read()
@@ -293,6 +315,18 @@ console.log(JSON.stringify(res));
             fails += 1
         print(f"    {'ok ' if ok else 'FAIL'} {head} — prompt {prompt!r}: "
               f"{bare} -> {grades[0]}, {weak} -> {grades[1]}")
+
+    script = """
+const PAIRS = %s;
+const out = PAIRS.map(function(p){ return [p[0], p[1], p[2], gradeAnswer(p[0], p[1])]; });
+console.log(JSON.stringify(out));
+""" % json.dumps(ENGLISH_PAIRS)
+    print("\nEnglish gradeAnswer")
+    for inp, target, want, got in json.loads(run("english_trainer.html", script)):
+        ok = (got == want) if want != "wrong" else (got == "wrong")
+        if not ok:
+            fails += 1
+        print(f"  {'ok ' if ok else 'FAIL'} {inp:34} vs {target:24} -> {got} (want {want})")
 
     print("\nFAILURES:" if fails else "\nall grading checks pass", fails or "")
     sys.exit(1 if fails else 0)

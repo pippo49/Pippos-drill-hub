@@ -60,11 +60,14 @@ const countBlank = (o) => {
   }
 };
 for(const e of VOCAB_DATA.entries){
-  for(const f of ['noun_decl','conjugation','declension']) if(e[f]) countBlank(e[f]);
-  // The target-language key differs per deck (pl/es/la/it/...); it is simply
-  // whichever key is not the English gloss, so don't hardcode the list.
+  for(const f of ['noun_decl','conjugation','declension','principal_parts','comparison']) if(e[f]) countBlank(e[f]);
+  // The target-language key differs per deck (pl/es/la/it/...), and is usually
+  // whichever key is not "en" -- except the English trainer, where "en" IS the
+  // target and "de" is the gloss. Pick whichever key actually carries the
+  // {brace} markup instead of assuming which language that is; fall back to
+  // the old not-en rule if neither key has one (an already-broken cloze pair).
   if(e.cloze) for(const s of e.cloze){
-    const k=Object.keys(s).find(k=>k!=='en');
+    const k=Object.keys(s).find(k=>(s[k]||'').indexOf('{')>=0) || Object.keys(s).find(k=>k!=='en');
     const t=(k&&s[k])||'';
     if((t.match(/\\{/g)||[]).length!==1) braces++;
   }

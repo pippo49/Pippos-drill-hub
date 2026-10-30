@@ -45,6 +45,11 @@ LANGUAGE_APPS = [
     # are actually examined on. Splitting them would hide that.
     ("medical_trainer.html", "vocab_med.json", "Medical terminology",
      "latin & greek for medicine", "#5a1e2c", "#f0d8a8", "MD"),
+    # The mirror of the Polish trainer's direction: English is the headword
+    # drilled (conjugation, principal parts, plural, comparison), German is
+    # the bare gloss, for a German speaker learning English. See HANDOFF_EN.md.
+    ("english_trainer.html", "vocab_en.json", "English",
+     "english → deutsch", "#2d4356", "#eef2f5", "EN"),
 ]
 
 CODING_APPS = [

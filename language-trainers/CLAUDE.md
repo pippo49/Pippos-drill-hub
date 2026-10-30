@@ -11,11 +11,12 @@ Apps in this repo:
 - `portuguese_trainer.html` + `vocab_pt.json` — **European Portuguese** with Brazilian forms marked and both accepted. Details: `HANDOFF_PT.md`
 - `brazilian_trainer.html` + `vocab_br.json` — **Brazilian Portuguese**, four persons, same source deck re-slotted. Details: `HANDOFF_BR.md`
 - `medical_trainer.html` + `vocab_med.json` — **Latin & Greek medical terminology**, for medicine students. Details: `HANDOFF_MED.md`
+- `english_trainer.html` + `vocab_en.json` — **English→German** (reference language German, mirrors Polish's direction, not Spanish's), A1–A2 starter deck. Its own engine, not generated from another trainer — English's grammar (no case, no gender, no adjective agreement) doesn't fit any existing app's shape. Details: `HANDOFF_EN.md`
 - (PyDrill / bashDrill / cppDrill share the same engine family — same workflow applies if added here.)
 
-## Generated decks (Latin, Italian, French)
+## Generated decks (Latin, Italian, French, English)
 
-`vocab_la.json`, `vocab_it.json` and `vocab_fr.json` are **generated, not hand-edited** — the curated
+`vocab_la.json`, `vocab_it.json`, `vocab_fr.json` and `vocab_en.json` are **generated, not hand-edited** — the curated
 word lists live in `scripts/build_<lang>_vocab.py` and the paradigms come from
 `scripts/<lang>_morph.py`. The Polish and Spanish decks remain hand-maintained JSON.
 Both generators cross-check every expansion against whatever the source authored,

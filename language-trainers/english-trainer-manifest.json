@@ -1,0 +1,13 @@
+{
+  "name": "Vocabulary — English/German Trainer",
+  "short_name": "English Trainer",
+  "start_url": "./english_trainer.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f1e9",
+  "theme_color": "#f3f1e9",
+  "icons": [
+    { "src": "./icons/english-trainer-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/english-trainer-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
