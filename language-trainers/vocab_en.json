@@ -2825,6 +2825,1140 @@
       "id": "n081",
       "lesson": "10",
       "plural": "sheep"
+    },
+    {
+      "en": "clothes",
+      "de": "Kleidung",
+      "pos": "noun",
+      "id": "n082",
+      "lesson": "11"
+    },
+    {
+      "en": "shirt",
+      "de": "Hemd",
+      "pos": "noun",
+      "id": "n083",
+      "lesson": "11"
+    },
+    {
+      "en": "t-shirt",
+      "de": "T-Shirt",
+      "pos": "noun",
+      "id": "n084",
+      "lesson": "11"
+    },
+    {
+      "en": "trousers",
+      "de": "Hose",
+      "pos": "noun",
+      "id": "n085",
+      "lesson": "11"
+    },
+    {
+      "en": "dress",
+      "de": "Kleid",
+      "pos": "noun",
+      "id": "n086",
+      "lesson": "11",
+      "plural": "dresses",
+      "cloze": [
+        {
+          "en": "She's wearing a blue {dress}.",
+          "de": "Sie trägt ein blaues Kleid."
+        }
+      ]
+    },
+    {
+      "en": "skirt",
+      "de": "Rock",
+      "pos": "noun",
+      "id": "n087",
+      "lesson": "11"
+    },
+    {
+      "en": "jacket",
+      "de": "Jacke",
+      "pos": "noun",
+      "id": "n088",
+      "lesson": "11"
+    },
+    {
+      "en": "coat",
+      "de": "Mantel",
+      "pos": "noun",
+      "id": "n089",
+      "lesson": "11"
+    },
+    {
+      "en": "shoe",
+      "de": "Schuh",
+      "pos": "noun",
+      "id": "n090",
+      "lesson": "11"
+    },
+    {
+      "en": "sock",
+      "de": "Socke",
+      "pos": "noun",
+      "id": "n091",
+      "lesson": "11"
+    },
+    {
+      "en": "hat",
+      "de": "Hut",
+      "pos": "noun",
+      "id": "n092",
+      "lesson": "11"
+    },
+    {
+      "en": "scarf",
+      "de": "Schal",
+      "pos": "noun",
+      "id": "n093",
+      "lesson": "11",
+      "plural": "scarves"
+    },
+    {
+      "en": "belt",
+      "de": "Gürtel",
+      "pos": "noun",
+      "id": "n094",
+      "lesson": "11"
+    },
+    {
+      "en": "glove",
+      "de": "Handschuh",
+      "pos": "noun",
+      "id": "n095",
+      "lesson": "11"
+    },
+    {
+      "en": "red",
+      "de": "rot",
+      "pos": "adjective",
+      "id": "a033",
+      "lesson": "12"
+    },
+    {
+      "en": "blue",
+      "de": "blau",
+      "pos": "adjective",
+      "id": "a034",
+      "lesson": "12"
+    },
+    {
+      "en": "green",
+      "de": "grün",
+      "pos": "adjective",
+      "id": "a035",
+      "lesson": "12"
+    },
+    {
+      "en": "yellow",
+      "de": "gelb",
+      "pos": "adjective",
+      "id": "a036",
+      "lesson": "12"
+    },
+    {
+      "en": "black",
+      "de": "schwarz",
+      "pos": "adjective",
+      "id": "a037",
+      "lesson": "12"
+    },
+    {
+      "en": "white",
+      "de": "weiß",
+      "pos": "adjective",
+      "id": "a038",
+      "lesson": "12"
+    },
+    {
+      "en": "orange",
+      "de": "orange",
+      "pos": "adjective",
+      "id": "a039",
+      "lesson": "12"
+    },
+    {
+      "en": "purple",
+      "de": "lila",
+      "pos": "adjective",
+      "id": "a040",
+      "lesson": "12"
+    },
+    {
+      "en": "pink",
+      "de": "rosa",
+      "pos": "adjective",
+      "id": "a041",
+      "lesson": "12"
+    },
+    {
+      "en": "brown",
+      "de": "braun",
+      "pos": "adjective",
+      "id": "a042",
+      "lesson": "12"
+    },
+    {
+      "en": "grey",
+      "de": "grau",
+      "pos": "adjective",
+      "id": "a043",
+      "lesson": "12"
+    },
+    {
+      "en": "head",
+      "de": "Kopf",
+      "pos": "noun",
+      "id": "n096",
+      "lesson": "13"
+    },
+    {
+      "en": "face",
+      "de": "Gesicht",
+      "pos": "noun",
+      "id": "n097",
+      "lesson": "13"
+    },
+    {
+      "en": "eye",
+      "de": "Auge",
+      "pos": "noun",
+      "id": "n098",
+      "lesson": "13",
+      "cloze": [
+        {
+          "en": "She has blue {eyes}.",
+          "de": "Sie hat blaue Augen."
+        }
+      ]
+    },
+    {
+      "en": "ear",
+      "de": "Ohr",
+      "pos": "noun",
+      "id": "n099",
+      "lesson": "13"
+    },
+    {
+      "en": "nose",
+      "de": "Nase",
+      "pos": "noun",
+      "id": "n100",
+      "lesson": "13"
+    },
+    {
+      "en": "mouth",
+      "de": "Mund",
+      "pos": "noun",
+      "id": "n101",
+      "lesson": "13"
+    },
+    {
+      "en": "hand",
+      "de": "Hand",
+      "pos": "noun",
+      "id": "n102",
+      "lesson": "13"
+    },
+    {
+      "en": "arm",
+      "de": "Arm",
+      "pos": "noun",
+      "id": "n103",
+      "lesson": "13"
+    },
+    {
+      "en": "leg",
+      "de": "Bein",
+      "pos": "noun",
+      "id": "n104",
+      "lesson": "13"
+    },
+    {
+      "en": "back",
+      "de": "Rücken",
+      "pos": "noun",
+      "id": "n105",
+      "lesson": "13"
+    },
+    {
+      "en": "stomach",
+      "de": "Bauch",
+      "pos": "noun",
+      "id": "n106",
+      "lesson": "13",
+      "plural": "stomaches"
+    },
+    {
+      "en": "hair",
+      "de": "Haar",
+      "pos": "noun",
+      "id": "n107",
+      "lesson": "13"
+    },
+    {
+      "en": "finger",
+      "de": "Finger",
+      "pos": "noun",
+      "id": "n108",
+      "lesson": "13"
+    },
+    {
+      "en": "shoulder",
+      "de": "Schulter",
+      "pos": "noun",
+      "id": "n109",
+      "lesson": "13"
+    },
+    {
+      "en": "knee",
+      "de": "Knie",
+      "pos": "noun",
+      "id": "n110",
+      "lesson": "13"
+    },
+    {
+      "en": "city",
+      "de": "Stadt",
+      "pos": "noun",
+      "id": "n111",
+      "lesson": "14",
+      "plural": "cities"
+    },
+    {
+      "en": "town",
+      "de": "Stadt",
+      "pos": "noun",
+      "id": "n112",
+      "lesson": "14"
+    },
+    {
+      "en": "street",
+      "de": "Straße",
+      "pos": "noun",
+      "id": "n113",
+      "lesson": "14"
+    },
+    {
+      "en": "shop",
+      "de": "Geschäft",
+      "pos": "noun",
+      "id": "n114",
+      "lesson": "14"
+    },
+    {
+      "en": "supermarket",
+      "de": "Supermarkt",
+      "pos": "noun",
+      "id": "n115",
+      "lesson": "14"
+    },
+    {
+      "en": "market",
+      "de": "Markt",
+      "pos": "noun",
+      "id": "n116",
+      "lesson": "14"
+    },
+    {
+      "en": "bank",
+      "de": "Bank",
+      "pos": "noun",
+      "id": "n117",
+      "lesson": "14"
+    },
+    {
+      "en": "hospital",
+      "de": "Krankenhaus",
+      "pos": "noun",
+      "id": "n118",
+      "lesson": "14"
+    },
+    {
+      "en": "school",
+      "de": "Schule",
+      "pos": "noun",
+      "id": "n119",
+      "lesson": "14"
+    },
+    {
+      "en": "park",
+      "de": "Park",
+      "pos": "noun",
+      "id": "n120",
+      "lesson": "14"
+    },
+    {
+      "en": "church",
+      "de": "Kirche",
+      "pos": "noun",
+      "id": "n121",
+      "lesson": "14",
+      "plural": "churches"
+    },
+    {
+      "en": "station",
+      "de": "Bahnhof",
+      "pos": "noun",
+      "id": "n122",
+      "lesson": "14"
+    },
+    {
+      "en": "airport",
+      "de": "Flughafen",
+      "pos": "noun",
+      "id": "n123",
+      "lesson": "14"
+    },
+    {
+      "en": "hotel",
+      "de": "Hotel",
+      "pos": "noun",
+      "id": "n124",
+      "lesson": "14"
+    },
+    {
+      "en": "library",
+      "de": "Bibliothek",
+      "pos": "noun",
+      "id": "n125",
+      "lesson": "14",
+      "plural": "libraries"
+    },
+    {
+      "en": "bridge",
+      "de": "Brücke",
+      "pos": "noun",
+      "id": "n126",
+      "lesson": "14"
+    },
+    {
+      "en": "square",
+      "de": "Platz",
+      "pos": "noun",
+      "id": "n127",
+      "lesson": "14"
+    },
+    {
+      "en": "bus",
+      "de": "Bus",
+      "pos": "noun",
+      "id": "n128",
+      "lesson": "15",
+      "plural": "buses"
+    },
+    {
+      "en": "train",
+      "de": "Zug",
+      "pos": "noun",
+      "id": "n129",
+      "lesson": "15"
+    },
+    {
+      "en": "bike",
+      "de": "Fahrrad",
+      "pos": "noun",
+      "id": "n130",
+      "lesson": "15"
+    },
+    {
+      "en": "plane",
+      "de": "Flugzeug",
+      "pos": "noun",
+      "id": "n131",
+      "lesson": "15"
+    },
+    {
+      "en": "ship",
+      "de": "Schiff",
+      "pos": "noun",
+      "id": "n132",
+      "lesson": "15"
+    },
+    {
+      "en": "taxi",
+      "de": "Taxi",
+      "pos": "noun",
+      "id": "n133",
+      "lesson": "15"
+    },
+    {
+      "en": "ticket",
+      "de": "Fahrkarte",
+      "pos": "noun",
+      "id": "n134",
+      "lesson": "15",
+      "cloze": [
+        {
+          "en": "I need to buy a {ticket}.",
+          "de": "Ich muss eine Fahrkarte kaufen."
+        }
+      ]
+    },
+    {
+      "en": "to travel",
+      "de": "reisen",
+      "pos": "verb",
+      "id": "v079",
+      "lesson": "15",
+      "conjugation": {
+        "i": "travel",
+        "you": "travel",
+        "he_she_it": "travels",
+        "we": "travel",
+        "they": "travel"
+      }
+    },
+    {
+      "en": "doctor",
+      "de": "Arzt",
+      "pos": "noun",
+      "id": "n135",
+      "lesson": "16"
+    },
+    {
+      "en": "nurse",
+      "de": "Krankenschwester",
+      "pos": "noun",
+      "id": "n136",
+      "lesson": "16"
+    },
+    {
+      "en": "teacher",
+      "de": "Lehrer",
+      "pos": "noun",
+      "id": "n137",
+      "lesson": "16"
+    },
+    {
+      "en": "student",
+      "de": "Student",
+      "pos": "noun",
+      "id": "n138",
+      "lesson": "16"
+    },
+    {
+      "en": "engineer",
+      "de": "Ingenieur",
+      "pos": "noun",
+      "id": "n139",
+      "lesson": "16"
+    },
+    {
+      "en": "lawyer",
+      "de": "Anwalt",
+      "pos": "noun",
+      "id": "n140",
+      "lesson": "16"
+    },
+    {
+      "en": "waiter",
+      "de": "Kellner",
+      "pos": "noun",
+      "id": "n141",
+      "lesson": "16"
+    },
+    {
+      "en": "driver",
+      "de": "Fahrer",
+      "pos": "noun",
+      "id": "n142",
+      "lesson": "16"
+    },
+    {
+      "en": "cook",
+      "de": "Koch",
+      "pos": "noun",
+      "id": "n143",
+      "lesson": "16"
+    },
+    {
+      "en": "farmer",
+      "de": "Bauer",
+      "pos": "noun",
+      "id": "n144",
+      "lesson": "16"
+    },
+    {
+      "en": "artist",
+      "de": "Künstler",
+      "pos": "noun",
+      "id": "n145",
+      "lesson": "16"
+    },
+    {
+      "en": "musician",
+      "de": "Musiker",
+      "pos": "noun",
+      "id": "n146",
+      "lesson": "16"
+    },
+    {
+      "en": "writer",
+      "de": "Schriftsteller",
+      "pos": "noun",
+      "id": "n147",
+      "lesson": "16"
+    },
+    {
+      "en": "manager",
+      "de": "Manager",
+      "pos": "noun",
+      "id": "n148",
+      "lesson": "16"
+    },
+    {
+      "en": "job",
+      "de": "Job",
+      "pos": "noun",
+      "id": "n149",
+      "lesson": "16"
+    },
+    {
+      "en": "class",
+      "de": "Klasse",
+      "pos": "noun",
+      "id": "n150",
+      "lesson": "17",
+      "plural": "classes"
+    },
+    {
+      "en": "lesson",
+      "de": "Lektion",
+      "pos": "noun",
+      "id": "n151",
+      "lesson": "17"
+    },
+    {
+      "en": "homework",
+      "de": "Hausaufgaben",
+      "pos": "noun",
+      "id": "n152",
+      "lesson": "17"
+    },
+    {
+      "en": "exam",
+      "de": "Prüfung",
+      "pos": "noun",
+      "id": "n153",
+      "lesson": "17"
+    },
+    {
+      "en": "pen",
+      "de": "Stift",
+      "pos": "noun",
+      "id": "n154",
+      "lesson": "17"
+    },
+    {
+      "en": "pencil",
+      "de": "Bleistift",
+      "pos": "noun",
+      "id": "n155",
+      "lesson": "17"
+    },
+    {
+      "en": "paper",
+      "de": "Papier",
+      "pos": "noun",
+      "id": "n156",
+      "lesson": "17"
+    },
+    {
+      "en": "question",
+      "de": "Frage",
+      "pos": "noun",
+      "id": "n157",
+      "lesson": "17",
+      "cloze": [
+        {
+          "en": "Can I ask you a {question}?",
+          "de": "Darf ich dir eine Frage stellen?"
+        }
+      ]
+    },
+    {
+      "en": "answer",
+      "de": "Antwort",
+      "pos": "noun",
+      "id": "n158",
+      "lesson": "17"
+    },
+    {
+      "en": "work",
+      "de": "Arbeit",
+      "pos": "noun",
+      "id": "n159",
+      "lesson": "17"
+    },
+    {
+      "en": "to learn",
+      "de": "lernen",
+      "pos": "verb",
+      "id": "v080",
+      "lesson": "17",
+      "conjugation": {
+        "i": "learn",
+        "you": "learn",
+        "he_she_it": "learns",
+        "we": "learn",
+        "they": "learn"
+      },
+      "cloze": [
+        {
+          "en": "I'm {learning} English.",
+          "de": "Ich lerne Englisch."
+        }
+      ]
+    },
+    {
+      "en": "to study",
+      "de": "studieren",
+      "pos": "verb",
+      "id": "v081",
+      "lesson": "17",
+      "conjugation": {
+        "i": "study",
+        "you": "study",
+        "he_she_it": "studies",
+        "we": "study",
+        "they": "study"
+      }
+    },
+    {
+      "en": "price",
+      "de": "Preis",
+      "pos": "noun",
+      "id": "n160",
+      "lesson": "18"
+    },
+    {
+      "en": "euro",
+      "de": "Euro",
+      "pos": "noun",
+      "id": "n161",
+      "lesson": "18"
+    },
+    {
+      "en": "cent",
+      "de": "Cent",
+      "pos": "noun",
+      "id": "n162",
+      "lesson": "18"
+    },
+    {
+      "en": "credit card",
+      "de": "Kreditkarte",
+      "pos": "noun",
+      "id": "n163",
+      "lesson": "18"
+    },
+    {
+      "en": "receipt",
+      "de": "Quittung",
+      "pos": "noun",
+      "id": "n164",
+      "lesson": "18"
+    },
+    {
+      "en": "to cost",
+      "de": "kosten",
+      "pos": "verb",
+      "id": "v082",
+      "lesson": "18",
+      "conjugation": {
+        "i": "cost",
+        "you": "cost",
+        "he_she_it": "costs",
+        "we": "cost",
+        "they": "cost"
+      },
+      "cloze": [
+        {
+          "en": "How much does it {cost}?",
+          "de": "Wie viel kostet es?"
+        }
+      ]
+    },
+    {
+      "en": "music",
+      "de": "Musik",
+      "pos": "noun",
+      "id": "n165",
+      "lesson": "19"
+    },
+    {
+      "en": "film",
+      "de": "Film",
+      "pos": "noun",
+      "id": "n166",
+      "lesson": "19"
+    },
+    {
+      "en": "game",
+      "de": "Spiel",
+      "pos": "noun",
+      "id": "n167",
+      "lesson": "19"
+    },
+    {
+      "en": "sport",
+      "de": "Sport",
+      "pos": "noun",
+      "id": "n168",
+      "lesson": "19"
+    },
+    {
+      "en": "football",
+      "de": "Fußball",
+      "pos": "noun",
+      "id": "n169",
+      "lesson": "19"
+    },
+    {
+      "en": "to play",
+      "de": "spielen",
+      "pos": "verb",
+      "id": "v083",
+      "lesson": "19",
+      "conjugation": {
+        "i": "play",
+        "you": "play",
+        "he_she_it": "plays",
+        "we": "play",
+        "they": "play"
+      },
+      "cloze": [
+        {
+          "en": "The children {play} in the park.",
+          "de": "Die Kinder spielen im Park."
+        }
+      ]
+    },
+    {
+      "en": "to watch",
+      "de": "schauen",
+      "pos": "verb",
+      "id": "v084",
+      "lesson": "19",
+      "conjugation": {
+        "i": "watch",
+        "you": "watch",
+        "he_she_it": "watches",
+        "we": "watch",
+        "they": "watch"
+      }
+    },
+    {
+      "en": "to listen",
+      "de": "hören",
+      "pos": "verb",
+      "id": "v085",
+      "lesson": "19",
+      "conjugation": {
+        "i": "listen",
+        "you": "listen",
+        "he_she_it": "listens",
+        "we": "listen",
+        "they": "listen"
+      }
+    },
+    {
+      "en": "to dance",
+      "de": "tanzen",
+      "pos": "verb",
+      "id": "v086",
+      "lesson": "19",
+      "conjugation": {
+        "i": "dance",
+        "you": "dance",
+        "he_she_it": "dances",
+        "we": "dance",
+        "they": "dance"
+      }
+    },
+    {
+      "en": "in",
+      "de": "in",
+      "pos": "preposition",
+      "id": "o035",
+      "lesson": "20"
+    },
+    {
+      "en": "on",
+      "de": "auf",
+      "pos": "preposition",
+      "id": "o036",
+      "lesson": "20"
+    },
+    {
+      "en": "under",
+      "de": "unter",
+      "pos": "preposition",
+      "id": "o037",
+      "lesson": "20"
+    },
+    {
+      "en": "over",
+      "de": "über",
+      "pos": "preposition",
+      "id": "o038",
+      "lesson": "20"
+    },
+    {
+      "en": "behind",
+      "de": "hinter",
+      "pos": "preposition",
+      "id": "o039",
+      "lesson": "20"
+    },
+    {
+      "en": "in front of",
+      "de": "vor",
+      "pos": "preposition",
+      "id": "o040",
+      "lesson": "20"
+    },
+    {
+      "en": "next to",
+      "de": "neben",
+      "pos": "preposition",
+      "id": "o041",
+      "lesson": "20"
+    },
+    {
+      "en": "between",
+      "de": "zwischen",
+      "pos": "preposition",
+      "id": "o042",
+      "lesson": "20"
+    },
+    {
+      "en": "with",
+      "de": "mit",
+      "pos": "preposition",
+      "id": "o043",
+      "lesson": "20"
+    },
+    {
+      "en": "without",
+      "de": "ohne",
+      "pos": "preposition",
+      "id": "o044",
+      "lesson": "20"
+    },
+    {
+      "en": "for",
+      "de": "für",
+      "pos": "preposition",
+      "id": "o045",
+      "lesson": "20"
+    },
+    {
+      "en": "from",
+      "de": "von",
+      "pos": "preposition",
+      "id": "o046",
+      "lesson": "20"
+    },
+    {
+      "en": "at",
+      "de": "bei",
+      "pos": "preposition",
+      "id": "o047",
+      "lesson": "20"
+    },
+    {
+      "en": "and",
+      "de": "und",
+      "pos": "conjunction",
+      "id": "o048",
+      "lesson": "20"
+    },
+    {
+      "en": "but",
+      "de": "aber",
+      "pos": "conjunction",
+      "id": "o049",
+      "lesson": "20"
+    },
+    {
+      "en": "or",
+      "de": "oder",
+      "pos": "conjunction",
+      "id": "o050",
+      "lesson": "20"
+    },
+    {
+      "en": "because",
+      "de": "weil",
+      "pos": "conjunction",
+      "id": "o051",
+      "lesson": "20"
+    },
+    {
+      "en": "if",
+      "de": "wenn",
+      "pos": "conjunction",
+      "id": "o052",
+      "lesson": "20"
+    },
+    {
+      "en": "also",
+      "de": "auch",
+      "pos": "adverb",
+      "id": "o053",
+      "lesson": "20"
+    },
+    {
+      "en": "always",
+      "de": "immer",
+      "pos": "adverb",
+      "id": "o054",
+      "lesson": "20"
+    },
+    {
+      "en": "never",
+      "de": "nie",
+      "pos": "adverb",
+      "id": "o055",
+      "lesson": "20"
+    },
+    {
+      "en": "sometimes",
+      "de": "manchmal",
+      "pos": "adverb",
+      "id": "o056",
+      "lesson": "20"
+    },
+    {
+      "en": "often",
+      "de": "oft",
+      "pos": "adverb",
+      "id": "o057",
+      "lesson": "20"
+    },
+    {
+      "en": "now",
+      "de": "jetzt",
+      "pos": "adverb",
+      "id": "o058",
+      "lesson": "20"
+    },
+    {
+      "en": "later",
+      "de": "später",
+      "pos": "adverb",
+      "id": "o059",
+      "lesson": "20"
+    },
+    {
+      "en": "here",
+      "de": "hier",
+      "pos": "adverb",
+      "id": "o060",
+      "lesson": "20"
+    },
+    {
+      "en": "there",
+      "de": "dort",
+      "pos": "adverb",
+      "id": "o061",
+      "lesson": "20"
+    },
+    {
+      "en": "can",
+      "de": "können",
+      "pos": "verb",
+      "id": "v087",
+      "lesson": "21",
+      "conjugation": {
+        "i": "can",
+        "you": "can",
+        "he_she_it": "can",
+        "we": "can",
+        "they": "can"
+      },
+      "cloze": [
+        {
+          "en": "I {can} swim.",
+          "de": "Ich kann schwimmen."
+        }
+      ]
+    },
+    {
+      "en": "must",
+      "de": "müssen",
+      "pos": "verb",
+      "id": "v088",
+      "lesson": "21",
+      "conjugation": {
+        "i": "must",
+        "you": "must",
+        "he_she_it": "must",
+        "we": "must",
+        "they": "must"
+      }
+    },
+    {
+      "en": "should",
+      "de": "sollen",
+      "pos": "verb",
+      "id": "v089",
+      "lesson": "21",
+      "conjugation": {
+        "i": "should",
+        "you": "should",
+        "he_she_it": "should",
+        "we": "should",
+        "they": "should"
+      }
+    },
+    {
+      "en": "could",
+      "de": "könnte",
+      "pos": "verb",
+      "id": "v090",
+      "lesson": "21",
+      "conjugation": {
+        "i": "could",
+        "you": "could",
+        "he_she_it": "could",
+        "we": "could",
+        "they": "could"
+      }
+    },
+    {
+      "en": "would",
+      "de": "würde",
+      "pos": "verb",
+      "id": "v091",
+      "lesson": "21",
+      "conjugation": {
+        "i": "would",
+        "you": "would",
+        "he_she_it": "would",
+        "we": "would",
+        "they": "would"
+      }
+    },
+    {
+      "en": "may",
+      "de": "dürfen",
+      "pos": "verb",
+      "id": "v092",
+      "lesson": "21",
+      "conjugation": {
+        "i": "may",
+        "you": "may",
+        "he_she_it": "may",
+        "we": "may",
+        "they": "may"
+      }
     }
   ]
 }

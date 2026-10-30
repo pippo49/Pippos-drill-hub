@@ -9,11 +9,12 @@ lighter grammar: no case, no gender, no adjective agreement. Regular forms are
 derived by scripts/english_morph.py; this file only says what's IRREGULAR or
 otherwise worth drilling, same split as latin_morph.py/build_latin_vocab.py.
 
-8 starter lessons (greetings, family, numbers/time, food, everyday verbs,
-adjectives, home, time/weather) -- a deliberately small first slice to prove
-the engine out, same way every other trainer here grew lesson by lesson rather
-than shipping complete. More lessons are easy to add: append to the lists
-below and re-run.
+21 lessons (greetings, family, numbers/time, food, two verb lessons,
+adjectives, home, time/weather, people/animals, clothes, colours, body parts,
+places in town, transport, jobs, school/work, shopping, hobbies, function
+words, modal verbs) -- grown lesson by lesson, the same way every other
+trainer here did, rather than shipped complete in one pass. More lessons are
+easy to add: append to the lists below and re-run.
 
     python3 scripts/build_english_vocab.py
 """
@@ -78,6 +79,19 @@ def add_adjective(word, de, lesson, degree=None, cloze=None):
 
 def add_other(pos, word, de, lesson, cloze=None):
     e = {"en": word, "de": de, "pos": pos, "id": _id("other"), "lesson": lesson}
+    if cloze:
+        e["cloze"] = [{"en": en_s, "de": de_s} for en_s, de_s in cloze]
+    entries.append(e)
+    return e
+
+
+def add_modal(word, de, lesson, cloze=None):
+    # Modals never change form by person at all -- not even the regular 3rd-
+    # person -s ("he can", never "he cans") -- and are never used with a bare
+    # "to" infinitive, so they skip add_verb's "to "-prefix and -s suffix rule
+    # entirely rather than needing an IRREGULAR_PRESENT override per word.
+    e = {"en": word, "de": de, "pos": "verb", "id": _id("verb"), "lesson": lesson,
+         "conjugation": {p: word for p in M.PERSONS}}
     if cloze:
         e["cloze"] = [{"en": en_s, "de": de_s} for en_s, de_s in cloze]
     entries.append(e)
@@ -391,6 +405,187 @@ add_noun("tooth", "Zahn", "10", irregular_plural=True)
 add_noun("mouse", "Maus", "10", irregular_plural=True)
 add_noun("goose", "Gans", "10", irregular_plural=True)
 add_noun("sheep", "Schaf", "10", irregular_plural=True)
+
+# === Lesson 11: Clothes =========================================================
+add_noun("clothes", "Kleidung", "11", uncountable=True)
+add_noun("shirt", "Hemd", "11")
+add_noun("t-shirt", "T-Shirt", "11")
+add_noun("trousers", "Hose", "11", uncountable=True)  # always plural in English, like "scissors"
+add_noun("dress", "Kleid", "11", cloze=[
+    ("She's wearing a blue {dress}.", "Sie trägt ein blaues Kleid."),
+])
+add_noun("skirt", "Rock", "11")
+add_noun("jacket", "Jacke", "11")
+add_noun("coat", "Mantel", "11")
+add_noun("shoe", "Schuh", "11")
+add_noun("sock", "Socke", "11")
+add_noun("hat", "Hut", "11")
+add_noun("scarf", "Schal", "11")   # regular f -> ves spelling change (scarves)
+add_noun("belt", "Gürtel", "11")
+add_noun("glove", "Handschuh", "11")
+
+# === Lesson 12: Colours =========================================================
+add_adjective("red", "rot", "12")
+add_adjective("blue", "blau", "12")
+add_adjective("green", "grün", "12")
+add_adjective("yellow", "gelb", "12")
+add_adjective("black", "schwarz", "12")
+add_adjective("white", "weiß", "12")
+add_adjective("orange", "orange", "12")
+add_adjective("purple", "lila", "12")
+add_adjective("pink", "rosa", "12")
+add_adjective("brown", "braun", "12")
+add_adjective("grey", "grau", "12")
+
+# === Lesson 13: Body parts ======================================================
+add_noun("head", "Kopf", "13")
+add_noun("face", "Gesicht", "13")
+add_noun("eye", "Auge", "13", cloze=[
+    ("She has blue {eyes}.", "Sie hat blaue Augen."),
+])
+add_noun("ear", "Ohr", "13")
+add_noun("nose", "Nase", "13")
+add_noun("mouth", "Mund", "13")
+add_noun("hand", "Hand", "13")
+add_noun("arm", "Arm", "13")
+add_noun("leg", "Bein", "13")
+add_noun("back", "Rücken", "13")
+add_noun("stomach", "Bauch", "13")
+add_noun("hair", "Haar", "13", uncountable=True)
+add_noun("finger", "Finger", "13")
+add_noun("shoulder", "Schulter", "13")
+add_noun("knee", "Knie", "13")
+
+# === Lesson 14: Places in town ===================================================
+add_noun("city", "Stadt", "14")  # regular y -> ies (cities)
+add_noun("town", "Stadt", "14")
+add_noun("street", "Straße", "14")
+add_noun("shop", "Geschäft", "14")
+add_noun("supermarket", "Supermarkt", "14")
+add_noun("market", "Markt", "14")
+add_noun("bank", "Bank", "14")
+add_noun("hospital", "Krankenhaus", "14")
+add_noun("school", "Schule", "14")
+add_noun("park", "Park", "14")
+add_noun("church", "Kirche", "14")
+add_noun("station", "Bahnhof", "14")
+add_noun("airport", "Flughafen", "14")
+add_noun("hotel", "Hotel", "14")
+add_noun("library", "Bibliothek", "14")  # regular y -> ies (libraries)
+add_noun("bridge", "Brücke", "14")
+add_noun("square", "Platz", "14")
+
+# === Lesson 15: Transport ========================================================
+add_noun("bus", "Bus", "15")   # regular s -> es (buses)
+add_noun("train", "Zug", "15")
+add_noun("bike", "Fahrrad", "15")
+add_noun("plane", "Flugzeug", "15")
+add_noun("ship", "Schiff", "15")
+add_noun("taxi", "Taxi", "15")
+add_noun("ticket", "Fahrkarte", "15", cloze=[
+    ("I need to buy a {ticket}.", "Ich muss eine Fahrkarte kaufen."),
+])
+add_verb("travel", "reisen", "15")
+
+# === Lesson 16: Jobs & occupations ================================================
+add_noun("doctor", "Arzt", "16")
+add_noun("nurse", "Krankenschwester", "16")
+add_noun("teacher", "Lehrer", "16")
+add_noun("student", "Student", "16")
+add_noun("engineer", "Ingenieur", "16")
+add_noun("lawyer", "Anwalt", "16")
+add_noun("waiter", "Kellner", "16")
+add_noun("driver", "Fahrer", "16")
+add_noun("cook", "Koch", "16")
+add_noun("farmer", "Bauer", "16")
+add_noun("artist", "Künstler", "16")
+add_noun("musician", "Musiker", "16")
+add_noun("writer", "Schriftsteller", "16")
+add_noun("manager", "Manager", "16")
+add_noun("job", "Job", "16")
+
+# === Lesson 17: School & work =====================================================
+add_noun("class", "Klasse", "17")  # regular s -> es (classes)
+add_noun("lesson", "Lektion", "17")
+add_noun("homework", "Hausaufgaben", "17", uncountable=True)
+add_noun("exam", "Prüfung", "17")
+add_noun("pen", "Stift", "17")
+add_noun("pencil", "Bleistift", "17")
+add_noun("paper", "Papier", "17", uncountable=True)
+add_noun("question", "Frage", "17", cloze=[
+    ("Can I ask you a {question}?", "Darf ich dir eine Frage stellen?"),
+])
+add_noun("answer", "Antwort", "17")
+add_noun("work", "Arbeit", "17", uncountable=True)
+add_verb("learn", "lernen", "17", cloze=[
+    ("I'm {learning} English.", "Ich lerne Englisch."),
+])
+add_verb("study", "studieren", "17")
+
+# === Lesson 18: Shopping & money ===================================================
+add_noun("price", "Preis", "18")
+add_noun("euro", "Euro", "18")
+add_noun("cent", "Cent", "18")
+add_noun("credit card", "Kreditkarte", "18")
+add_noun("receipt", "Quittung", "18")
+add_verb("cost", "kosten", "18", cloze=[
+    ("How much does it {cost}?", "Wie viel kostet es?"),
+])
+
+# === Lesson 19: Hobbies & free time =================================================
+add_noun("music", "Musik", "19", uncountable=True)
+add_noun("film", "Film", "19")
+add_noun("game", "Spiel", "19")
+add_noun("sport", "Sport", "19", uncountable=True)
+add_noun("football", "Fußball", "19", uncountable=True)
+add_verb("play", "spielen", "19", cloze=[
+    ("The children {play} in the park.", "Die Kinder spielen im Park."),
+])
+add_verb("watch", "schauen", "19")
+add_verb("listen", "hören", "19")
+add_verb("dance", "tanzen", "19")
+
+# === Lesson 20: Prepositions, conjunctions & more adverbs =============================
+add_other("preposition", "in", "in", "20")
+add_other("preposition", "on", "auf", "20")
+add_other("preposition", "under", "unter", "20")
+add_other("preposition", "over", "über", "20")
+add_other("preposition", "behind", "hinter", "20")
+add_other("preposition", "in front of", "vor", "20")
+add_other("preposition", "next to", "neben", "20")
+add_other("preposition", "between", "zwischen", "20")
+add_other("preposition", "with", "mit", "20")
+add_other("preposition", "without", "ohne", "20")
+add_other("preposition", "for", "für", "20")
+add_other("preposition", "from", "von", "20")
+add_other("preposition", "at", "bei", "20")
+add_other("conjunction", "and", "und", "20")
+add_other("conjunction", "but", "aber", "20")
+add_other("conjunction", "or", "oder", "20")
+add_other("conjunction", "because", "weil", "20")
+add_other("conjunction", "if", "wenn", "20")
+add_other("adverb", "also", "auch", "20")
+add_other("adverb", "always", "immer", "20")
+add_other("adverb", "never", "nie", "20")
+add_other("adverb", "sometimes", "manchmal", "20")
+add_other("adverb", "often", "oft", "20")
+add_other("adverb", "now", "jetzt", "20")
+add_other("adverb", "later", "später", "20")
+add_other("adverb", "here", "hier", "20")
+add_other("adverb", "there", "dort", "20")
+
+# === Lesson 21: Modal verbs =====================================================
+# See add_modal: these never change form by person, and are never used with
+# "to" -- "to can" isn't English -- so they bypass add_verb's regular rules
+# entirely rather than needing a per-word IRREGULAR_PRESENT override.
+add_modal("can", "können", "21", cloze=[
+    ("I {can} swim.", "Ich kann schwimmen."),
+])
+add_modal("must", "müssen", "21")
+add_modal("should", "sollen", "21")
+add_modal("could", "könnte", "21")
+add_modal("would", "würde", "21")
+add_modal("may", "dürfen", "21")
 
 
 # === Cross-check: every override in the morph tables is actually used =======

@@ -1,9 +1,9 @@
 # English trainer — handoff
 
 Self-contained English→German vocabulary trainer (single HTML file, same engine
-family as the other trainers, PWA-ready, used on iPhone). Level: **A1–A2
-starter deck**, 9 lessons, 225 entries — the first slice, meant to grow the
-way every other trainer here did: lesson by lesson, not shipped complete.
+family as the other trainers, PWA-ready, used on iPhone). Level: **A1–A2**,
+21 lessons, 365 entries — grown in two passes already (225 → 365), the way
+every other trainer here grows: lesson by lesson, not shipped complete.
 
 ## Direction: the mirror of Polish, not of Spanish
 
@@ -70,6 +70,14 @@ speech, unlike Polish's `noun_decl`/`declension` which are populated for
   / is / **are** / **are**). A sixth, always-identical drill slot would have
   taught nothing, so `conjugate` only has five persons (`i, you, he_she_it, we,
   they`), not six.
+- **Modals (`can`, `must`, `should`, `could`, `would`, `may`) are a fourth
+  shape, not a verb with an `IRREGULAR_PRESENT` override.** They never change
+  form by person at all — not even the regular 3rd-person `-s` ("he can",
+  never "he cans") — and are never used with a bare "to" infinitive, so
+  `build_english_vocab.py`'s `add_modal` bypasses `add_verb`'s "to "-prefix and
+  `-s`-suffix logic entirely rather than forcing them through rules that don't
+  apply. They carry no `principal_parts` either: `can`→`could` is suppletive,
+  not a regular past/participle pair.
 
 `scripts/english_morph.py` derives every regular form (3rd-person -s/-es/-ies
 spelling, regular plurals including the f→ves and y→ies spelling changes,
@@ -79,11 +87,11 @@ tables (`IRREGULAR_PRESENT`, `IRREGULAR_PAST_PARTICIPLE`, `IRREGULAR_PLURAL`,
 every override table against the word list that actually uses it — the same
 principle as `latin_morph.py`'s principal-parts cross-check, so a typo'd or
 orphaned override fails the build instead of silently doing nothing. (This is
-how the deck grew from an initial ~30-verb sample to the 78 in the shipped
-build — the cross-check kept rejecting the build until every table entry that
-had already been written actually had a word using it, which was the fastest
-way to discover which common irregular verbs were still missing from the
-lesson list.)
+how the deck grew from an initial ~30-verb sample to the 92 verbs in the
+current build — the cross-check kept rejecting the build until every table
+entry that had already been written actually had a word using it, which was
+the fastest way to discover which common irregular verbs were still missing
+from the lesson list.)
 
 ## Grading: needs BOTH halves of the existing rule set
 
@@ -135,9 +143,11 @@ python3 scripts/build_index.py               # keeps the hub's counts honest
 
 ## Backlog (owner decides priority)
 
-1. More lessons — this is a 225-entry starter slice (9 lessons: greetings,
+1. More lessons still welcome — 365 entries across 21 lessons (greetings,
    family, numbers/time, food, two verb lessons, adjectives, home, weather,
-   people/animals), not the full deck every other trainer has grown into.
+   people/animals, clothes, colours, body parts, places in town, transport,
+   jobs, school/work, shopping, hobbies, function words, modal verbs) is
+   healthy but still short of Polish's scale.
 2. No antonym/synonym bank yet (unlike Polish/Spanish/Italian/French) — no
    curated links authored for this first pass. Cheap to add once there's a
    deck big enough for it to be worth curating.
